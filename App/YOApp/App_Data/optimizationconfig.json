@@ -1,0 +1,8 @@
+{
+ 
+  "EnableJsMinification": false,
+  "EnableCSSMinification": false,
+  "CachingDirectory": false,
+  "UseImageResizer": true
+
+}

@@ -1,0 +1,36 @@
+{
+  "AllowFileTypes": {
+    "png": [
+      "image/png",
+      "image/x-citrix-png",
+      "image/x-png"
+    ],
+    "jpeg": [
+      "image/jpeg",
+      "image/x-citrix-jpeg"
+    ],
+    "docx": [
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ],
+    "doc": [
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    ],
+    "txt": [
+      "text/plain"
+    ],
+    "jpg": [
+      "image/jpeg"
+    ],
+    "pdf": [
+      "application/pdf"
+    ],
+    "xls": [
+      "application/vnd.ms-excel",
+      "dfdf/dfd"
+    ],
+    "v4": [
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+    ]
+  }
+}

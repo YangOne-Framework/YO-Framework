@@ -1,0 +1,11 @@
+{
+  "RequireOTP": true,
+  "RequireDeviceVerification": true,
+  "SendOTPFromEmail": true,
+  "SendOTPFromSMS": true,
+  "OTPExpiryTimeInMinutes": 12,
+  "RequireConfirmedEmail": true,
+  "PasswordLength": 8,
+  "RequireNonAlphanumeric": true,
+  "RequireUppercase": true
+}

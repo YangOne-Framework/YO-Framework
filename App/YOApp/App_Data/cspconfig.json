@@ -1,0 +1,46 @@
+{
+  "default-src": [
+    "'self'"
+  ],
+  "script-src": [
+    "'self'",
+    "https://cdn.example.com",
+    "'unsafe-inline'"
+  ],
+  "style-src": [
+    "'self'",
+    "'unsafe-inline'",
+    "https://fonts.googleapis.com"
+  ],
+  "img-src": [
+    "'self'",
+    "data:"
+  ],
+  "object-src": [
+    "'none'"
+  ],
+  "media-src": [
+    "'none'"
+  ],
+  "connect-src": [
+    "'self'"
+  ],
+  "form-action": [
+    "'self'"
+  ],
+  "frame-src": [
+    "'self'"
+  ],
+  "embed-src": [
+    "'self'"
+  ],
+  "font-src": [
+    "'self'",
+    "https://fonts.googleapis.com",
+    "https://fonts.gstatic.com"
+  ],
+  "base-uri": [
+    "'self'"
+  ],
+  "SupportNonce": true
+}

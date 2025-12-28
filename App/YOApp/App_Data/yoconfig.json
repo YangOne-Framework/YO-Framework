@@ -1,0 +1,37 @@
+{
+  "YangOneAppConfig": {
+    "AppName": "YangOne Framework",
+    "SiteUrl": "https://localhost:7189",
+    "IsInstalled": false,
+    "DbProvider": "SQLServer",
+    "Framework": "",
+    "Version": "1.0.0",
+    "EnableLogging": true,
+    "EnableDbLogging": false,
+    "Theme": "Default",
+    "AdminTheme": "Admin",
+    "FacebookAppId": "",
+    "RequireConfirmedEmail": false,
+    "PasswordLength": 8,
+    "RequireNonAlphanumeric": false,
+    "RequireUppercase": false,
+    "DataProtectionKeyPath": "app_data",
+    "CookieDomain": "localhost",
+    "CookieIdentity": "kachuwa.id",
+    "ApiTokenEndPoint": "https://localhost:7189/connect/token",
+    "ApiEndPoint": "https://localhost:7189",
+    "TokenAuthority": "https://localhost:7189",
+    "SMTMConfig": {
+      "Host": "",
+      "UserName": "",
+      "Password": "",
+      "UseSSL": true,
+      "Port": 587
+    },
+    "JobConnection": "JobConnection"
+  },
+  "DapperIdentityCryptography": {
+    "Key": "FrFE/VtQ5pfNhGYVnyf65Sa6j4h6ion3ItkAnqLsnBE=",
+    "IV": "Ig/YU0tgUqI1u2VzWH0plQ=="
+  }
+}

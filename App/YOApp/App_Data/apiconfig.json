@@ -1,0 +1,6 @@
+{
+  "APIConfig": {
+    "UseEncryption": false,
+    "UseObfusication": true
+  }
+}
