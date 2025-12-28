@@ -1,0 +1,101 @@
+﻿@using YangOne.Web.Form
+@using YangOne.Identity.Models
+@using YangOne.Web.Grid
+@using YangOne.Localization
+@model YangOne.BlogEngine.Model.PostCategory
+@inject ILocaleResourceProvider LocaleResource
+@{
+
+    LocaleResource.LookUpGroupAt("Blog");
+    ViewData["Title"] = @LocaleResource.Get("Blog.Category.PageTitle.New");
+}
+
+<section class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+
+            <div class="cardform-wrapper">
+
+                @(Html.CreateKachuwaForm<YangOne.BlogEngine.Model.PostCategory>("liform", Model)
+                    .SetHeading("")
+                    .ActionUrl("/admin/blog/category/new")
+                    .CancelUrl("/admin/blog/category")
+                    .CreateSection(section =>
+                            {
+                                section.Add("section1", "form-section", rows =>
+                                {
+                                    rows.Add("1strow", "row", columns =>
+                                    {
+                                        columns.Add("left", "col-md-4", @<div class="form-description">
+                                            <h4>@LocaleResource.Get("Blog.Category.Info.Title")</h4>
+                                            <p>@LocaleResource.Get("Blog.Category.Info.InfoText")</p>
+                                        </div>);
+  columns.Add("right", "col-md-8", control =>
+  {
+      control.Add("form-control", model => model.PostCategoryId, FormInputControl.Hidden);
+
+      control.Add("form-control keychange", x => x.Name, FormInputControl.TextBox)
+          .SetFirstParentClass("form-group")
+          .SetSecondParentClass("col-md-12")
+          .SetHelp(LocaleResource.Get("Blog.Category.Help.Name"))
+          .SetPlaceHolder(LocaleResource.Get("Blog.Category.PlaceHolder.Name"))
+          .SetDisplayName(LocaleResource.Get("Blog.Category.Form.Name"));
+      control.Add("form-control urlchange", x => x.Url, FormInputControl.TextBox)
+          .SetFirstParentClass("form-group")
+          .SetSecondParentClass("col-md-12")
+          .SetHelp(LocaleResource.Get("Blog.Category.Help.Url"))
+          .SetPlaceHolder(LocaleResource.Get("Blog.Category.PlaceHolder.Url"))
+          .SetDisplayName(LocaleResource.Get("Blog.Category.Form.Url"));
+
+      control.Add("form-control urlchange", x => x.IsActive, FormInputControl.Switch)
+          .SetFirstParentClass("form-group")
+          .SetSecondParentClass("col-md-12")
+          .SetHelp(LocaleResource.Get("Blog.Category.Help.IsActive"))
+          .SetPlaceHolder(LocaleResource.Get("Blog.Category.PlaceHolder.IsActive"))
+          .SetDisplayName(LocaleResource.Get("Blog.Category.Form.IsActive"));
+
+  }).SetFirstChildClass("forminput-section").SetSecondChildClass("row");
+});
+
+})
+.SetHeading(LocaleResource.Get("Blog.Category.Form.Title.New"));
+}))
+            </div>
+        </div>
+    </div>
+</section>
+
+@section scripts{
+    <script type="text/javascript" asp-add-nonce="true">
+        (function () {
+            $(document).off("input", ".keychange").on("input",
+                ".keychange",
+                function (event) {
+                    var name = $(this).val();
+                    var nameWithoutSpace = name.replace(/\s\s+/g, ' ');
+                    var nameWithoutSpecialChar = nameWithoutSpace.replace(/[^a-zA-Z 0-9 -]+/g, "");
+                    if (this.name == "MetaTitle") {
+                        $(this).val(nameWithoutSpecialChar);
+                    } else
+                        $(".keychange").val(nameWithoutSpecialChar);
+                    $(".urlchange").val($.trim(nameWithoutSpecialChar).replace(/ /g, "-"));
+                });
+
+            $(document).off("input", ".urlchange").on("input",
+                ".urlchange",
+                function (event) {
+                    var fulltxt = $(this).val();
+                    var pagename = fulltxt.replace("/", "");
+                    var pagenam2 = fulltxt.replace("/", "");
+                    var nameWithoutSpace = pagename.replace(/ /g, "");
+                    var dnameWithSpace = pagenam2.replace(/-/g, " ");
+                    var nameWithoutSpecialChar = nameWithoutSpace.replace(/[^a-zA-Z 0-9 -]+/g, "");
+                    var nameWithoutSpecialChar2 = dnameWithSpace.replace(/[^a-zA-Z 0-9 -]+/g, "");
+                    $(this).val(nameWithoutSpecialChar.replace(/\-+/g, '-'));
+                });
+
+        })();
+
+
+    </script>
+}

@@ -1,0 +1,60 @@
+﻿@using YangOne.Web.Grid
+@using YangOne.Localization
+@model IEnumerable<YangOne.BlogEngine.Model.PostCategory>
+@inject ILocaleResourceProvider LocaleResource
+@{
+
+    LocaleResource.LookUpGroupAt("Blog");
+    ViewData["Title"] = LocaleResource.Get("Blog.Category.PageTitle");
+}
+<section class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="grid-section">
+                <div class="panel module">
+                    <div class="panel-inner">                       
+                        <div class="panel-heading clearfix">
+                            <h2 class="panel-title float-left">@LocaleResource.Get("Blog.Category.PageTitle")</h2>
+
+                            <div class="float-right">
+                                <div class="input-group-btn ">
+                                    <a href="/admin/blog/category/new" class="btn btn-primary btn-sm has-mdicon">
+                                        <i class="material-icons md-18">add</i>
+                                        @LocaleResource.Get("Blog.Category.AddNewButtonText")
+                                    </a>
+
+                                </div>
+                            </div>
+                        </div>
+                        <div class="panel-body">
+                            @(Html
+                                                                  .CreateKachuwaGrid(Model)
+                                                                  .Build(columns =>
+                                                                  {
+
+                                                                      columns.Add(model => model.Name).SetTitle(LocaleResource.Get("Blog.Category.Grid.Name"));
+                                                                      columns.Add(model => model.IsActive ? LocaleResource.Get("Blog.Category.Grid.Yes") : LocaleResource.Get("Blog.Category.Grid.No")).SetTitle(LocaleResource.Get("Blog.Category.Grid.IsActive"));
+
+                                                                  }).AddCommands(commands =>
+                                                                  {
+                                                                      commands.Add(LocaleResource.Get("Grid.Command.Edit"), "Edit", "fa fa-edit", "", "/admin/blog/category/edit", model => model.PostCategoryId);
+                                                                      commands.Add(LocaleResource.Get("Grid.Command.Delete"), "Delete", "fa fa-trash", "kachuwagrid.delete", Model => Model.PostCategoryId,
+                                                                          "/admin/blog/category/delete");
+
+                                                                  }).Css("table-hover")
+                                                                  .Empty(LocaleResource.Get("Blog.Category.Grid.EmptyText"))
+                                                                  .Pagination(pager =>
+                                                                  {  pager.CurrentPage = (int)ViewData["Page"];
+                                                                      pager.Api = "/admin/blog/category";
+                                                                  })
+
+                            )
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+

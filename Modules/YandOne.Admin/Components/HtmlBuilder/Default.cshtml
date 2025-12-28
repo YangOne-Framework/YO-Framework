@@ -1,0 +1,796 @@
+﻿@model IEnumerable<YangOne.Admin.HtmlBuilder.HtmlTemplate>
+
+<link href="/Themes/Default/css/theme.css" rel="stylesheet" />
+<script src="~/lib/json5/json5.min.js"></script>
+<style>
+    .setting-buttons .active {
+        border: 1px solid #13a813;
+    }
+
+    .complex-object {
+    }
+
+    .sheet {
+        min-height: 300px;
+        /*min-width: 1024px;*/
+        /*overflow: scroll;*/
+    }
+
+    .sticky-right {
+        background: white;
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100vh;
+        z-index: 1;
+        overflow: scroll !important;
+    }
+
+    .current-drop {
+        border: 1px black solid;
+    }
+
+    .kachuwa-template-drop {
+        position: relative;
+    }
+
+    .invoice-template-setting .k-component {
+        margin: 0 10px;
+    }
+
+    .kachuwa-template-drop {
+    }
+
+        .kachuwa-template-drop:hover:before {
+            /* ------- THIS IS THE MAGIC ----------------*/
+            content: attr(data-hover);
+            /* ------------------------------------------*/
+            display: block;
+            background: #2da707;
+            position: absolute;
+            /*top: 100%;*/
+            left: 0;
+            right: 0;
+            font-size: 15px;
+            /*padding: 15px;*/
+        }
+
+        .kachuwa-template-drop:hover:after {
+            content: "";
+            position: absolute;
+            display: block;
+            width: 0;
+            height: 0;
+            border: solid 10px transparent;
+            /*border-bottom-color: #000;*/
+            bottom: 0;
+            left: 50%;
+            margin-left: -10px;
+            z-index: 2;
+        }
+
+    #svgbasics {
+        position: absolute;
+        left: 0px;
+        top: 0px;
+        border: solid 0px #484;
+        z-index: -100;
+    }
+
+    .dragging-item {
+        background-color: greenyellow;
+    }
+
+    .dragged-item {
+        background-color: olive;
+    }
+
+    .components, .template-data-objects {
+        list-style: none;
+        background: #e8e8e8;
+        padding: 5px;
+        margin: 0;
+        margin-top: 20px;
+        max-height: 80vh;
+        overflow-y: scroll;
+    }
+
+    .components {
+        /*display: inline-flex;*/
+    }
+
+        .components li:hover, .template-data-objects li:hover {
+            background: #efefef;
+        }
+
+        .components li, .template-data-objects li {
+            padding: 20px 5px;
+            margin: 0 0 0 20px;
+            cursor: pointer;
+        }
+
+    .component-settings {
+        background: #f2f2f2;
+        /*margin-top: 20px;*/
+    }
+
+    .sheetcomponent-setting {
+        /*display: none;*/
+        height: 32px;
+        border: 1px dashed #a6a6a6;
+    }
+
+        .sheetcomponent-setting i {
+            margin: 8px;
+        }
+
+
+    .invoice-template-setting {
+        clear: both;
+        padding: 20px 0;
+    }
+
+    .component-settings .group {
+        display: inline;
+        float: left;
+    }
+
+    .sidebar-fixed {
+        opacity: 1;
+        width: 48px;
+        height: 100%;
+        position: fixed;
+        left: 0;
+        color: #666;
+        font-size: 15px;
+        transition: all .5s ease;
+        -webkit-transition: all .5s ease;
+        -moz-transition: all .5s ease;
+        box-shadow: 0 2px 5px 0 rgba(0,0,0,0.26);
+        opacity: 1;
+        z-index: 9999999;
+    }
+
+
+
+        .sidebar-fixed li {
+            height: 48px;
+            line-height: 55px;
+            text-align: center;
+            cursor: pointer;
+            transition: all .5s ease;
+            -webkit-transition: all .5s ease;
+            -moz-transition: all .5s ease;
+            color: #fff;
+            opacity: .6;
+        }
+</style>
+
+<link href="~/lib/paper-css/paper.min.css" rel="stylesheet" />
+<link href="~/lib/rangeslider.js/rangeslider.min.css" rel="stylesheet" />
+<script src="~/lib/rangeslider.js/rangeslider.min.js"></script>
+<script src="~/lib/tinyColorPicker/jqColorPicker.min.js"></script>
+<script src="~/lib/sortablejs/Sortable.min.js"></script>
+<script src="~/lib/@@furcan/iconpicker/dist/iconpicker-1.5.0.js"></script>
+<link href="~/lib/@@furcan/iconpicker/dist/iconpicker-1.5.0.css" rel="stylesheet" />
+
+<!--[if IE]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+<script>
+    var templateSettingManager = {};
+    var _templateSettingManager = function () {
+
+        var componentDropedCounter = 1;
+        var toClientSettings = function (keyvalueSettings) {
+            var clientSettings = {};
+            $.each(keyvalueSettings,
+                function (index, item) {
+                    clientSettings[item.Key] = item.Value;
+                });
+            return clientSettings;
+        };
+
+        var toKeyValueSettings = function (clientSettings) {
+            var keyvalueSettings = [];
+            $.each(clientSettings,
+                function (key, value) {
+                    keyvalueSettings.push({ Key: key, Value: value });
+                });
+            return keyvalueSettings;
+        };
+        var toRootKeyValueSettings = function (clientSettings) {
+            var keyvalueSettings = [];
+            $.each(clientSettings,
+                function (index, item) {
+                    keyvalueSettings.push({ Key: item.Key, Value: item.Value });
+                });
+            return keyvalueSettings;
+        };
+
+        var ajaxCall = function (url, param, successFx, error) {
+            $.ajax({
+                type: "POST",
+                async: false,
+                url: url,
+                data: param,
+                dataType: "json",
+                success: successFx,
+                error: error
+            });
+        };
+
+        var getInvoiceComponents = function () {
+            ajaxCall("/admin/html/builder/components",
+                {},
+                function (response) {
+                    if (response.Code == 200) {
+
+                        $.each(response.Data,
+                            function (index, item) {
+                                var $li = $("<li class='component'></li>");
+                                $li.html("<img src='" + item.Showcase + "' />");
+                                $li.append("<label>" + item.DisplayName + "</label>");
+                                $li.data('item', item);
+                                $li.data('settings', item.Settings);
+                                $(".components").append($li);
+                            });
+                    }
+
+                },
+                null);
+        }
+        var extractTemplate = function () {
+            //if ($.trim($("#txtTemplateName").val()) == '') {
+            //    new kachuwaNotification().Warning(Locale.Get("Error"), Locale.Get("Please enter name."));
+            //    return false;
+            //}
+            var templateComponents = [];
+
+            $(".sheet:eq(0)").find(".sheetcomponent").each(function (index, item) {
+                var componentData = $(item).data();
+                var cc = componentData.item;
+                var ccSettings = componentData.settings;
+                var instanceId = componentData.ktiid;
+                var order = index;
+                templateComponents.push({
+                    Component: JSON.stringify(cc),
+                    ClientSettings: ccSettings,
+                    InstanceId: instanceId,
+                    Order: order
+                });
+            });
+            var template = $(".sheet:eq(0)").clone(true);
+            var finalHtml = "";
+            template.find(".sheetcomponent-setting").remove();
+            template.find(".sheetcomponent").each(function (index, item) {
+                var componentData = $(item).data();
+                // console.log(componentData)
+                $(this).find("[contenteditable=true]").removeAttr('contenteditable').attr("xce", "true");
+                $(this).find(".iconpicker").removeClass('iconpicker').addClass("xip");
+                $(this).find(".img-changer").removeClass('img-changer').addClass("xic");
+                //componentData.settings.Template = "";
+                var setting = jQuery.extend(true, {}, componentData.settings);
+
+                var ite = jQuery.extend(true, {}, componentData.item);
+                ite.Template = "";
+                $(this).children(":eq(0)").attr("data-settings", JSON.stringify(setting).replace(/"/g, "'"));
+                $(this).children(":eq(0)").attr("data-ktiid", componentData.ktiid);
+                $(this).children(":eq(0)").attr("data-item", JSON.stringify(ite).replace(/"/g, "'"));
+                // console.log("asdf",componentData, $(this).children(":eq(0)"),$(this).html())
+                finalHtml += $(this).html();
+            });
+            finalHtml = finalHtml.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script\s*>/gi, '');
+            $.each(templateComponents,
+                function (i, to) {
+                    var settings = templateSettingManager.toRootKeyValueSettings(to.ClientSettings);
+                    templateComponents[i].Settings = settings;
+                    templateComponents[i].ClientSettings = [];
+                });
+            // console.log(templateComponents, template.html());
+            return { components: templateComponents, template: finalHtml, orgTemplate: template.html() }
+        }
+        var saveInvoiceTemplate = function () {
+
+            if ($.trim($("#txtTemplateName").val()) == '') {
+                new kachuwaNotification().Warning(Locale.Get("Error"), Locale.Get("Please enter name."));
+                return false;
+            }
+            var templateComponents = [];
+            //ie dvInvoiceTemplateHolder
+            $(".sheet:eq(1)").find(".sheetcomponent").each(function (index, item) {
+                var componentData = $(item).data();
+                var cc = componentData.item;
+                var ccSettings = componentData.settings;
+                var instanceId = componentData.ktiid;
+                var order = index;
+                templateComponents.push({
+                    Component: JSON.stringify(cc),
+                    ClientSettings: ccSettings,
+                    InstanceId: instanceId,
+                    Order: order
+                });
+            });
+            var template = $(".sheet:eq(1)").clone();
+            template.find(".kachuwa-template-drop").each(function (index, item) {
+                // console.log($(item)[0].hasAttribute("data-Hover"), $(item).attr('data-Hover'));
+                if ($(item)[0].hasAttribute("data-Hover")) {
+                    $(item).html("@@" + $(item).attr('data-Hover'));
+                }
+            });
+
+            template.find(".sheetcomponent-setting").remove();
+
+            $.each(templateComponents,
+                function (i, to) {
+                    var settings = templateSettingManager.toRootKeyValueSettings(to.ClientSettings);
+                    templateComponents[i].Settings = settings;
+                    templateComponents[i].ClientSettings = [];
+                });
+            //console.log(templateComponents, template.html());
+            var data = {
+                Name: $.trim($("#txtTemplateName").val()),
+                TheaterId: 1,
+                InvoiceTypeId: $("#ddlInvoiceType").val(),
+                PrintPaperTypeId: 3, //$("#ddlPaperType").val(),
+                InvoicePrintTemplateId: 0,
+                // Template: template.html(),
+                TemplateConfig: '',
+                Components: templateComponents
+
+            };
+            ajaxCall("/admin/invoice/template/save",
+                data,
+                function (response) {
+                    if (response.Code == 200) {
+                        new kachuwaNotification().Success(Locale.Get("Success"), Locale.Get("Data has been saved successfully"));
+                        getInvoicePrintTemplate(response.Data);
+                    }
+                },
+                function () {
+
+                });
+        }
+        var getInvoicePrintTemplate = function (id) {
+            ajaxCall("/admin/invoice/template/" + id,
+                {},
+                function (response) {
+                    if (response.Code == 200) {
+                        $("#dvInvoiceTemplateHolder").html(response.Data.Template);
+                        initializeDataDrop();
+                    }
+                },
+                function () {
+
+                });
+        };
+        var initializeDataDrop = function () {
+            // $(".kachuwa-template-drop").sortable
+            $(".kachuwa-template-drop").each(function (index, item) {
+                var sortable = new Sortable(item,
+                    {
+                        animation: 150, // ms, animation speed moving items when sorting, `0` — without animation
+                        put: false,
+                        //filter: ".page-row",
+                        // pull: 'clone',
+                        sort: false,
+                        group: { name: 'datatemplate', pull: 'clone', put: true },
+                        onAdd: function (/**Event*/evt) {
+                            //console.log('onAdd.foo:', [evt.item, evt.from]);
+                            var dropedElem = $(evt.item);
+                            $(evt.to).find("li").remove();
+                            // console.log(dropedElem.data())
+                            var memberName = dropedElem.data('membername');
+                            $(evt.to).attr('data-hover', memberName);
+                            //resetTootTip();
+                            if (!dropedElem.is("div")) {
+
+                                // console.log(evt.oldIndex, evt.newIndex);
+                            }
+                        }, // Element dragging started
+
+
+                    });
+            });
+        };
+        var loadHtmls = function (_html) {
+            try {
+
+                $("#sectionPaper").find(".sheet").html('');
+                var xTemplate = $("<div/>").html(_html);
+                // console.log("found", xTemplate.find("[data-item]"), _html, xTemplate)
+                xTemplate.find("[data-item]").each(function (index, component) {
+                    var $component = $(component);
+                    var new_droppedElem =
+                        $(
+                            "<div class='sheetcomponent'><div class='sheetcomponent-setting'><i title='Clone' class='fa fa-clone text-primary module-setting float-left' ></i>" +
+                            "<i title='Remove' class='fa fa-trash module-setting float-right text-danger' ></i><i title='Setting' class='fa fa-tools module-setting float-right text-success' ></i>" +
+                            "</div>" +
+                            "</div>");
+                    new_droppedElem.append($(component)[0].outerHTML);
+                    console.log($(component)[0].outerHTML, JSON5.parse($component.data('item')));
+                    new_droppedElem.data('item', JSON5.parse($component.data('item')));
+
+                    new_droppedElem.data('ktiid', $component.data('ktiid'));
+                    new_droppedElem.attr('ktiid', $component.data('ktiid'));
+                    new_droppedElem.data('settings', JSON5.parse($component.data('settings')));
+                    new_droppedElem.find("[xce=true]").removeAttr('xce').attr("contenteditable", "true");
+                    new_droppedElem.find(".xip").removeClass('xip').addClass("iconpicker");
+                    new_droppedElem.find(".xic").removeClass('xic').addClass("img-changer");
+                    new_droppedElem.find("p,a,h1,h2,h3,h4,h5,label,span").removeAttr('xce').attr("contenteditable", "true");
+                    $("#sectionPaper").find(".sheet:eq(0)").append(new_droppedElem);
+                });
+                iconSelector();
+            } catch (e) {
+                console.log("error", e)
+            }
+        }
+        var iconSelector = function () {
+            if ($(".iconpicker").length > 0)
+                IconPicker.Run('.iconpicker', function (s) {
+
+                    // codes...
+                    $currentIconPickerElem.removeAttr('class');
+                    $currentIconPickerElem.addClass("iconpicker");
+                    $currentIconPickerElem.addClass($("#IconInput").val());
+                });
+
+            //var contentEditableNodes = document.querySelectorAll('[contenteditable]');
+
+            //[].forEach.call(contentEditableNodes, function (div) {
+            //    div.addEventListener("input", convertToPlaintext, false);
+            //});
+        }
+        var init = function () {
+            templateSettingManager.toClientSettings = toClientSettings;
+            templateSettingManager.toKeyValueSettings = toKeyValueSettings;
+            templateSettingManager.toRootKeyValueSettings = toRootKeyValueSettings;
+            templateSettingManager.initIconPicker = iconSelector;
+            $(document).ready(function () {
+
+                $(document).off("click", "#btnSaveTemplate").on("click",
+                    "#btnSaveTemplate",
+                    function () {
+                        saveInvoiceTemplate();
+                    });
+
+                //  $(".sheet").sortable('destroy').sortable({
+                // $(".sheet").each(function(index, item) {
+                var sortable2 = new Sortable($(".sheet")[0],
+                    {
+                        animation: 150, // ms, animation speed moving items when sorting, `0` — without animation
+                        //  handle: ".tile__title", // Restricts sort start click/touch to the specified element
+                        draggable: ".sheetcomponent", // Specifies which items inside the element should be sortable
+                        put: true,
+                        pull: true,
+                        group: 'invoice',
+                        onAdd: function (/**Event*/evt) {
+                            // console.log(evt);
+                            // evt.oldIndex; // element's old index within parent
+                            //evt.newIndex; // element's new index within parent
+                            var dropedElem = $(evt.item);
+                            // console.log(dropedElem, dropedElem.is("div"))
+                            if (!dropedElem.is("div")) {
+                                var shortName = dropedElem.attr('st-name');
+                                var fullName = dropedElem.attr('fl-name');
+                                var moduleName = dropedElem.attr('m-name');
+                                var new_droppedElem =
+                                    $(
+                                        "<div class='sheetcomponent'><div class='sheetcomponent-setting'><i title='Clone' class='fa fa-clone text-primary module-setting float-left' ></i>" +
+                                        "<i title='Remove' class='fa fa-trash module-setting float-right text-danger' ></i><i title='Setting' class='fa fa-tools module-setting float-right text-success' ></i>" +
+                                        "</div>" +
+                                        $.trim(dropedElem.data('item').Template) +
+                                        "</div>");
+                                new_droppedElem.data('item', dropedElem.data('item'));
+                                // console.log('dd', dropedElem.data())
+                                var dropeditem = {
+                                    id: componentDropedCounter,
+                                    component: new_droppedElem.data('item'),
+                                    setting: {}
+                                };
+                                //pageComponents.push(dropeditem);
+                                new_droppedElem.data('ktiid', componentDropedCounter);
+                                new_droppedElem.attr('ktiid', componentDropedCounter);
+                                new_droppedElem.data('settings', dropedElem.data('settings'));
+                                // saveState();
+                                componentDropedCounter++;
+                                // console.log(  $(evt.to))
+                                $(evt.to).find("li.component").remove();
+                                // console.log( evt.newIndex,$(evt.to).find(".sheetcomponent:eq(" + evt.newIndex + ")") )
+                                if (evt.newIndex == 0) {
+                                    if ($("#sectionPaper").find(".sheetcomponent").length === 0)
+                                        $(evt.to).append(new_droppedElem);
+                                    else
+                                        new_droppedElem.insertBefore($("#sectionPaper").find(".sheetcomponent:eq(0)"));
+                                } else {
+                                    new_droppedElem.insertAfter($("#sectionPaper").find(".sheetcomponent:eq(" + (parseInt(evt.newIndex) - 1) + ")"));
+                                }
+                                iconSelector()
+                                // console.log(evt.oldIndex, evt.newIndex);
+                            }
+                        }
+                    });
+                //});
+
+                $(".components").each(function (index, item) {
+                    new Sortable(item,
+                        {
+                            animation: 150, // ms, animation speed moving items when sorting, `0` — without animation
+                            put: false,
+                            //filter: ".page-row",
+                            pull: 'clone',
+                            sort: false,
+                            group: { name: 'invoice', pull: 'clone', put: false }
+                        });
+                });
+                $(document).off("click", ".sheetcomponent").on("click",
+                    ".sheetcomponent",
+                    function () {
+                        //if ($(this).parents("section:eq(1)").length === 0) {
+                        //    return false;
+                        //}
+                        //$(".sheetcomponent").removeClass('active');
+                        //var config = $(this).data('item');
+                        //var settings = $(this).data('settings');
+                        ////console.log(config, settings);
+                        //$(".component-settings .invoice-template-setting").hide();
+                        //$(".component-settings .invoice-template-setting[cn='" + config.Name + "']").show();
+                        //var id = $(this).data('ktiid'); //instanceid
+                        //// eval(config.InitializeWith,id, settings);
+                        //console.log(config);
+                        //$(this).addClass('active');
+                        //templateSettingManager[config.Name](id, settings, $(this));
+                        // _barcode.reset(id, settings, $(this));
+                        //barcodeSetting(id);
+                    });
+
+                $(document).off("click", ".sheetcomponent-setting .fa-clone").on("click",
+                    ".sheetcomponent-setting .fa-clone",
+                    function () {
+                        var config = $(this).parents('.sheetcomponent:eq(0)').data('item');
+                        var settings = $(this).parents('.sheetcomponent:eq(0)').data('settings');
+                        var newclone = $(this).parents('.sheetcomponent:eq(0)').clone();
+                        componentDropedCounter++;
+                        newclone.data('ktiid', componentDropedCounter);
+                        newclone.attr('ktiid', componentDropedCounter);
+                        newclone.data('item', config);
+                        newclone.data('settings', settings);
+                        componentDropedCounter++;
+                        $(newclone).insertAfter($(this).parents('.sheetcomponent:eq(0)'));
+                    });
+
+                $(document).off("click", ".sheetcomponent-setting .fa-trash").on("click",
+                    ".sheetcomponent-setting .fa-trash",
+                    function () {
+                        if (confirm("Are you sure, want to remove?")) {
+                            $(this).parents('.sheetcomponent:eq(0)').remove();
+                        }
+                    });
+                $(document).off("click", ".sheetcomponent-setting .fa-tools").on("click",
+                    ".sheetcomponent-setting .fa-tools",
+                    function () {
+                        if ($(this).parents("section:eq(1)").length === 0) {
+                            return false;
+                        }
+                        $(".sheetcomponent").removeClass('active');
+                        var config = $(this).parents(".sheetcomponent:eq(0)").data('item');
+                        var settings = $(this).parents(".sheetcomponent:eq(0)").data('settings');
+                        //console.log(config, settings);
+                        $(".component-settings .invoice-template-setting").hide();
+                        $(".component-settings .invoice-template-setting[cn='" + config.Name + "']").show();
+                        var id = $(this).parents(".sheetcomponent:eq(0)").data('ktiid'); //instanceid
+                        // eval(config.InitializeWith,id, settings);
+                        //console.log(config);
+                        $(this).addClass('active');
+                        templateSettingManager[config.Name](id, settings, $(this).parents(".sheetcomponent:eq(0)"));
+                        $("#settingModal").modal('show');
+                    });
+
+                $(".template-data-objects").each(function (index, item) {
+                    var sortable21 = new Sortable(item, {
+                        animation: 150, // ms, animation speed moving items when sorting, `0` — without animation
+                        put: true,
+                        //filter: ".page-row",
+                        pull: 'clone',
+                        ghostClass: "dragged-item",  // Class name for the drop placeholder
+                        chosenClass: "dragging-item",
+                        sort: false,
+                        group: { name: 'datatemplate', pull: 'clone', put: false },
+                        // Element dragging started
+
+                        onMove: function (/**Event*/evt, /**Event*/originalEvent) {
+                            $(".kachuwa-template-drop").removeClass('current-drop');
+                            $(evt.to).addClass('current-drop');
+                        }
+
+                    });
+                });
+
+                $(document).off("click", ".next").on("click",
+                    ".next",
+                    function () {
+                        // $(".nav-tabs").find("li:eq(1) a").trigger('click');
+                        var extractedTemplate = extractTemplate();
+                        //  $("#dvInvoiceTemplateHolder").html(extractedTemplate.template);
+                        // initializeDataDrop();
+                        $(".preview").html(extractedTemplate.template);
+                        $("#htmlPreview").modal("show");
+
+                    });
+                var currentHtmlBuilderElem = null;
+                var currentHtmlHolderElem = null;
+                $(document).off("click", ".openHtmlBuilder").on("click",
+                    ".openHtmlBuilder",
+                    function () {
+                        var name = $(this).data('target');
+                        currentHtmlHolderElem = $("textarea[name='" + name + "']");
+                        console.log(currentHtmlHolderElem, currentHtmlHolderElem.text());
+                        $("#htmlBuilder").modal('show');
+                        var x = tinymce.editors["kform_" + name].getContent();
+                        loadHtmls(x.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script\s*>/gi, ''));
+
+                    });
+                $(document).off("click", ".btndone").on("click",
+                    ".btndone",
+                    function () {
+                        var extractedTemplate = extractTemplate();
+                        //currentHtmlHolderElem.html(extractedTemplate.template);
+                        // console.log(tinyMCE.activeEditor, extractedTemplate.template);
+                        tinyMCE.activeEditor.execCommand("mceInsertContent", true, "");
+                        //tinyMCE.activeEditor.execCommand("mceInsertContent", true, extractedTemplate.template);
+                        tinyMCE.activeEditor.setContent(extractedTemplate.template, { format: 'raw' });
+                        tinyMCE.triggerSave();
+                        $("#htmlPreview").modal('hide');
+                        $("#htmlBuilder").modal('hide');
+
+                    });
+
+                initializeDataDrop();
+                getInvoiceComponents();
+            });
+
+        };
+        init();
+
+        IconPicker.Init({
+            // Required: You have to set the path of IconPicker JSON file to "jsonUrl" option. e.g. '/content/plugins/IconPicker/dist/iconpicker-1.5.0.json'
+            jsonUrl: "/lib/@@furcan/iconpicker/dist/iconpicker-1.5.0.json",
+            // Optional: Change the buttons or search placeholder text according to the language.
+            searchPlaceholder: 'Search Icon',
+            showAllButton: 'Show All',
+            cancelButton: 'Cancel',
+            noResultsFound: 'No results found.', // v1.5.0 and the next versions
+            borderRadius: '20px' // v1.5.0 and the next versions
+        });
+
+        //function convertToPlaintext() {
+        //    var textContent = this.textContent;
+        //    this.innerHTML = "";
+        //    this.textContent = textContent;
+        //}
+
+        //var contentEditableNodes = document.querySelectorAll('[contenteditable]');
+
+        //[].forEach.call(contentEditableNodes, function (div) {
+        //    div.addEventListener("input", convertToPlaintext, false);
+        //});
+        var $currentIconPickerElem = null;
+        $(document).off("click", ".iconpicker").on("click",
+            ".iconpicker",
+            function () {
+                $currentIconPickerElem = $(this);
+
+            });
+        var resetTootTip = function () {
+
+            $('.kachuwa-template-drop').tooltipster({
+                animation: 'fade',
+                delay: 200,
+                theme: 'tooltipster-punk',
+            });
+        }
+
+    };
+    _templateSettingManager();
+
+</script>
+
+<div id="htmlBuilder" class="modal modal-fullscreen-xl" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header col-md-12">
+                <h5 class="modal-title">Html Builder</h5>
+                <div class="d-flex justify-content-end col-md-12" style="z-index: 2000; margin-left:-50px">
+
+                    <button type="button" class="btn btn-info next">Preview</button>
+                    <button type="button" class="btn btn-danger " aria-label="Close" data-dismiss="modal">Close</button>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-2">
+                        <ul class="components">
+                        </ul>
+                    </div>
+                    <div class="col-8">
+                        <section id="sectionPaper" class="a4">
+                            <section class="sheet padding-10mm">
+                            </section>
+                        </section>
+
+
+                        <div class="d-none">
+                            <input type="text" id="IconInput" name="Icon" required="" autocomplete="off" spellcheck="false">
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal left fade" id="settingModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-body">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <div class="component-settings p-0">
+                    <div class="container">
+                        <div class="loader" style="display: none;"></div>
+                        @foreach (var component in Model)
+                        {
+                            <div class="invoice-template-setting" cn="@component.Name" style="display: none;">
+                                @*<component name="@component.SettingViewComponentName"></component>*@
+                                @await Html.PartialAsync(component.SettingViewPath)
+                            </div>
+                        }
+
+                    </div>
+                </div>
+
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="htmlPreview" class="modal modal-fullscreen-xl" id="modal-fullscreen-xl" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Preview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="preview container">
+
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary btndone">Done Building</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@await Component.InvokeAsync("ImagePicker")
+@await Component.InvokeAsync("FilePicker")
+@await Component.InvokeAsync("VideoPicker")
+
+
+
+

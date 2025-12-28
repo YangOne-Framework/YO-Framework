@@ -1,0 +1,269 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>VS Code-like Theme Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        body, html {
+            margin: 0;
+            height: 100%;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .vscode-layout {
+            display: flex;
+            height: 100vh;
+            background-color: #1e1e1e;
+            color: #ccc;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #252526;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            border-right: 1px solid #333;
+        }
+
+            .sidebar h3 {
+                margin-top: 0;
+                font-size: 14px;
+                color: #bbb;
+            }
+
+            .sidebar ul {
+                list-style: none;
+                padding: 0;
+            }
+
+            .sidebar li, .sidebar button {
+                padding: 6px 10px;
+                cursor: pointer;
+                border-radius: 3px;
+                background: none;
+                border: none;
+                color: #ccc;
+                text-align: left;
+                width: 100%;
+            }
+
+                .sidebar li:hover, .sidebar button:hover {
+                    background-color: #373737;
+                }
+
+        .editor-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-bar {
+            height: 32px;
+            display: flex;
+            background-color: #2d2d2d;
+            border-bottom: 1px solid #333;
+        }
+
+        .tab {
+            padding: 6px 12px;
+            color: #ccc;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+            .tab.active {
+                background-color: #1e1e1e;
+                font-weight: bold;
+            }
+
+            .tab .close {
+                color: #888;
+                font-size: 12px;
+                cursor: pointer;
+            }
+
+        #editor {
+            flex-grow: 1;
+        }
+
+        #fileTree li.active {
+            background-color: #005a9e;
+            color: #fff;
+        }
+
+        #fileTree li[data-folder].active > i {
+            color: #4fc3f7;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="vscode-layout">
+        <div class="sidebar">
+            <h3>Explorer</h3>
+            <ul id="fileTree">
+                @*  <li class="folder" data-folder>
+                    <i class="fas fa-folder"></i> Assets
+                    <ul>
+                        <li data-file="Assets/css/style.css"><i class="fas fa-file-code"></i> style.css</li>
+                        <li data-file="Assets/js/script.js"><i class="fas fa-file-code"></i> script.js</li>
+                        <li data-file="Assets/images/logo.png"><i class="fas fa-file-image"></i> logo.png</li>
+                    </ul>
+                </li>
+                <li class="folder" data-folder>
+                    <i class="fas fa-folder"></i> Views
+                    <ul>
+                        <li data-file="Views/Shared/_Layout.cshtml"><i class="fas fa-file-alt"></i> _Layout.cshtml</li>
+                        <li data-file="Views/Home/Index.cshtml"><i class="fas fa-file-alt"></i> Index.cshtml</li>
+                    </ul>
+                </li>
+                <li data-file="theme.config.json"><i class="fas fa-file"></i> theme.config.json</li> *@
+            </ul>
+            <button onclick="createNewFile()">+ New File</button>
+        </div>
+
+        <div class="editor-container">
+            <div class="tab-bar" id="tabBar"></div>
+            <div id="editor"></div>
+        </div>
+    </div>
+
+    <!-- Monaco Editor -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+    <script>
+        let editor;
+        let openTabs = {};
+        let currentTab = null;
+        var currentContextTarget = null;
+
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' } });
+        require(['vs/editor/editor.main'], function () {
+            editor = monaco.editor.create(document.getElementById('editor'), {
+                value: '',
+                language: 'html',
+                theme: 'vs-dark',
+                automaticLayout: true
+            });
+        });
+
+        function highlightActiveFile(path) {
+            document.querySelectorAll('#fileTree li').forEach(item => item.classList.remove('active'));
+
+            const activeFile = document.querySelector(`#fileTree li[data-file="${path}"]`);
+            if (activeFile) {
+                activeFile.classList.add('active');
+
+                const parentFolder = activeFile.closest('li[data-folder]');
+                if (parentFolder) {
+                    parentFolder.classList.add('active');
+                    parentFolder.classList.add('open');
+                }
+            }
+        }
+
+        function switchTab(path) {
+            currentTab = path;
+            document.querySelectorAll('.tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.path === path);
+            });
+
+            highlightActiveFile(path);
+
+            fetch('/theme/loadfile?theme=MyTheme&path=' + path)
+                .then(res => res.text())
+                .then(text => editor.setValue(text));
+        }
+
+        function openFile(name, path) {
+            if (openTabs[path]) {
+                switchTab(path);
+                return;
+            }
+
+            const tabId = btoa(path);
+            const tab = document.createElement('div');
+            tab.className = 'tab';
+            tab.id = 'tab-' + tabId;
+            tab.dataset.path = path;
+
+            const label = document.createElement('span');
+            label.textContent = name;
+            label.style.flexGrow = "1";
+
+            const closeBtn = document.createElement('span');
+            closeBtn.className = 'close';
+            closeBtn.textContent = '×';
+            closeBtn.onclick = function (e) {
+                e.stopPropagation();
+                closeTab(e, path);
+            };
+
+            tab.appendChild(label);
+            tab.appendChild(closeBtn);
+
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            document.getElementById('tabBar').appendChild(tab);
+            openTabs[path] = true;
+
+            tab.addEventListener('click', () => switchTab(path));
+            switchTab(path);
+        }
+
+        function closeTab(event, path) {
+            const tabId = 'tab-' + btoa(path);
+            const tab = document.getElementById(tabId);
+            if (tab) tab.remove();
+            delete openTabs[path];
+            if (currentTab === path) {
+                editor.setValue('');
+                currentTab = null;
+            }
+        }
+
+        document.querySelectorAll('#fileTree li[data-file]').forEach(item => {
+            item.addEventListener('click', () => {
+                const path = item.dataset.file;
+                openFile(item.textContent.trim(), path);
+            });
+        });
+    </script>
+    <script>
+        function renderTree(container, node) {
+            const li = document.createElement("li");
+            li.textContent = node.name;
+            if (node.isFile) {
+                li.dataset.file = node.path;
+                li.addEventListener("click", () => {
+                    fetch(`/liveeditor/load?path=${encodeURIComponent(node.path)}`)
+                        .then(res => res.text())
+                        .then(content => {
+                            openFile(node.name, node.path); // Your Monaco tab logic
+                            editor.setValue(content);
+                        });
+                });
+            } else {
+                li.dataset.folder = node.path;
+                const ul = document.createElement("ul");
+                if (node.children && node.children.length > 0) {
+                    node.children.forEach(child => renderTree(ul, child));
+                }
+                li.appendChild(ul);
+            }
+            container.appendChild(li);
+        }
+
+        fetch("/liveeditor/files")
+            .then(res => res.json())
+            .then(data => {
+                const treeRoot = document.getElementById("fileTree");
+                renderTree(treeRoot, data);
+            });
+    </script>
+</body>
+</html>

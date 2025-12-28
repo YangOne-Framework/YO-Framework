@@ -1,0 +1,432 @@
+﻿@{
+    ViewBag.Title = "Live Theme Editor";
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Live Theme Editor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+    <style>
+        body, html {
+            margin: 0;
+            height: 100%;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .vscode-layout {
+            display: flex;
+            height: 100vh;
+            background-color: #1e1e1e;
+            color: #ccc;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #252526;
+            padding: 10px;
+            box-sizing: border-box;
+            overflow-y: auto;
+            border-right: 1px solid #333;
+        }
+
+            .sidebar ul {
+                list-style: none;
+                padding: 0;
+            }
+
+            .sidebar li {
+                cursor: pointer;
+                padding: 5px;
+                border-radius: 4px;
+            }
+
+                .sidebar li:hover {
+                    background: #373737;
+                }
+
+                .sidebar li.active {
+                    background: #007acc;
+                    color: #fff;
+                }
+
+        .editor-container {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .tab-bar {
+            height: 30px;
+            background-color: #2d2d2d;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #444;
+        }
+
+        .tab {
+            padding: 6px 12px;
+            color: #ccc;
+            cursor: pointer;
+        }
+
+            .tab.active {
+                background-color: #1e1e1e;
+                font-weight: bold;
+            }
+
+            .tab .close {
+                margin-left: 8px;
+                color: #888;
+                cursor: pointer;
+            }
+
+        #editor {
+            flex-grow: 1;
+        }
+
+        .sidebar li.folder > span {
+            margin-left: 5px;
+        }
+
+        .sidebar ul ul {
+            margin-left: 14px;
+        }
+
+        #image-preview img {
+            max-width: 100%;
+            max-height: 500px;
+            margin-top: 20px;
+        }
+
+        #monaco-container {
+            flex-grow: 1;
+            display: block;
+            height: 100%; /* ✅ force full height */
+            overflow: hidden;
+        }
+
+        #editor {
+            width: 100%;
+            height: 100%; /* ✅ important for Monaco */
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="vscode-layout">
+        <div class="sidebar">
+            <h3>Explore Themes</h3>
+            <ul id="fileTree"></ul>
+        </div>
+
+
+        <div class="editor-container">
+            <div class="tab-bar" id="tabBar"></div>
+            <div id="monaco-container"><div id="editor"></div></div>
+            <div id="image-preview" style="display:none; text-align:center;"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs/loader.min.js"></script>
+    <script>
+        let editor;
+        let openTabs = {};
+        let currentTab = null;
+        var currentContextTarget = null;
+
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.34.1/min/vs' } });
+        require(['vs/editor/editor.main'], function () {
+            editor = monaco.editor.create(document.getElementById('editor'), {
+                value: '',
+                language: 'html',
+                theme: 'vs-dark',
+                automaticLayout: true
+            });
+
+            editor.onDidChangeModelContent(() => {
+                if (currentTab && openTabs[currentTab]) {
+                    openTabs[currentTab].content = editor.getValue();
+                }
+            });
+        });
+
+        function getLanguageFromExtension(ext) {
+            switch (ext) {
+                case 'js': return 'javascript';
+                case 'ts': return 'typescript';
+                case 'json': return 'json';
+                case 'css': return 'css';
+                case 'scss': return 'scss';
+                case 'html':
+                case 'cshtml': return 'html';
+                case 'xml': return 'xml';
+                default: return 'plaintext';
+            }
+        }
+
+        // function renderTree(container, node) {
+        //     const li = document.createElement('li');
+        //     li.textContent = node.name;
+        //     li.dataset.path = node.path;
+
+        //     if (node.isFile) {
+        //         li.addEventListener('click', () => openFile(node.name, node.path));
+        //     } else {
+        //         const ul = document.createElement('ul');
+        //         ul.style.marginLeft = "15px";
+        //         li.appendChild(ul);
+        //         node.children.forEach(child => renderTree(ul, child));
+        //     }
+
+        //     container.appendChild(li);
+        // }
+                function renderTree(container, node) {
+            const li = document.createElement('li');
+            li.dataset.path = node.path;
+
+            const icon = document.createElement('i');
+            icon.className = node.isFile ? 'fas fa-file' : 'fas fa-folder';
+            li.appendChild(icon);
+
+            const label = document.createElement('span');
+            label.textContent = ' ' + node.name;
+            li.appendChild(label);
+
+            if (node.isFile) {
+            li.dataset.file = node.path;
+            li.addEventListener('click', (e) => {
+                e.stopPropagation(); // 👈 this prevents collapsing folder
+                openFile(node.name, node.path);
+            });
+        }
+         else {
+                li.dataset.folder = node.path;
+                const ul = document.createElement('ul');
+                ul.style.display = "none";
+                ul.style.marginLeft = "16px";
+
+                li.classList.add("folder");
+                li.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const isOpen = ul.style.display === "block";
+                    ul.style.display = isOpen ? "none" : "block";
+                    icon.className = isOpen ? 'fas fa-folder' : 'fas fa-folder-open';
+                });
+
+                node.children.forEach(child => renderTree(ul, child));
+                li.appendChild(ul);
+            }
+
+            container.appendChild(li);
+        }
+
+
+
+        function highlightActiveFile(path) {
+            document.querySelectorAll('#fileTree li').forEach(item => {
+                item.classList.toggle('active', item.dataset.path === path);
+            });
+        }
+
+        // function openFile(name, path) {
+        //     if (openTabs[path]) {
+        //         switchTab(path);
+        //         return;
+        //     }
+
+        //     const tab = document.createElement('div');
+        //     tab.className = 'tab';
+        //     tab.textContent = name;
+        //     tab.dataset.path = path;
+
+        //     const closeBtn = document.createElement('span');
+        //     closeBtn.className = 'close';
+        //     closeBtn.textContent = '×';
+        //     closeBtn.onclick = function (e) {
+        //         e.stopPropagation();
+        //         closeTab(path);
+        //     };
+
+        //     tab.appendChild(closeBtn);
+        //     tab.addEventListener('click', () => switchTab(path));
+
+        //     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        //     tab.classList.add('active');
+
+        //     document.getElementById('tabBar').appendChild(tab);
+
+        //     fetch(`/liveeditor/load?path=${encodeURIComponent(path)}`)
+        //         .then(res => res.text())
+        //         .then(content => {
+        //             openTabs[path] = { name, path, content };
+        //             switchTab(path);
+        //         });
+        // }
+                function openFile(name, path) {
+            if (openTabs[path]) {
+                switchTab(path);
+                return;
+            }
+
+            const tab = document.createElement('div');
+            tab.className = 'tab';
+            tab.textContent = name;
+            tab.dataset.path = path;
+
+            const closeBtn = document.createElement('span');
+            closeBtn.className = 'close';
+            closeBtn.textContent = '×';
+            closeBtn.onclick = function (e) {
+                e.stopPropagation();
+                closeTab(path);
+            };
+
+            tab.appendChild(closeBtn);
+            tab.addEventListener('click', () => switchTab(path));
+
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            document.getElementById('tabBar').appendChild(tab);
+
+            const ext = path.split('.').pop().toLowerCase();
+            const isImage = ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp'].includes(ext);
+
+            if (isImage) {
+                const imgPreview = `<img src="/${path}" alt="${name}" style="max-width:100%; max-height:500px; display:block; margin:auto;" />`;
+                openTabs[path] = { name, path, content: imgPreview, isImage: true };
+                switchTab(path);
+            } else {
+                fetch(`/admn/editor/load?path=${encodeURIComponent(path)}`)
+                    .then(res => res.text())
+                    .then(content => {
+                        openTabs[path] = { name, path, content, isImage: false };
+                        switchTab(path);
+                    });
+            }
+        }
+
+        // function switchTab(path) {
+        //     currentTab = path;
+        //     document.querySelectorAll('.tab').forEach(t => {
+        //         t.classList.toggle('active', t.dataset.path === path);
+        //     });
+        //     highlightActiveFile(path);
+
+        //     if (openTabs[path]) {
+        //         const ext = path.split('.').pop().toLowerCase();
+        //         const lang = getLanguageFromExtension(ext);
+        //         monaco.editor.setModelLanguage(editor.getModel(), lang);
+        //         editor.setValue(openTabs[path].content || "");
+        //     }
+        // }
+        //                 function switchTab(path) {
+        //     currentTab = path;
+        //     document.querySelectorAll('.tab').forEach(t => {
+        //         t.classList.toggle('active', t.dataset.path === path);
+        //     });
+        //     highlightActiveFile(path);
+
+        //     const tabData = openTabs[path];
+        //     const ext = path.split('.').pop().toLowerCase();
+
+        //     const monacoContainer = document.getElementById("monaco-container");
+        //     const imagePreview = document.getElementById("image-preview");
+
+        //     if (tabData.isImage) {
+        //         monacoContainer.style.display = "none";
+        //         imagePreview.style.display = "block";
+        //         imagePreview.innerHTML = `<img src="/${tabData.path}" alt="${tabData.name}" />`;
+        //     } else {
+        //         // Show Monaco again
+        //         monacoContainer.style.display = "block";
+        //         imagePreview.style.display = "none";
+
+        //         const lang = getLanguageFromExtension(ext);
+
+        //         // Ensure Monaco is ready
+        //         if (editor && editor.getModel()) {
+        //             monaco.editor.setModelLanguage(editor.getModel(), lang);
+        //             editor.setValue(tabData.content || "");
+        //         } else {
+        //             console.warn("Monaco not ready or model is missing.");
+        //         }
+        //     }
+        // }
+                function switchTab(path) {
+            currentTab = path;
+            document.querySelectorAll('.tab').forEach(t => {
+                t.classList.toggle('active', t.dataset.path === path);
+            });
+            highlightActiveFile(path);
+
+            const tabData = openTabs[path];
+            const ext = path.split('.').pop().toLowerCase();
+
+            const monacoContainer = document.getElementById("monaco-container");
+            const imagePreview = document.getElementById("image-preview");
+
+            if (tabData.isImage) {
+                monacoContainer.style.display = "none";
+                imagePreview.style.display = "block";
+                imagePreview.innerHTML = `<img src="/${tabData.path}" alt="${tabData.name}" />`;
+            } else {
+                // Show Monaco Editor
+                imagePreview.style.display = "none";
+                monacoContainer.style.display = "block";
+
+                const lang = getLanguageFromExtension(ext);
+
+                const model = editor.getModel();
+                if (model) {
+                         monaco.editor.setModelLanguage(model, lang);
+        editor.setValue(tabData.content || "");
+        setTimeout(() => editor.layout(), 0); // ✅ fix 5px height issue
+                    // monaco.editor.setModelLanguage(model, lang);
+                    // editor.setValue(tabData.content || "");
+                    // editor.layout(); // ✅ Force re-layout to fix rendering
+                } else {
+                    console.warn("Monaco model missing.");
+                }
+            }
+        }
+
+
+
+        // function closeTab(path) {
+        //     delete openTabs[path];
+        //     const tab = document.querySelector(`.tab[data-path="${path}"]`);
+        //     if (tab) tab.remove();
+        //     if (currentTab === path) {
+        //         editor.setValue('');
+        //         currentTab = null;
+        //     }
+        // }
+                function closeTab(path) {
+            delete openTabs[path];
+            const tab = document.querySelector(`.tab[data-path="${path}"]`);
+            if (tab) tab.remove();
+
+            if (currentTab === path) {
+                currentTab = null;
+                editor.setValue('');
+                document.getElementById("image-preview").style.display = "none";
+                document.getElementById("image-preview").innerHTML = ""; // ✅ Clear image
+                document.getElementById("monaco-container").style.display = "block";
+            }
+        }
+
+
+        fetch("/admin/editor/files")
+            .then(res => res.json())
+            .then(tree => {
+                const root = document.getElementById("fileTree");
+                renderTree(root, tree);
+            });
+    </script>
+
+</body>
+</html>

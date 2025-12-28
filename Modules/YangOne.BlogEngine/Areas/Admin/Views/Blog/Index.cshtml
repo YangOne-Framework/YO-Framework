@@ -1,0 +1,97 @@
+﻿@using YangOne.BlogEngine.Model
+@using YangOne.Web.Grid
+@using YangOne.Localization
+@model IEnumerable<YangOne.BlogEngine.Model.Post>
+@inject ILocaleResourceProvider LocaleResource
+@{
+
+    LocaleResource.LookUpGroupAt("Blog");
+    ViewData["Title"] = LocaleResource.Get("Blog.Post.PageTitle");
+    var categories = (List < PostCategory >) ViewData["Categories"];
+}
+<section class="container-fluid">
+    <div class="row">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+            <div class="grid-section">
+                <div class="panel module">
+                    <div class="panel-inner">                       
+                        <div class="panel-heading clearfix">
+                            <h2 class="panel-title float-left">@LocaleResource.Get("Blog.Post.PageTitle")</h2>
+
+                            <div class="float-right">
+                                <div class="input-group-btn ">
+                                    <a href="/admin/blog/post/new" class="btn btn-primary btn-sm has-mdicon">
+                                        <i class="material-icons md-18">add</i>
+                                        @LocaleResource.Get("Blog.Post.AddNewButtonText")
+                                    </a>
+
+                                </div>
+                            </div>
+                        </div>
+                         
+                        <div class="panel-body">
+                            <div class="col-md-12">
+                                <div class="kachuwa-filters float-right col-md-6 ">
+                                    <form method="get" action="/admin/blog/post" class="">
+                                        <div class="searchbar navbar-form d-flex">
+                                            <select class="form-control" name="cid" id="@ViewBag.CategoryId">
+                                                <option value="">Please Select...</option>
+                                                @foreach (var cat in categories)
+                                                {
+                                                    if (cat.PostCategoryId == @ViewBag.CategoryId)
+                                                    {
+                                                        <option selected="selected" value="@cat.PostCategoryId">@cat.Name</option>
+                                                    }
+                                                    else
+                                                    {
+                                                        <option value="@cat.PostCategoryId">@cat.Name</option>
+                                                    }
+                                                  
+                                                }
+                                            </select>
+                                            <div class="input-group">
+                                                <input type="text" value="@ViewBag.Query" placeholder="search..." name="query" class="form-control">
+                                                <div class="input-group-append">
+                                                    <button type="submit" class="btn btn-secondary">
+                                                        <i class="fa fa-search"></i>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                            @(Html
+                                                                  .CreateKachuwaGrid(Model).HideSearchBar()
+                                                                  .Build(columns =>
+                                                                  {
+
+                                                                      columns.Add(model => model.Title).SetTitle(LocaleResource.Get("Blog.Post.Grid.Title"));
+                                                                      
+                                                                      columns.Add(model => model.ViewCount).SetTitle(LocaleResource.Get("Blog.Post.Grid.ViewCount"));
+                                                                      columns.Add(model => model.PublishedOn).SetTitle(LocaleResource.Get("Blog.Post.Grid.PublishedOn"));
+                                                                      columns.Add(model => model.IsActive ? LocaleResource.Get("Blog.Post.Grid.Yes") : LocaleResource.Get("Blog.Post.Grid.No")).SetTitle(LocaleResource.Get("Blog.Post.Grid.IsActive"));
+
+                                                                  }).AddCommands(commands =>
+                                                                  {
+                                                                      commands.Add(LocaleResource.Get("Grid.Command.Edit"), "Edit", "fa fa-edit", "", "/admin/blog/post/edit", model => model.PostId);
+                                                                      commands.Add(LocaleResource.Get("Grid.Command.Delete"), "Delete", "fa fa-trash", "kachuwagrid.delete", Model => Model.PostId,
+                                                                          "/admin/blog/post/delete");
+
+                                                                  }).Css("table-hover")
+                                                                  .Empty(LocaleResource.Get("Blog.Post.Grid.EmptyText"))
+                                                                  .Pagination(pager =>
+                                                                  {  pager.CurrentPage = (int)ViewData["Page"];
+                                                                      pager.Api = "/admin/blog/post";
+                                                                  })
+
+                            )
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+

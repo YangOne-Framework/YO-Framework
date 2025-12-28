@@ -1,0 +1,21 @@
+﻿@using System.Linq;
+@using Kachuwa.Web
+@using Kachuwa.BlogEngine
+@using Kachuwa.Web.Razor
+@model Kachuwa.BlogEngine.Model.PostViewModel
+@inject IViewRenderService _ViewRender;
+@{
+    Layout = "_Layout";
+}
+
+@Html.Raw(await _ViewRender.RenderTemplateAsync("/themes/blog/template/blog.latestpost.cshtml", Model))
+
+
+<script src="https://cdn.jsdelivr.net/momentjs/2.18.1/moment.min.js"></script>
+<script src="/module/KachuwaBlogEngine/resources/js/blog.js"></script>
+
+<script>
+    $(function () {
+        BlogModule();
+    })
+</script>

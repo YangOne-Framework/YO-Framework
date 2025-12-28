@@ -1,0 +1,302 @@
+
+@using Microsoft.AspNetCore.Mvc.TagHelpers
+@using YangOne.Localization
+@using YangOne.OTP.Model
+@model BrowserVerificationViewModel
+@inject ILocaleResourceProvider LocaleResource;
+
+@{
+    Layout = "_LoginLayout";
+    LocaleResource.LookUpGroupAt("Account");
+    ViewData["Title"] = LocaleResource.Get("Account.Login.Verify.Title");
+    var stage = (int)ViewBag.Stage;
+    var setting = (OTPSetting)ViewData["Setting"];
+    var showSmsOption = (bool)ViewData["ShowSMS"];
+    var phoneNumber = (string)ViewBag.PhoneNumber;
+    var otpSentEmail = (string)ViewBag.Email;
+}
+
+
+
+<section id="x2" style="display: none" class="login-block section-padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="login-card card">
+                    <div class="card-body">
+                        <div class="card-body">
+
+                            <h4 class="card-title text-center">
+                                @LocaleResource.Get("Account.Login.Verify.PleaseEnterYourCode")
+                            </h4>
+                            <div class="text-center">
+                                @LocaleResource.Get("Account.Login.Verify.Sent.To")
+
+                                <span id="sentToPhone" hidden>
+                                    @phoneNumber
+                                </span>
+
+                                <span id="sentToEmail" hidden>
+                                    @otpSentEmail
+                                </span>
+
+                            </div>
+                            <div class="form-content">
+                                <form method="post" action="/account/verify">
+                                    <input type="hidden" asp-for="Email" />
+                                    <input type="hidden" asp-for="PhoneNumber" />
+                                    <input type="hidden" asp-for="ReturnUrl" />
+                                    <div class="form-group">
+                                        <div class="form-group">
+                                            <input type="text" class="form-control" placeholder="@LocaleResource.Get("Account.Login.OTP")" asp-for="OTP" autofocus>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between">
+                                        <button type="button" class="btn btn-lg btn-main btn-secondary resend" name="button">
+                                            @LocaleResource.Get("Account.Login.Verify.Resent")
+                                            <span class="ctr"></span>
+                                        </button>
+                                        <button class="btn btn-lg btn-main" name="button" type="submit">
+                                            @LocaleResource.Get("Account.Login.Verify.Text")
+                                        </button>
+                                    </div>
+                                    <div class="forgot-password">
+                                        <a href="#" class="goback"><i class="fas fa-arrow-left mr-2"></i>@LocaleResource.Get("Account.Login.Verify.GoBack")</a>
+                                    </div>
+                                    <p class="note text-center">
+                                        @LocaleResource.Get("Account.Login.Verify.IfYouHaveProblem")
+                                        <a href="mailto:@(ViewBag.SupportEmail ?? "info@yoframework.com")">@(ViewBag.SupportEmail ?? "info@yoframework.com")</a>
+                                    </p>
+                                </form>
+
+                            </div>
+
+                            <partial name="_ValidationSummary" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="x1" class="login-block section-padding ">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="login-card card">
+                    <div class="card-body">
+
+                        <h4 class="card-title text-center">
+                            @LocaleResource.Get("Account.Login.Verify.PleaseSelectMethod")
+                        </h4>
+                        <div class="form-content">
+
+                            <div class="form-group">
+                                <div class="login-opt">
+
+                                    @if (showSmsOption)
+                                    {
+                                        @if (setting.SendFromSMS)
+                                        {
+                                            <button href="#" class="btn active sms"><i class="fas fa-mobile-alt"></i> 
+                                                <h3>
+                                                    @LocaleResource.Get("Account.Login.Verify.Phone")
+                                                </h3>
+                                                <p>
+                                                    @LocaleResource.Get("Account.Login.Verify.YouWillReceiveAnOTPOnYourNumber")
+                                                </p>
+                                                </button>
+                                        }
+                                        @if (setting.SendFromEmail)
+                                        {
+                                            <button href="#" class="btn email">
+                                                <i class="fas fa-envelope"></i> 
+                                                <h3>@LocaleResource.Get("Account.Login.Verify.Email")</h3>
+                                                <p>
+                                                    @LocaleResource.Get("Account.Login.Verify.YouWillReceiveAnOTPOnYourEmail")
+                                                </p></button>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        @if (setting.SendFromEmail)
+                                        {
+                                            <button href="#" class="btn email active"><i class="fas fa-envelope"></i> 
+                                                <h3>@LocaleResource.Get("Account.Login.Verify.Email")</h3>
+                                                <p> @LocaleResource.Get("Account.Login.Verify.YouWillReceiveAnOTPOnYourEmail")</p>
+                                            </button>
+                                        }
+                                    }
+
+                                </div>
+                            </div>
+                            <div class="form-group text-center">
+                                <button type="button" class="btn btn-lg btn-main bd-radius-4" id="btnSendNot">
+                                    @LocaleResource.Get("Account.Login.Verify.Send")
+                                </button>
+                            </div>
+                            <div class="forgot-password">
+                                <a href="/account/forgotpassword">
+                                    @LocaleResource.Get("Account.Login.ForgotPassword")
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<section id="x3" style="display: none;" class="login-block section-padding ">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="login-card card">
+                    <div class="card-body">
+
+                        <h3 class="card-title">
+                            @LocaleResource.Get("Account.Login.Verify.PleaseSelectMethodForVerification")
+                            
+                        </h3>
+                        <div class="form-content">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        var lgn = function () {
+            var isSms = true;
+            var ajaxGet = function (url, successFx, error) {
+                $.ajax({
+                    type: "Get",
+                    async: false,
+                    url: url,
+                    data: {},
+                    success: successFx,
+                    error: error
+                });
+            };
+            localStorage.removeItem("cp");
+            var timeLeft = 59;
+
+            function countdown() {
+                timeLeft--;
+                $(".ctr").html(timeLeft);
+                $(".resend").prop('disabled', true);
+                if (timeLeft > 0) {
+                    setTimeout(countdown, 1000);
+                } else {
+                    $(".ctr").html('');
+                    $(".resend").prop('disabled', false);
+                }
+            };
+
+            $(document).ready(function () {
+                $(document).off("click", "#btnSendNot").on("click",
+                    "#btnSendNot",
+                    function () {
+
+                        var encodedText = encodeURIComponent($("#Email").val());
+
+                        if ($(".login-opt button.active").hasClass("email")) {
+                            isSms = false;
+
+                            ajaxGet('/account/verify/email?idx=' + encodedText,
+                                function (data) {
+                                    $('#sentToPhone').prop('hidden', true);
+                                    $('#sentToEmail').prop('hidden', false);
+                                    setTimeout(countdown, 1000);
+
+                                },
+                                function (err) {
+
+                                });
+                        } else {
+                            isSms = true;
+                            ajaxGet('/account/verify/sms?idx=' + encodedText,
+                                function (data) {
+
+                                    $('#sentToEmail').prop('hidden', true);
+                                    $('#sentToPhone').prop('hidden', false);
+                                    setTimeout(countdown, 1000);
+
+                                },
+                                function (err) {
+
+                                });
+                        }
+                        $("#x1").fadeOut();
+                        $("#x2").fadeIn();
+
+                    });
+
+                $(document).off("click", ".resend").on("click",
+                    ".resend",
+                    function () {
+
+                        var encodedText = encodeURIComponent($("#Email").val());
+
+                        if ($(".login-opt button.active").hasClass("email")) {
+                            isSms = false;
+                            ajaxGet('/account/verify/email?idx=' + encodedText,
+                                function (data) {
+                                    $('#sentToPhone').prop('hidden', true);
+                                    $('#sentToEmail').prop('hidden', false);
+                                    timeLeft = 59;
+                                    setTimeout(countdown, 1000);
+
+                                },
+                                function (err) {
+
+                                });
+                        } else {
+                            isSms = true;
+                            ajaxGet('/account/verify/sms?idx=' + encodedText,
+                                function (data) {
+
+                                    $('#sentToEmail').prop('hidden', true);
+                                    $('#sentToPhone').prop('hidden', false);
+                                    timeLeft = 59;
+                                    setTimeout(countdown, 1000);
+
+                                },
+                                function (err) {
+
+                                });
+                        }
+
+                    });
+                $(document).off("click", ".login-opt button").on("click",
+                    ".login-opt button",
+                    function () {
+
+                        $(".login-opt button").removeClass("active");
+                        $(this).addClass("active");
+                    });
+                $(document).off("click", ".goback").on("click",
+                    ".goback",
+                    function () {
+
+                        $("#x2").fadeOut();
+                        $("#x1").fadeIn();
+                    });
+                if (@stage == 1) {
+                    $("#x2").fadeOut();
+                    $("#x1").fadeIn();
+                }
+                if (@stage == 2) {
+                    $("#x1").fadeOut();
+                    $("#x2").fadeIn();
+                }
+            });
+        }();
+    </script>
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

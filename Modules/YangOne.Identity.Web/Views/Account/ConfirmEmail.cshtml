@@ -1,0 +1,17 @@
+﻿@using YangOne.Localization
+@inject ILocaleResourceProvider LocaleResource;
+@{
+   
+    LocaleResource.LookUpGroupAt("Account");
+    ViewData["Title"] = LocaleResource.Get("Account.ConfirmEmail.Title");
+    Layout = "_LoginLayout";
+}
+
+<section class="container">
+    <h2>@ViewData["Title"]</h2>
+    <div>
+        <p>
+            @LocaleResource.Get("Account.ConfirmEmail.ThankYou")
+        </p>
+    </div>
+</section>

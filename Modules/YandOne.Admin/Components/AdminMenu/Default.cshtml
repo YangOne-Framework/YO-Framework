@@ -1,0 +1,120 @@
+﻿@using YangOne.Web.Model
+@using YangOne.Web.Service
+@using Microsoft.AspNetCore.Routing
+@model IEnumerable<Menu>
+@inject ISettingService SettingService
+
+@{
+    var setting = await SettingService.GetSetting();
+    var parents = Model.Where(x => x.ParentId == 0).ToList();
+}
+
+@functions {
+    public IEnumerable<Menu> GetChildMenus(int menuid, IEnumerable<Menu> menus)
+    {
+        return menus.Where(x => x.ParentId == menuid).ToList();
+    }
+
+    public bool MenuHasChild(IEnumerable<Menu> menus, int menuId)
+    {
+        return menus.Any(x => x.ParentId == menuId);
+    }
+}
+
+<div class="deznav">
+    <div class="deznav-scroll">
+        <ul class="metismenu" id="menu">
+            @foreach (var parent in parents)
+            {
+                var hasChild = MenuHasChild(Model, parent.MenuId);
+                <li>
+                    <a class="@(hasChild ? "has-arrow ai-icon" : "ai-icon")" href="@(hasChild ? "javascript:void(0)" : parent.Url.ToLower())" aria-expanded="false">
+                        @if (!string.IsNullOrEmpty(parent.Icon) && parent.Icon.Contains("fa"))
+                        {
+                            <i class="@parent.Icon"></i>
+                        }
+                        else
+                        {
+                            <i class="@parent.CssClass">@parent.Icon</i>
+                        }
+                        <span class="nav-text">@parent.Name</span>
+                    </a>
+
+                    @if (hasChild)
+                    {
+                        var childrens = GetChildMenus(parent.MenuId, Model);
+                        <ul aria-expanded="false">
+                            @foreach (var child in childrens)
+                            {
+                                var hasSecondChild = MenuHasChild(Model, child.MenuId);
+                                <li>
+                                    <a class="@(hasSecondChild ? "has-arrow" : "")" href="@(hasSecondChild ? "javascript:void(0)" : child.Url.ToLower())" aria-expanded="false">
+                                        @if (!string.IsNullOrEmpty(child.Icon) && child.Icon.Contains("fa"))
+                                        {
+                                            <i class="@child.Icon"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="@child.CssClass">@child.Icon</i>
+                                        }
+                                        @child.Name
+                                    </a>
+
+                                    @if (hasSecondChild)
+                                    {
+                                        var thirdLevel = GetChildMenus(child.MenuId, Model);
+                                        <ul aria-expanded="false">
+                                            @foreach (var third in thirdLevel)
+                                            {
+                                                var hasThirdChild = MenuHasChild(Model, third.MenuId);
+                                                <li>
+                                                    <a class="@(hasThirdChild ? "has-arrow" : "")" href="@(hasThirdChild ? "javascript:void(0)" : third.Url.ToLower())" aria-expanded="false">
+                                                        @if (!string.IsNullOrEmpty(third.Icon) && third.Icon.Contains("fa"))
+                                                        {
+                                                            <i class="@third.Icon"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="@third.CssClass">@third.Icon</i>
+                                                        }
+                                                        @third.Name
+                                                    </a>
+
+                                                    @if (hasThirdChild)
+                                                    {
+                                                        var fourthLevel = GetChildMenus(third.MenuId, Model);
+                                                        <ul aria-expanded="false">
+                                                            @foreach (var fourth in fourthLevel)
+                                                            {
+                                                                <li>
+                                                                    <a href="@fourth.Url.ToLower()">
+                                                                        @if (!string.IsNullOrEmpty(fourth.Icon) && fourth.Icon.Contains("fa"))
+                                                                        {
+                                                                            <i class="@fourth.Icon"></i>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <i class="@fourth.CssClass">@fourth.Icon</i>
+                                                                        }
+                                                                        @fourth.Name
+                                                                    </a>
+                                                                </li>
+                                                            }
+                                                        </ul>
+                                                    }
+                                                </li>
+                                            }
+                                        </ul>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                    }
+                </li>
+            }
+        </ul>
+
+      
+    </div>
+</div>
+

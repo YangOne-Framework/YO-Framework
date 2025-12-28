@@ -1,0 +1,149 @@
+﻿@using System.Linq;
+@using Kachuwa.Web
+@model Kachuwa.BlogEngine
+@model Kachuwa.BlogEngine.Model.PostSetting
+@{
+    Layout = "_Layout";
+}
+<section class="container-fluid">
+    <h2 class="view-title">Blog Settings</h2>
+
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-6 col-sm-6 col-xs-12">
+                <h2>Settings</h2>
+                <p>
+                    Enable or disable settings as per choices.
+                </p>
+                <p>
+                    Enable or disable settings as per choices.
+                </p>
+            </div>
+                <div class="col-md-6 col-sm-6 col-xs-12">
+                    <form method="post">
+                        <div class="form-group ">
+                            <label class="control-label " for="txtLpSize">
+                                Latest Posts Per Page
+                            </label>
+                            <input class="form-control" id="txtLpSize" name="number" value="@Model.LatestPostPerPage" type="number"/>
+                            <p class="help-block">numbers of posts show in a page.</p>
+                        </div>
+                        <div class="form-group ">
+                            <label class="control-label " for="txtRecentPost">
+                                Recent Posts Per Page
+                            </label>
+                            <input class="form-control" value="@Model.RecentPostPerPage" id="txtRecentPost" name="number" type="number"/>
+                            <p class="help-block">numbers of posts show in recent block.</p>
+                        </div>
+                        <div class="form-group ">
+                            <label class="control-label ">
+                                Show Description at Recent Post
+                            </label>
+                            <div class=" ">
+                                <div class="checkbox">
+                                    <label class="checkbox">
+                                        @if (Model.ShowDescriptionInRecentPost)
+                                        {
+                                            <input name="cbshowDescription" checked="checked" type="checkbox" value="1"/>
+                                        }
+                                        else
+                                        {
+                                            <input name="cbshowDescription" type="checkbox" value="1"/>
+                                        }
+                                    </label>
+                                    <p class="help-block">show description in recent posts.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group ">
+                            <label class="control-label ">
+                                Use Disqus
+                            </label>
+                            <div class=" ">
+                                <div class="checkbox">
+                                    <label class="checkbox">
+                                        @if (Model.UseDisqus)
+                                        {
+                                            <input name="cbUseDisqus" checked="checked" type="checkbox" value="1"/>
+
+                                        }
+                                        else
+                                        {
+                                            <input name="cbUseDisqus" type="checkbox" value="1"/>
+
+                                        }
+                                    </label>
+                                    <p class="help-block">use third party comment system.</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group ">
+                            <label class="control-label " for="tadisqus">
+                                Disqus Script
+                            </label>
+                            <textarea class="form-control" cols="40" id="tadisqus" name="message" rows="10">
+                        @Model.DisqusScript
+                        </textarea>
+                            <p class="help-block">scripts provided by the disqus.</p>
+                        </div>
+                        <div class="form-group">
+                            <div>
+                                <button type="button" class="btn btn-primary " id="btnBlogSetting" name="submit">
+                                    Save
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+    </div>
+
+
+</section>
+
+@section scripts{
+
+    <script>
+        (function($) {
+            var settingsaveApi = "/api/v1/post/setting/save";
+            var $ajaxCall = function(data, url, success, error) {
+                $.ajax({
+                    type: "POST",
+                    async: true,
+                    url: url,
+                    data: data,
+                    success: success,
+                    error: error
+                });
+            };
+            var saveSetting = function () {
+                var model = {
+                    PostSettingId: 1,
+                    LatestPostPerPage: $("#txtLpSize").val(),
+                    UseNextPrev: true,
+                    RecentPostPerPage: $("#txtRecentPost").val(),
+                    ShowDescriptionInRecentPost: $("input[name=cbshowDescription]").is(":checked"),
+                    UseDisqus: $("input[name=cbUseDisqus]").is(":checked"),
+                    DisqusScript: $("#tadisqus").val()
+                };
+                $ajaxCall(model,
+                    settingsaveApi,
+                    function (response) {
+                        if (response.Code == 200) {
+                            alert(response.Message);
+                        }
+
+                    },
+                    function() {
+
+                    });
+            };
+
+            $(document).off("click").on("click",
+                "#btnBlogSetting",
+                function() {
+                    saveSetting();
+                });
+        })(jQuery);
+    </script>
+}

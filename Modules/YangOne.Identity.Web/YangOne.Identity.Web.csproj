@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+
+	<ItemGroup>
+		<None Remove="Views\Account\Accessdenied.cshtml" />
+		<None Remove="Views\Account\ConfirmEmail.cshtml" />
+		<None Remove="Views\Account\ForgotPassword.cshtml" />
+		<None Remove="Views\Account\ForgotPasswordConfirmation.cshtml" />
+		<None Remove="Views\Account\Login.cshtml" />
+		<None Remove="Views\Account\Register.cshtml" />
+		<None Remove="Views\Account\RegisterConfirm.cshtml" />
+		<None Remove="Views\Account\ResetPassword.cshtml" />
+		<None Remove="Views\Account\ResetPasswordConfirmation.cshtml" />
+		<None Remove="Views\Account\VerifyBrowser.cshtml" />
+		<None Remove="Views\_ViewImports.cshtml" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Views\Account\VerifyBrowser.cshtml" />
+		<EmbeddedResource Include="Views\_ViewImports.cshtml">
+			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</EmbeddedResource>
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Views\Account\ConfirmEmail.cshtml" />
+		<EmbeddedResource Include="Views\Account\ForgotPassword.cshtml" />
+		<EmbeddedResource Include="Views\Account\ForgotPasswordConfirmation.cshtml" />
+		<EmbeddedResource Include="Views\Account\AccessDenied.cshtml" />
+		<EmbeddedResource Include="Views\Account\Login.cshtml" />
+		<EmbeddedResource Include="Views\Account\Register.cshtml" />
+		<EmbeddedResource Include="Views\Account\RegisterConfirm.cshtml" />
+		<EmbeddedResource Include="Views\Account\ResetPassword.cshtml" />
+		<EmbeddedResource Include="Views\Account\ResetPasswordConfirmation.cshtml" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\core\YangOne.OTP\YangOne.OTP.csproj" />
+		<ProjectReference Include="..\..\core\YangOne.Web\YangOne.Web.csproj" />
+	</ItemGroup>
+
+</Project>

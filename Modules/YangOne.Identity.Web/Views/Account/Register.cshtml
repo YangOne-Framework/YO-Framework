@@ -1,0 +1,97 @@
+﻿@model RegisterViewModel
+@using YangOne.Localization
+@inject ILocaleResourceProvider LocaleResource;
+@{
+   
+    LocaleResource.LookUpGroupAt("Account");
+    ViewData["Title"] = LocaleResource.Get("Account.Register.Title");
+    Layout = "_LoginLayout";
+}
+
+<section class="login-block section-padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="login-card card">
+                    <div class="card-body">
+
+                        <div class="content-section">
+                            <div class="content-wrapper">
+                                <h4>@LocaleResource.Get("Account.Register.Title");</h4>
+                                <p>@LocaleResource.Get("Account.Register.SubTitle");</p>
+                            </div>
+                            <form asp-route-returnUrl="@ViewData["ReturnUrl"]" class="" method="post">
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                           
+                                            <label>@LocaleResource.Get("Account.Register.FirstName")*</label>
+                                            <input asp-for="FirstName" class="form-control" placeholder="@LocaleResource.Get("Account.Register.PlaceHolder.FirstName")" />
+                                            <span asp-validation-for="FirstName" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group">
+
+                                            <label>@LocaleResource.Get("Account.Register.LastName")*</label>
+                                            <input asp-for="LastName" class="form-control" placeholder="@LocaleResource.Get("Account.Register.PlaceHolder.LastName")" />
+                                            <span asp-validation-for="LastName" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                   
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                           
+                                            <label>@LocaleResource.Get("Account.Register.DOB")*</label>
+                                            <input asp-for="DOB" class="form-control" placeholder="@LocaleResource.Get("Account.Register.PlaceHolder.DOB")" />
+                                            <span asp-validation-for="DOB" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                           
+                                            <label>@LocaleResource.Get("Account.Register.Email")*</label>
+                                            <input asp-for="Email" class="form-control" placeholder="@LocaleResource.Get("Account.Register.PlaceHolder.Email")" />
+                                            <span asp-validation-for="Email" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                           
+                                            <label>@LocaleResource.Get("Account.Register.Password")</label>
+                                            <input asp-for="Password" class="form-control" placeholder="@LocaleResource.Get("Account.Register.PlaceHolder.Password")" />
+                                            <span asp-validation-for="Password" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                          
+                                            <label>@LocaleResource.Get("Account.Register.PhoneNumber")</label>
+                                            <input asp-for="PhoneNumber" class="form-control" placeholder="@LocaleResource.Get("Account.Register.PlaceHolder.PhoneNumber")" />
+                                            <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12">
+                                        <div class="form-group">
+                                            <label>@LocaleResource.Get("Account.Register.Address")</label>
+                                            <input asp-for="Address" class="form-control" placeholder="@LocaleResource.Get("Account.Register.PlaceHolder.Address")" />
+                                            <span asp-validation-for="Address" class="text-danger"></span>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 text-center mt-3">
+                                        <div class="form-group">
+                                            <input type="submit" value="@LocaleResource.Get("Account.Register.SignUp")" class="btn btn-xl btn-main">
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+    @section Scripts {
+        <script src="~/assets/js/validation/_formValidationExtentions.js"></script>
+    }

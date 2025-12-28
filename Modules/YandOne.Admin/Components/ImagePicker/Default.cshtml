@@ -1,0 +1,179 @@
+﻿<div class="modal fade" id="imagepickerModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Image Picker</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+            <div class="modal-body ">
+                <div class="imagepicker">
+                    <div class="row mb-2">
+                        <div class="col-md-12">
+
+                            <div class="p-1 bg-white shadow rounded-lg">
+
+
+                                <div class="selected">
+                                    <img class="img-fluid" src="/themes/shared/default/images/pictures/image2.png" alt="">
+                                </div>
+                                @*<h6 class="text-center mb-4 text-muted">
+                                Or
+                                </h6>
+                                <label for="fileUpload" class="file-upload btn btn-primary btn-block rounded-pill shadow">
+                                <i class="fa fa-upload mr-2"></i>Browse for file ...
+                                </label>*@
+                            </div>
+                            @*<div class="form-group">
+                            <label>Alt Text</label>
+                            <input id="txtAlt" type="text" class="form-control" name="AltText" placeholder="Alt...">
+
+                            </div>*@
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label class="usemedia btn btn-primary btn-block rounded-pill shadow">
+                            <i class="fa fa-list mr-2"></i>Use Media Library ...
+                        </label>
+                    </div>
+                    <div class="group-wrapper" style="display: none;">
+                        <ul class="imagepicker-list">
+                            @*<li>
+                            <div>
+                            <img src="/themes/shared/default/images/pictures/image2.png" alt="">
+                            </div>
+                            <p>Caption</p>
+                            </li>*@
+
+                        </ul>
+                    </div>
+                    <div class="col">
+                        <a href="javascript:void(0)" class="loadmore mx-auto ">
+                            load more...
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:void(0)" class="btn btn-secondary" data-dismiss="modal">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    var mediaImagePicker = function () {
+        var ajaxCallPost = function (url, param, successFx, error) {
+            $.ajax({
+                type: "POST",
+                async: false,
+                url: url,
+                data: param,
+                success: successFx,
+                error: error
+            });
+        };
+        var ajaxCallGet = function (url, successFx, error) {
+            $.ajax({
+                type: "get",
+                async: false,
+                url: url,
+                data: {},
+                success: successFx,
+                error: error
+            });
+        };
+        var _offset = 1;
+        var hasMoreData = false;
+        var currentImageEl = null;
+        var loadImages = function (offset, limit) {
+            try {
+                ajaxCallGet("/api/v1/medialibrary/image?offset=" + offset + "&limit=" + limit,
+                    function (response) {
+                        if (response.Code === 200) {
+
+                            if (response.Data.length < 20) {
+                                hasMoreData = false;
+                                $(".loadmore").hide();
+                            } else {
+                                hasMoreData = true;
+                                $(".loadmore").show();
+                            }
+                            $.each(response.Data,
+                                function (index, item) {
+                                    var $li = $("<li/>");
+                                    $li.append("<div><img src='/uploads/media" + item.RPath + "?w=100&h=100&mode=pad' /></div>");
+                                    $li.data('item', item);
+                                    $(".group-wrapper ul").append($li);
+                                });
+
+                        } else {
+                            new kachuwaNotification().Error(Locale.Get("Error"),
+                                Locale.Get("Failed to save data."));
+                        }
+
+                    },
+                    function () { });
+            } catch (e) {
+                console.log(e);
+
+            }
+        }
+
+        var uiEvents = function () {
+
+            $(document).off("click", ".usemedia").on("click",
+                ".usemedia",
+                function () {
+                    $(".group-wrapper").toggle();
+                    if ($(".group-wrapper").css("display") != "none") {
+
+                    }
+                });
+            $(document).off("click", ".loadmore").on("click",
+                ".loadmore",
+                function () {
+                    if (hasMoreData) {
+                        _offset++;
+                        loadImages(_offset, 20);
+                    } else {
+
+                    }
+                });
+            loadImages(_offset, 20);
+            //
+            $(document).off("click", ".imagepicker-list li").on("click",
+                ".imagepicker-list li",
+                function () {
+                    var item = $(this).data('item');
+                    var path = "/uploads/media" + item.RPath;
+                    setSelectedImage(path);
+                    var w = currentImageEl.data('width');
+                    var h = currentImageEl.data('height');
+                    currentImageEl.attr('src', path + "?w=" + w + "&h=" + h + "&mode=crop");
+                });
+
+            $(document).off("click", ".img-changer").on("click",
+                ".img-changer",
+                function () {
+                    currentImageEl = $(this);
+                    var source = $(this).attr('src');
+                    $("#imagepickerModal").modal('show');
+                    setSelectedImage(source);
+                });
+        };
+
+
+        uiEvents();
+        var setSelectedImage = function (imgsrc) {
+            if (currentImageEl[0].type = "text") {
+                currentImageEl.val(imgsrc);
+            }
+            $(".imagepicker .selected img").attr('src', imgsrc + "?h=300&w=300&mode=crop");
+        }
+
+        return { setSelectedImage: setSelectedImage };
+    }();
+
+
+</script>

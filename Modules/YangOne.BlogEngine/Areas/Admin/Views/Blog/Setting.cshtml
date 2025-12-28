@@ -1,0 +1,79 @@
+﻿@using YangOne.Localization
+@using YangOne.Web.Form
+@using YangOne.Web.Grid
+@model YangOne.BlogEngine.Model.PostSetting
+@inject ILocaleResourceProvider LocaleResource
+@{
+    LocaleResource.LookUpGroupAt("Blog");
+    ViewData["Title"] = LocaleResource.Get("Blog.Setting.PageTitle.Save");
+    FormDatasource dataSource = (FormDatasource)ViewBag.FormDataSource;
+}
+<section class="container-fluid">
+    <div class="row">
+        <div class="col-wrapper col-lg-12 col-md-12 col-sm-12 col-xs-12">
+
+            <div class="cardform-wrapper">
+                @(Html.CreateKachuwaForm<YangOne.BlogEngine.Model.PostSetting>("pageForm", Model)
+                    .SetHeading("")
+                    .ActionUrl("/admin/blog/setting")
+                    .CancelUrl("/admin/blog/setting")
+                    .CreateSection(section =>
+                    {
+                        section.Add("section1", "form-section", rows =>
+                        {
+                            rows.Add("1strow", "row", columns =>
+                            {
+                                columns.Add("left", "col-md-4", @<div class="form-description">
+                                                                     <h4>Blog Settings</h4>
+                                                                    <p> </p>
+                                                                </div>);
+                                columns.Add("right", "col-md-8", control =>
+                                {
+                                    control.Add("form-control", model => model.PostSettingId, FormInputControl.Hidden);
+
+                                    control.Add("form-control", x => x.RecentPostPerPage, FormInputControl.Number)
+                                        .SetFirstParentClass("form-group")
+                                        .SetSecondParentClass("col-md-6")
+                                        .SetHelp(LocaleResource.Get("Blog.Setting.Help.RecentPostPerPage"))
+                                        .SetPlaceHolder(LocaleResource.Get("Blog.Setting.PlaceHolder.RecentPostPerPage"))
+                                        .SetDisplayName(LocaleResource.Get("Blog.Setting.Form.RecentPostPerPage"));
+                                    control.Add("form-control", x => x.RecentPostPerRow, FormInputControl.Number)
+                                        .SetFirstParentClass("form-group")
+                                        .SetSecondParentClass("col-md-6")
+                                        .SetHelp(LocaleResource.Get("Blog.Setting.Help.RecentPostPerRow"))
+                                        .SetPlaceHolder(LocaleResource.Get("Blog.Setting.PlaceHolder.RecentPostPerRow"))
+                                        .SetDisplayName(LocaleResource.Get("Blog.Setting.Form.RecentPostPerRow"));
+                                    control.Add("form-control", x => x.ShowDescriptionInLine, FormInputControl.Number)
+                                        .SetFirstParentClass("form-group")
+                                        .SetSecondParentClass("col-md-6")
+                                        .SetHelp(LocaleResource.Get("Blog.Setting.Help.ShowDescriptionInLine"))
+                                        .SetPlaceHolder(LocaleResource.Get("Blog.Setting.PlaceHolder.ShowDescriptionInLine"))
+                                        .SetDisplayName(LocaleResource.Get("Blog.Setting.Form.ShowDescriptionInLine"));
+                                    control.Add("form-control", x => x.ShowDescriptionInRecentPost, FormInputControl.Switch)
+                                        .SetFirstParentClass("form-group")
+                                        .SetSecondParentClass("col-md-6")
+                                        .SetHelp(LocaleResource.Get("Blog.Setting.Help.ShowDescriptionInRecentPost"))
+                                        .SetPlaceHolder(LocaleResource.Get("Blog.Setting.PlaceHolder.ShowDescriptionInRecentPost"))
+                                        .SetDisplayName(LocaleResource.Get("Blog.Setting.Form.ShowDescriptionInRecentPost"));
+                                    control.Add("form-control", x => x.UseNextPrev, FormInputControl.Switch)
+                                        .SetFirstParentClass("form-group")
+                                        .SetSecondParentClass("col-md-6")
+                                        .SetHelp(LocaleResource.Get("Blog.Setting.Help.UseNextPrev"))
+                                        .SetPlaceHolder(LocaleResource.Get("Blog.Setting.PlaceHolder.UseNextPrev"))
+                                        .SetDisplayName(LocaleResource.Get("Blog.Setting.Form.UseNextPrev"));
+
+                                });
+                            });
+
+                        }).SetHeading(LocaleResource.Get("Blog.Setting.Form.Title.Save"));
+
+
+                    })
+                )
+            </div>
+        </div>
+    </div>
+</section>
+
+@section scripts{
+}

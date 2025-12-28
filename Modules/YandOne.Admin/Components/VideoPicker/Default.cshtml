@@ -1,0 +1,180 @@
+﻿<div class="modal fade" id="videopickerModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLongTitle">Video Picker</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal">
+                </button>
+            </div>
+            <div class="modal-body ">
+                <div class="videopicker">
+                    <div class="row mb-2">
+                        <div class="col-md-12">
+
+                            <div class="p-1 bg-white shadow rounded-lg">
+
+
+                                @*<div class="selected">
+                                <img class="img-fluid" src="/themes/shared/default/images/pictures/image2.png" alt="">
+                                </div>*@
+                                @*<h6 class="text-center mb-4 text-muted">
+                                Or
+                                </h6>
+                                <label for="fileUpload" class="file-upload btn btn-primary btn-block rounded-pill shadow">
+                                <i class="fa fa-upload mr-2"></i>Browse for file ...
+                                </label>*@
+                            </div>
+                            @*<div class="form-group">
+                            <label>Alt Text</label>
+                            <input id="txtAlt" type="text" class="form-control" name="AltText" placeholder="Alt...">
+
+                            </div>*@
+                        </div>
+                    </div>
+                    <div class="row">
+                        <label class="vusemedia btn btn-primary btn-block rounded-pill shadow">
+                            <i class="fa fa-list mr-2"></i>Use Media Library ...
+                        </label>
+                    </div>
+                    <div class="group-wrapper" style="display: none;">
+                        <ul class="videopicker-list">
+                            @*<li>
+                            <div>
+                            <img src="/themes/shared/default/images/pictures/image2.png" alt="">
+                            </div>
+                            <p>Caption</p>
+                            </li>*@
+
+                        </ul>
+                    </div>
+                    <div class="col">
+                        <a href="javascript:void(0)" class="vloadmore mx-auto ">
+                            load more...
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <a href="javascript:void(0)" class="btn btn-secondary" data-dismiss="modal">Close</a>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+
+    var mediavideopicker = function () {
+        var ajaxCallPost = function (url, param, successFx, error) {
+            $.ajax({
+                type: "POST",
+                async: false,
+                url: url,
+                data: param,
+                success: successFx,
+                error: error
+            });
+        };
+        var ajaxCallGet = function (url, successFx, error) {
+            $.ajax({
+                type: "get",
+                async: false,
+                url: url,
+                data: {},
+                success: successFx,
+                error: error
+            });
+        };
+        var _offset = 1;
+        var hasMoreData = false;
+        var currentImageEl = null;
+        var loadImages = function (offset, limit) {
+            try {
+                ajaxCallGet("/api/v1/medialibrary/video?offset=" + offset + "&limit=" + limit,
+                    function (response) {
+                        if (response.Code === 200) {
+
+                            if (response.Data.length < 20) {
+                                hasMoreData = false;
+                                $(".loadmore").hide();
+                            } else {
+                                hasMoreData = true;
+                                $(".loadmore").show();
+                            }
+                            $.each(response.Data,
+                                function (index, item) {
+                                    var $li = $("<li/>");
+                                    $li.append("<div><a href='#'>/uploads/media" + item.RPath + "</a></div>");
+                                    $li.data('item', item);
+                                    $(".group-wrapper ul").append($li);
+                                });
+
+                        } else {
+                            new kachuwaNotification().Error(Locale.Get("Error"),
+                                Locale.Get("Failed to save data."));
+                        }
+
+                    },
+                    function () { });
+            } catch (e) {
+                console.log(e);
+
+            }
+        }
+
+        var uiEvents = function () {
+
+            $(document).off("click", ".vusemedia").on("click",
+                ".vusemedia",
+                function () {
+                    $(".group-wrapper").toggle();
+                    if ($(".group-wrapper").css("display") != "none") {
+
+                    }
+                });
+            $(document).off("click", ".vloadmore").on("click",
+                ".vloadmore",
+                function () {
+                    if (hasMoreData) {
+                        _offset++;
+                        loadImages(_offset, 20);
+                    } else {
+
+                    }
+                });
+            loadImages(_offset, 20);
+            //
+            $(document).off("click", ".videopicker-list li").on("click",
+                ".videopicker-list li",
+                function () {
+                    var item = $(this).data('item');
+                    var path = "/uploads/media" + item.RPath;
+                    // setSelectedImage(path);
+
+                    // if (currentImageEl.prop('tagName').toLowerCase() == "input") {
+                    currentImageEl.val(path);
+                    currentImageEl.trigger('change');
+                    $("#videopickerModal").modal('hide');
+                    // }
+                });
+
+            $(document).off("click", ".video-changer").on("click",
+                ".video-changer",
+                function () {
+                    currentImageEl = $(this);
+                    var source = $(this).attr('src');
+                    $("#videopickerModal").modal('show');
+                    setSelectedImage(source);
+                });
+        };
+
+
+        uiEvents();
+        var setSelectedImage = function (imgsrc) {
+
+            $(".videopicker .selected img").attr('src', imgsrc + "?h=300&w=300&mode=crop");
+        }
+
+        return { setSelectedImage: setSelectedImage };
+    }();
+
+
+</script>

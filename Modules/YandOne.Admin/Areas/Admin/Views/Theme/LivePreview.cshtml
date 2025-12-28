@@ -1,0 +1,19 @@
+@{
+    Layout = $"~/Themes/{ViewBag.ThemeName}/Views/Shared/_Layout.cshtml";
+}
+<h2 class="live-preview-content">Live Preview Rendered</h2>
+
+<script>
+window.addEventListener("message", function (event) {
+    const { type, content } = event.data;
+    if (type === "css") {
+        document.getElementById("live-preview-css").innerText = content;
+    } else if (type === "js") {
+        const scriptTag = document.getElementById("live-preview-js");
+        scriptTag.innerHTML = "";
+        const script = document.createElement("script");
+        script.innerHTML = content;
+        scriptTag.appendChild(script);
+    }
+});
+</script>

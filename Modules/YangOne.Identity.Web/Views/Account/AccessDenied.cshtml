@@ -1,0 +1,14 @@
+@using YangOne.Localization
+@inject ILocaleResourceProvider LocaleResource;
+@{
+
+    LocaleResource.LookUpGroupAt("Account");
+    ViewData["Title"] = LocaleResource.Get("Account.AccessDenied.Title");
+    Layout = "_LoginLayout";
+
+}
+
+<div>
+    <h1>@LocaleResource.Get("Account.AccessDenied.Title")</h1>
+    <a href="/" class="btn btn-primary">@LocaleResource.Get("Account.GoBack.Title") </a>
+</div>
