@@ -1,0 +1,6 @@
+﻿{
+  "smidge": {
+    "dataFolder": "smidge", //where the cache files are stored
+    "version": "108" //can be any string
+  }  
+}

@@ -1,0 +1,117 @@
+﻿@using YangOne.Web.Model.CountrollerRoute
+@using YangOne.Identity.ViewModels
+@model IEnumerable<RolePermission>
+
+@{
+    Layout = "~/themes/shared/fullmoon/Views/shared/_layout.cshtml";
+    int i = 0;
+    List<UserRolesSelected> lstRoles = (List<UserRolesSelected>)ViewData["Roles"];
+    long roleid = 0;
+    if (Model != null && Model.Count() > 0 && Model.FirstOrDefault().RoleId != 0)
+    {
+        roleid = Model.FirstOrDefault().RoleId;
+    }
+    string chkd = string.Empty;
+    string val = "false";
+}
+<div class="theme-card">
+    <div class="checkboxes-container">
+        <form action="/admin/kachuwa/updatepermissionpage" method="post">
+
+            <div class="row checkbox-cont-box">
+                <h4>Roles</h4>
+                <div class="col-md-12">
+                    <div class="checkbox-box-row">
+                        <select name="RolePermission[0].RoleId" id="rolePermssionselect">
+                            @foreach (var item in lstRoles)
+                            {
+                                if (item.RoleId == roleid)
+                                {
+                                    <option value="@item.RoleId" selected>@item.Name</option>
+                                }
+                                else
+                                {
+                                    <option value="@item.RoleId">@item.Name</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+
+            @foreach (var item in Model.GroupBy(x => x.ControllerName))
+            {
+                <div class="row checkbox-cont-box">
+                    <h4>@item.Key</h4>
+                    <div class="checkbox-box-row">
+                        <h4>Select All</h4>
+                        <input style="margin-left: 1rem;" type="checkbox" class="input_check select_all" data-id="@item.Key" />
+                    </div>
+                    @foreach (var route in Model.Where(x => x.ControllerName == item.Key))
+                    {
+                        {
+                            chkd = string.Empty;
+                            val = "false";
+                        }
+                        if (route.HavePermission)
+                        {
+                            val = "true";
+                            chkd = "checked";
+                        }
+
+                        <div class="col-md-6">
+                            <div class="checkbox-box-row">
+                                <input type="hidden" value="@route.AppControllerUrlId" name="RolePermission[@i].AppControllerUrlId">
+                                <input type="checkbox" class="input_check @item.Key" id="@route.RouteUrl" value="@val" name="RolePermission[@i].HavePermission" @chkd>
+                                <label for="@route.RouteUrl"> @(string.IsNullOrEmpty(route.FriendlyUrl) ? route.RouteUrl : route.FriendlyUrl)</label><br>
+                            </div>
+
+                        </div>
+                        { i++; }
+                    }
+                </div>
+            }
+
+
+            <div class="row checkbox-cont-box">
+                <div class="col-md-12">
+                    <button type="submit" class="btn btn-primary">Save </button>
+                    <a href="/" class="btn btn-danger">Cancel</a>
+                </div>
+            </div>
+        </form>
+
+    </div>
+</div>
+@section scripts{
+    <script>
+        $(document).ready(function () {
+
+            $("#rolePermssionselect").change(function () {
+                let val = $(this).val();
+                window.location.href = "/admin/kachuwa/permissionpage?id=" + val;
+            })
+
+            $(".input_check").click(function () {
+                if ($(this).is(':checked')) {
+                    $(this).val(true);
+                } else {
+                    $(this).val(false);
+                }
+
+            })
+        });
+
+        $('.select_all').on('click', function () {
+            var id = $(this).attr("data-id")
+            $("." + id).prop("checked", $(this).prop("checked"));
+            if ($("."+id).is(':checked')) {
+                $("." + id).val(true);
+            } else {
+                $("." + id).val(false);
+            }
+        })
+    </script>
+
+}

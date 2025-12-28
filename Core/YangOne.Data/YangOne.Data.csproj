@@ -1,0 +1,6 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\YangOne.Core\YangOne.Core.csproj" />
+  </ItemGroup>
+
+</Project>

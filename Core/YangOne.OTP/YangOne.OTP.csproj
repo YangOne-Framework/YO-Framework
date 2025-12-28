@@ -1,0 +1,10 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\YangOne.Data\YangOne.Data.csproj" />
+  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.3" />
+		<PackageReference Include="Wiry.Base32" Version="1.1.1" />
+	</ItemGroup>
+
+</Project>

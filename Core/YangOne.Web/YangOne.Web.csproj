@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<ItemGroup>
+		<None Remove="Views\Shared\YOGrid\Form.cshtml" />
+		<None Remove="Views\Shared\YOGrid\Grid.cshtml" />
+		<None Remove="Views\Shared\_Installer.cshtml" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<EmbeddedResource Include="Views\Shared\YOGrid\Form.cshtml" />
+		<EmbeddedResource Include="Views\Shared\YOGrid\Grid.cshtml" />
+		<EmbeddedResource Include="Views\Shared\_Installer.cshtml" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\YangOne.Core\YangOne.Core.csproj" />
+		<ProjectReference Include="..\YangOne.Data\YangOne.Data.csproj" />
+		<ProjectReference Include="..\YangOne.Identity\YangOne.Identity.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="DotNetCore.NPOI" Version="1.2.3" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
+		<PackageReference Include="Microsoft.AspNetCore.RateLimiting" Version="7.0.0-rc.2.22476.2" />
+		<PackageReference Include="Mustache" Version="1.0.1" />
+		<PackageReference Include="CommonMark.NET" Version="0.15.1" />
+		<PackageReference Include="MXTires.Microdata.Core" Version="0.1.0" />
+		<PackageReference Include="SkiaSharp" Version="3.119.1" />
+		<PackageReference Include="Smidge" Version="4.6.0" />
+		<PackageReference Include="Smidge.Nuglify" Version="4.6.0" />
+		<PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
+	</ItemGroup>
+</Project>

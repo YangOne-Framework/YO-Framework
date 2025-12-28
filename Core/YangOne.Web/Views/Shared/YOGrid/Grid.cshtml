@@ -1,0 +1,469 @@
+﻿@using System.Diagnostics
+@using YangOne.Web.Grid;
+@using YangOne.Web
+@using Microsoft.Extensions.Primitives
+@using Newtonsoft.Json
+@using YangOne.Web.Form;
+@model IYOGrid
+@{
+    StringValues query;
+    ContextResolver.Context.Request.Query.TryGetValue("query", out query);
+    if (string.IsNullOrEmpty(query))
+    {
+        query = "";
+    }
+
+    int counter = 0;
+    int sn = 0;
+
+
+}
+<link href="/module/YOGrid/resources/css/kgridstyle.css" rel="stylesheet" />
+<link href="/lib/bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet" />
+
+
+<div id="@Model.Name" class="row kachuwa-grid">
+    <div class="col-xl-12">
+        @if (!Model.Rows.Any() && Model.NoDataTemplate != null)
+        {
+            @(Model.NoDataTemplate.Invoke(null))
+        }
+        else
+        {
+            @if (!Model.UseCardView)
+            {
+                if (!Model.HideSearchBar)
+                {
+                    <div class="filter cm-content-box box-primary">
+                        <div class="content-title">
+                            <div class="cpa">
+                                <i class="fa-solid fa-filter me-2"></i>Filter
+                            </div>
+                            <div class="tools">
+                                <a href="javascript:void(0);" class="expand SlideToolHeader"><i class="fal fa-angle-down"></i></a>
+                            </div>
+                        </div>
+                        <div class="cm-content-body  form excerpt">
+                            <div class="card-body pb-3">
+                                <div class="row">
+                                    <form method="get" class="">
+                                        <div class="searchbar navbar-form @Model.SearchBarClasses">
+                                            <div class="input-group">
+                                                <input type="text" value="@query" placeholder="search..." name="query" class="form-control" />
+                                                @if (!Model.HideSearcButton)
+                                                {
+                                                    <div class="input-group-append">
+                                                        <button type="submit" class="btn btn-secondary">
+                                                            <i class="fa fa-search"></i>
+                                                        </button>
+                                                    </div>
+                                                }
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <div class="filter cm-content-box box-primary">
+
+                    <div class="cm-content-body form excerpt">
+                        <div class="card-body py-3">
+                            <div class="table-responsive">
+                                <table class="table @Model.CssClasses">
+                                    <thead>
+                                        <tr>
+                                            <th>S.N</th>
+                                            @if (!Model.DisableRowSelection)
+                                            {
+                                                <th>
+
+                                                </th>
+                                            }
+                                            @foreach (IYOGridColumn column in Model.Columns)
+                                            {
+
+                                                <th class=" @column.CssClasses" data-name="@column.Name">
+                                                    <strong><span class="kachuwa-grid-header">@column.Title</span></strong>
+                                                </th>
+
+                                            }
+                                            <th class="actionClass" style="width: 15%;">
+
+                                            </th>
+
+                                        </tr>
+                                    </thead>
+                                    <tbody class="here sis some ">
+                                        @if (Model.Rows.Any())
+                                        {
+
+                                            foreach (IYOGridRow<Object> row in Model.Rows)
+                                            {
+                                                {
+                                                    sn++;
+                                                }
+                                                <tr class="@row.CssClasses"
+                                                    @*data-item="@JsonConvert.SerializeObject(row.Model)" *@>
+                                                    @if (!Model.DisableRowSelection)
+                                                    {
+                                                        <td>
+                                                            <input type="checkbox" value="@row.GetPriamaryKey()" class="kachuwa-grid-item" />
+                                                        </td>
+                                                    }
+                                                    <td>@((Model.Pager.CurrentPage - 1) * Model.Pager.PageSize + sn) </td>
+                                                    @foreach (IYOGridColumn column in Model.Columns)
+                                                    {
+                                                        <td class="@column.CssClasses">
+                                                            @if (Model.UseInsideForm)
+                                                            {
+                                                                @switch (column.FormControl)
+                                                                {
+                                                                    case FormInputControl.Empty:
+                                                                        @column.ValueFor(row)
+                                                                        break;
+                                                                    case FormInputControl.Hidden:
+                                                                        <input type="hidden" value="@column.ValueFor(row)" name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") />
+                                                                        break;
+                                                                    case FormInputControl.CheckBox:
+                                                                        if (column.ValueFor(row).ToString().ToLower() == "false")
+                                                                        {
+                                                                            <input type="checkbox" class="@column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                                   name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") value="false" />
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <input type="checkbox" class="@column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                                   name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") value="true" checked="checked" />
+                                                                        }
+                                                                        break;
+                                                                    case FormInputControl.Label:
+                                                                        <label name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}")>@column.ValueFor(row) </label>
+                                                                        break;
+                                                                    case FormInputControl.CheckBoxList:
+                                                                        <div class="checkbox-wrapper">
+                                                                            @*@column.RenderControlSource(column.DataSource)*@
+                                                                        </div>
+
+                                                                        break;
+                                                                    case FormInputControl.ImageViewer:
+                                                                        <div class="image-viewer">
+                                                                            @if (!string.IsNullOrEmpty(column.ValueFor(row).ToString()))
+                                                                            {
+                                                                                <img width="200" src="@column.ValueFor(row)" />
+                                                                            }
+                                                                        </div>
+
+                                                                        break;
+                                                                    case FormInputControl.Color:
+                                                                        <input type="color" class="@column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                               name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") value="@column.ValueFor(row)" />
+                                                                        <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
+                                                                        break;
+                                                                    case FormInputControl.Date:
+                                                                        <div class='input-group with-addon-icon-left'>
+                                                                            <input type="text" class="date @column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                                   name="@column.Name" value="@column.ValueFor(row)" />
+                                                                            <span class="input-group-append">
+                                                                                <span class="input-group-text">
+                                                                                    <i class="fa fa-calendar"></i>
+                                                                                </span>
+                                                                            </span>
+                                                                        </div>
+                                                                        <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
+                                                                        break;
+                                                                    case FormInputControl.DateTime:
+                                                                        <div class='input-group with-addon-icon-left'>
+                                                                            <input type="text" class="datetimepicker @column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                                   name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") value="@column.ValueFor(row)" />
+                                                                            <span class="input-group-append">
+                                                                                <span class="input-group-text">
+                                                                                    <i class="fa fa-calendar"></i>
+                                                                                </span>
+                                                                            </span>
+                                                                        </div>
+                                                                        <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
+                                                                        break;
+                                                                    case FormInputControl.Editor:
+                                                                        <textarea class="editor @column.FormClasses" name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") @Html.Raw(column.RenderAttributes(this.ViewContext))></textarea>
+                                                                        <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
+                                                                        break;
+                                                                    case FormInputControl.Email:
+                                                                        <input type="email" class="@column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                               name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") value="@column.ValueFor(row)" />
+                                                                        <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
+                                                                        break;
+                                                                    case FormInputControl.File:
+                                                                        <input type="file" class="@column.FormClasses" />
+                                                                        break;
+                                                                    case FormInputControl.Image:
+
+                                                                        <div class="uploader image_picker">
+                                                                            <div class="settings_wrap">
+                                                                                <label class="drop_target">
+                                                                                    <div class="image_preview"></div>
+                                                                                    <input type="file" class="@column.FormClasses  k-image-uploader" name="@column.Name" />
+
+                                                                                </label>
+                                                                                <div class="uploader-actions vertical">
+                                                                                    <a data-action="choose_from_uploaded">
+                                                                                        <i class="fa fa-picture-o"></i> Choose from Uploads
+                                                                                    </a>
+                                                                                </div>
+                                                                                <div class="image_details">
+                                                                                    @*<label class="input_line image_title">
+                                    <input type="text" placeholder="Title"/>
+                                    </label>*@
+                                                                                    @if (!string.IsNullOrEmpty(column.ValueFor(row).ToString()))
+                                                                                    {
+                                                                                        <p>Image view</p>
+                                                                                    }
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+
+                                                                        break;
+                                                                    case FormInputControl.Number:
+                                                                        <input type="number" class="@column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                               name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") value="@column.ValueFor(row)" />
+                                                                        <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
+                                                                        break;
+                                                                    case FormInputControl.Password:
+                                                                        <input type="password" class="@column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                               name="@column.Name" value="@column.ValueFor(row)" />
+                                                                        <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
+                                                                        break;
+                                                                    case FormInputControl.Radio:
+
+                                                                        if (column.ValueFor(row).ToString().ToLower() == "false")
+                                                                        {
+                                                                            <input type="radio" class="@column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                                   name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") />
+
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <input type="radio" class="@column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                                   name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") checked="checked" />
+                                                                        }
+                                                                        break;
+                                                                    case FormInputControl.RadioList:
+                                                                        break;
+                                                                    case FormInputControl.Select:
+                                                                        <select data-live-search="true" class="@column.FormClasses selectpicker show-tick" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                                name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}")>
+                                                                            @column.RenderControlSource(column.DataSource, row)
+                                                                        </select>
+                                                                        <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
+                                                                        break;
+                                                                    case FormInputControl.Telephone:
+                                                                        <input type="tel" class="@column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                               name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") value="@column.ValueFor(row)" />
+                                                                        <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
+                                                                        break;
+                                                                    case FormInputControl.Url:
+                                                                        <input type="url" class="@column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                               name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") value="@column.ValueFor(row)" />
+                                                                        <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
+                                                                        break;
+                                                                    case FormInputControl.TextArea:
+                                                                        <textarea class="@column.FormClasses" name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") @Html.Raw(column.RenderAttributes(this.ViewContext))>@column.ValueFor(row)</textarea>
+                                                                        <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
+                                                                        break;
+                                                                    case FormInputControl.TextBox:
+                                                                        <input name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") type="text" class="@column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                               value="@column.ValueFor(row)" />
+                                                                        <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
+                                                                        break;
+                                                                    case FormInputControl.Tag:
+                                                                        <input name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") type="text" class="kachuwa-tags @column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                               value="@column.ValueFor(row)" />
+                                                                        <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
+
+                                                                        break;
+                                                                    case FormInputControl.Template:
+
+
+                                                                        break;
+                                                                    case FormInputControl.Switch:
+                                                                        if (column.ValueFor(row).ToString().ToLower() == "false")
+                                                                        {
+                                                                            <label class="switch">
+                                                                                <input type="checkbox" class="@column.FormClasses" name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") @Html.Raw(column.RenderAttributes(this.ViewContext)) value="false" />
+                                                                                <div class="switchslider round"></div>
+                                                                            </label>
+                                                                        }
+                                                                        else
+                                                                        {
+                                                                            <label class="switch">
+                                                                                <input type="checkbox" class="@column.FormClasses" name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") @Html.Raw(column.RenderAttributes(this.ViewContext)) value="true" checked="checked" />
+                                                                                <div class="switchslider round"></div>
+                                                                            </label>
+
+                                                                        }
+
+                                                                        break;
+
+                                                                }
+
+                                                            }
+                                                            else
+                                                            {
+
+                                                                @column.ValueFor(row)
+
+                                                            }
+                                                        </td>
+
+                                                    }
+                                                    <td class="actionClass" style="width: 15%;">
+                                                        @foreach (IYOGridCommand command in Model.Commands)
+                                                        {
+                                                            if (command.ClientCallback == "")
+                                                            {
+                                                                <a href="@command.ValueFor(row)" class="command-link @command.CssClasses"
+                                                                   command="@command.Command">
+                                                                    @*<span class="fa-stack">
+                            <i class="@command.IconClass "></i>
+                            </span>*@
+                                                                    @if (!string.IsNullOrEmpty(command.IconClass) && @command.IconClass.Contains(".svg"))
+                                                                    {
+                                                                        <img src="@command.IconClass" />
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <i class="@command.IconClass "></i>
+                                                                    }
+                                                                </a>
+                                                            }
+                                                            else
+                                                            {
+                                                                string callback = command.ClientCallback + "(this," + command.ValueFor(row) + ")";
+
+                                                                <a href="#" class="command-link @command.CssClasses"
+                                                                   command="@command.Command"
+                                                                   callbackApi="@command.ClientCallbackUrl"
+                                                                   onclick="@callback">
+                                                                    @* <span class="fa-stack">
+                            <i class="@command.IconClass "></i>
+                            </span>*@
+                                                                    @if (!string.IsNullOrEmpty(command.IconClass) && @command.IconClass.Contains(".svg"))
+                                                                    {
+                                                                        <img src="@command.IconClass" />
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <i class="@command.IconClass "></i>
+                                                                    }
+                                                                </a>
+                                                            }
+
+
+                                                        }
+                                                    </td>
+
+                                                </tr>
+
+                                                {
+                                                    counter++;
+                                                }
+                                            }
+                                        }
+                                        else if (Model.NoDataText != null)
+                                        {
+                                            <tr>
+                                                @if (!Model.DisableRowSelection)
+                                                {
+                                                    <td>
+                                                    </td>
+                                                }
+                                                @{
+                                                    var totalCols = Model.Columns.Count() + 1;
+                                                }
+                                                <td class="kachuwa-grid-emptyrow" colspan="@totalCols">
+                                                    @Model.NoDataText
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+            }
+            else
+            {
+                if (!Model.HideSearchBar)
+                {
+                    <div class="filter cm-content-box box-primary">
+                        <div class="content-title">
+                            <div class="cpa">
+                                <i class="fa-solid fa-filter me-2"></i>Filter
+                            </div>
+                            <div class="tools">
+                                <a href="javascript:void(0);" class="expand SlideToolHeader"><i class="fal fa-angle-down"></i></a>
+                            </div>
+                        </div>
+                        <div class="cm-content-body  form excerpt">
+                            <div class="card-body pb-3">
+                                <div class="row">
+                                    <form method="get" class="">
+                                        <div class="searchbar navbar-form @Model.SearchBarClasses">
+                                            <div class="form-group">
+                                                <input type="text" value="@query" placeholder="search..." name="query" class="form-control" />
+                                                @if (!Model.HideSearcButton)
+                                                {
+                                                    <button type="submit" command="search" class="btn btn-default">
+                                                        <i class="material-icons md-18">search</i>
+                                                    </button>
+                                                }
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+                @if (Model.Rows.Any())
+                {
+                    foreach (IYOGridRow<Object> row in Model.Rows)
+                    {
+
+                        foreach (IYOGridColumn column in Model.Columns)
+                        {
+                            <div class="@column.CssClasses">
+                                @column.ValueFor(row)
+                            </div>
+                        }
+
+                    }
+                }
+                else if (Model.NoDataText != null)
+                {
+
+                    {
+                        var totalCols = Model.Columns.Count() + 1;
+                    }
+
+                    <div class="row">@Model.NoDataText</div>
+
+                }
+
+            }
+        }
+        @if (Model.Pager != null)
+        {
+            @await Component.InvokeAsync("Pagination", Model.Pager)
+        }
+    </div>
+</div>
+
+<script src="/lib/bootstrap-select/dist/js/bootstrap-select.min.js"></script>
+<script src="/module/kachuwagrid/resources/js/kachuwagrid.js"></script>

@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <Compile Remove="ViewModel\**" />
+    <EmbeddedResource Remove="ViewModel\**" />
+    <None Remove="ViewModel\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\YangOne.Core\YangOne.Core.csproj" />
+    <ProjectReference Include="..\YangOne.Data\YangOne.Data.csproj" />
+  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.DataProtection.Extensions" Version="9.0.9" />
+		<PackageReference Include="Microsoft.AspNetCore.Identity" Version="2.3.1" />
+		<PackageReference Include="System.Data.Common" Version="4.3.0" />
+	</ItemGroup>
+</Project>

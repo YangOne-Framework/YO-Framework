@@ -1,0 +1,211 @@
+﻿using System.Data;
+using System.Data.Common;
+using System.Reflection;
+using Dapper;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.Extensions.Configuration;
+using YangOne.Caching;
+using YangOne.Data;
+using YangOne.Data.Crud.Attribute;
+using YangOne.Data.Extension;
+
+namespace YangOne.Web.Service
+{
+    public class PermissionService : IPermissionService
+    {
+        private string _cacheKey = "YO.PagePermissionExtended";
+        public CrudService<ApplicationController> AppControllerCrudService { get; set; } = new CrudService<ApplicationController>();
+        public CrudService<ApplicationControllerAction> ApplicationControllerActionCrudService { get; set; } = new CrudService<ApplicationControllerAction>();
+        public CrudService<MasterRolePermission> RolePermissionCrudService { get; set; } = new CrudService<MasterRolePermission>();
+
+        private readonly IConfiguration _configuration;
+        private readonly ICacheService _cacheService;
+        private readonly IActionDescriptorCollectionProvider _actionDescriptorCollectionProvider;
+
+        public PermissionService(IConfiguration configuration,
+            ICacheService cacheService,
+            IActionDescriptorCollectionProvider actionDescriptorCollectionProvider)
+        {
+            _configuration = configuration;
+            _cacheService = cacheService;
+            _actionDescriptorCollectionProvider = actionDescriptorCollectionProvider;
+        }
+
+        public async Task DeleteRolePermissions(int roleId, long deletedBy)
+        {
+            await RolePermissionCrudService.UpdateAsDeleted("Where RoleId=@RoleId", new { DeletedBy = deletedBy, RoleId = roleId });
+        }
+
+        public async Task<IEnumerable<ApplicationController>> SaveApplicationControllers(List<ApplicationController> appControllers)
+        {
+
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                foreach (var item in appControllers)
+                {
+
+                    await db.ExecuteAsync(@"If NOT EXISTS(Select 1 From dbo.ApplicationController WHERE Name=@Name)
+BEGIN
+INSERT INTO dbo.ApplicationController (Name) VALUES (@Name);
+END",
+                        item);
+                }
+
+                return await db.QueryAsync<ApplicationController>(@"select * from dbo.ApplicationController");
+
+            }
+        }
+        public async Task<bool> SaveApplicationControllerActions(List<ApplicationControllerAction> actions)
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                foreach (var item in actions)
+                {
+                    await db.ExecuteAsync(
+                        @"If NOT EXISTS(Select 1 From dbo.ApplicationControllerAction WHERE RouteUrl=@RouteUrl)
+BEGIN
+INSERT INTO dbo.ApplicationControllerAction (ApplicationControllerId,ActionUrl,RouteUrl,FriendlyName) VALUES (@ApplicationControllerId,@ActionUrl,@RouteUrl,@FriendlyName)
+END
+ELSE
+BEGIN
+UPDATE dbo.ApplicationControllerAction set 
+		FriendlyName=@FriendlyName,
+		ActionUrl=@ActionUrl
+		Where RouteUrl=@RouteUrl
+END",
+                        item);
+                }
+
+                return true;
+            }
+        }
+
+        public async Task<IEnumerable<MasterRolePermission>> GetRolePermissionsById(int RoleId)
+        {
+
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                return await db.QueryAsync<MasterRolePermission>("[dbo].[usp_RolePermission_GetByRoleId]",
+                    new { RoleId = RoleId },
+                    commandType: CommandType.StoredProcedure);
+            }
+        }
+        public async Task<IEnumerable<MasterRolePermission>> GetAllRolesPermissions()
+        {
+
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                return await db.QueryAsync<MasterRolePermission>("[dbo].[usp_RolePermission_GetAll]", commandType: CommandType.StoredProcedure);
+            }
+        }
+        public async Task SaveRolePermissions(RolePermissionViewModel rolePermissions)
+        {
+
+            await RolePermissionCrudService.DeleteAsync("Where RoleId=@RoleId", new { RoleId = rolePermissions.RolePermission.FirstOrDefault().RoleId });
+            foreach (var item in rolePermissions.RolePermission)
+            {
+                if (item.AllowAccess)
+                {
+                    item.AutoFill();
+                    item.RoleId = rolePermissions.RolePermission[0].RoleId;
+                    item.IsActive = true;
+                    await RolePermissionCrudService.InsertAsync(item);
+                }
+            }
+
+
+        }       
+
+        public async Task InitializeAsync()
+        {
+            if(_configuration["YangOneAppConfig:IsInstalled"]?.ToLower()=="false")
+                return ;
+            var routes = _actionDescriptorCollectionProvider.ActionDescriptors.Items.
+                 Where(z => z.AttributeRouteInfo != null).Select(x =>
+                 {
+                     var cc = ((Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor)x).MethodInfo.GetCustomAttribute<FriendlyNameAttribute>();
+                     string fn = cc == null ? "" : cc.Template;
+                     return new
+                     {
+                         FriendlyName = fn,
+                         RouteUrl = x.AttributeRouteInfo,
+                         Action = x.RouteValues["Action"],
+                         Controller = x.RouteValues["Controller"]
+                     };
+                 }).ToList();
+            List<ApplicationController> lstAppCountroller = new List<ApplicationController>();
+            foreach (var item in routes.GroupBy(x => x.Controller))
+            {
+                ApplicationController controller = await AppControllerCrudService.GetAsync("Where Name=@name", new { name = item.Key });
+
+                if (controller == null)
+                {
+                    controller = new ApplicationController()
+                    {
+                        Name = item.Key,
+                    };
+                }
+                lstAppCountroller.Add(controller);
+            }
+
+            var newAppControllers = await SaveApplicationControllers(lstAppCountroller);
+            List<ApplicationControllerAction> actions = new List<ApplicationControllerAction>();
+            string[] igonerroute = new string[] { "RedirectToAnother", "GetCompanyId", "GetBranchId" };
+            foreach (var item in newAppControllers)
+            {
+                foreach (var r in routes.Where(x => x.Controller == item.Name))
+                {
+                    if (!igonerroute.Contains(r.Action))
+                    {
+                        ApplicationControllerAction objAppControllerUrl = new()
+                        {
+                            ApplicationControllerId = item.ApplicationControllerId,
+                            ActionUrl = $"/{r.Controller}/{r.Action}",
+
+                        };
+                        if (r.FriendlyName != null)
+                        {
+                            objAppControllerUrl.FriendlyName = $"{r.FriendlyName}";
+                        }
+                        if (r.RouteUrl != null)
+                        {
+                            objAppControllerUrl.RouteUrl = $"/{r.RouteUrl.Template}";
+                            if (objAppControllerUrl.RouteUrl.Contains("{"))
+                            {
+                                objAppControllerUrl.RouteUrl = objAppControllerUrl.RouteUrl.Split("{")[0];
+                            }
+                        }
+                        if (!r.RouteUrl.Template.Contains(" "))
+                        {
+                            actions.Add(objAppControllerUrl);
+
+                            //await permissionService.UpdateInsertAppControllerUrl(objAppControllerUrl);
+                        }
+
+                    }
+
+                }
+            }
+            await SaveApplicationControllerActions(actions);
+        }
+
+        public async  Task CleanupAsync()
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                await db.ExecuteAsync(@"truncate table dbo.ApplicationControllerAction;
+truncate table dbo.ApplicationController");
+            }
+        }
+    }
+}
