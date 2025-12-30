@@ -10,12 +10,12 @@ using Microsoft.Extensions.Configuration;
 
 namespace Azure.BlobStorage.Helper
 {
-    public class WholisticMindsBlobStorageProvider
+    public class YOBlobStorageProvider
     {
         private readonly IConfiguration _configuration;
         private readonly IWebHostEnvironment _hostEnvironment;
-        private string containerName = "wholisticminds";
-        public WholisticMindsBlobStorageProvider(IConfiguration configuration,IWebHostEnvironment hostEnvironment)
+        private string containerName = "yoblobcontainer";
+        public YOBlobStorageProvider(IConfiguration configuration,IWebHostEnvironment hostEnvironment)
         {
             _configuration = configuration;
             _hostEnvironment = hostEnvironment;
