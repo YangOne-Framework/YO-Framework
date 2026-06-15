@@ -1,6 +1,9 @@
 {
   "APIConfig": {
     "UseEncryption": false,
-    "UseObfusication": true
+    "UseObfusication": false,
+    "ObfuscationKey": null,
+    "EncryptionKey": null,
+    "EncryptionIV": null
   }
 }

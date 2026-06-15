@@ -1,7 +1,7 @@
-﻿var kachuwagrid;
+﻿var yogrid;
 (function ($) {
     //alert("Heklloogarg");
-    var kachuwaGrid = function () {
+    var yoGrid = function () {
         var ajaxCall = function (url, param, successFx, error) {
             $.ajax({
                 type: "POST",
@@ -15,12 +15,12 @@
         };
         var commands = [];
 
-        $(".kachuwa-grid").find("tbody>tr").each(function (i, x) {
+        $(".yo-grid").find("tbody>tr").each(function (i, x) {
             var $tr = $(x);
-            $tr.data('kachuwa-item', $tr.data('item'));
+            $tr.data('yo-item', $tr.data('item'));
 
         });
-        //$(".kachuwa-grid").each(function(index, item) {
+        //$(".yo-grid").each(function(index, item) {
         //    //attaching commands events
         //    var commands = $(item).find("a.command-link");
         //    commands.each(function(i, c) {
@@ -32,14 +32,14 @@
 
         //});
 
-        kachuwagrid = {};
+        yogrid = {};
 
-        kachuwagrid.delete = function (elem, options) {
+        yogrid.delete = function (elem, options) {
 
             if (confirm("Are you sure want to delete?")) {
                 var api = $(elem).attr('callbackApi');
                 if (typeof (options) == 'object') {
-                    alert('please extend the  kachuwagrid.delete api');
+                    alert('please extend the  yogrid.delete api');
                 } else {
                     ajaxCall(api,
                         { id: options },
@@ -61,11 +61,11 @@
 
 
     }();
-    var kachuwaForm = function () {
+    var yoForm = function () {
 
       
 
-        var kachuwaImagePreview = function () {
+        var yoImagePreview = function () {
             // Display the images to be uploaded.
             var multiPhotoDisplay;
             var clearImage = function ($elem) {
@@ -171,7 +171,7 @@
                         }
 
                         $.ajax({
-                            url: "/api/v1/kachuwa/grid/ajaxupload",
+                            url: "/api/v1/yo/grid/ajaxupload",
                             type: "POST",
                             data: data,
                             processData: false,
@@ -198,7 +198,7 @@
             //        console.log(jqxhr.status); // 200
 
             //    });
-             //$(".kachuwa-form").find(".switch input:checkbox").on("change",
+             //$(".yo-form").find(".switch input:checkbox").on("change",
             $(".switch input:checkbox").on("change",function () {
                     //debugger
                     console.log(this);
@@ -210,8 +210,8 @@
             //    console.log(jqxhr.status); // 200
             //    console.log("Load was performed.");
             //});
-            if ($(".kachuwa-tags").length > 0) {
-                $(".kachuwa-tags").tagsinput({ tagClass: "text-white bg-primary p-1" });
+            if ($(".yo-tags").length > 0) {
+                $(".yo-tags").tagsinput({ tagClass: "text-white bg-primary p-1" });
             }
 
             $(document).on('click', '.datetimepicker', function () {
@@ -239,7 +239,7 @@
                     liveSearch: true              
                 });
             }
-            kachuwaImagePreview();
+            yoImagePreview();
         }();
     }();
 

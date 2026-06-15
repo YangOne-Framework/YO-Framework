@@ -1,18 +1,19 @@
 ﻿
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using OpenIddict.Abstractions;
+using OpenIddict.Server;
 using OpenIddict.Server.AspNetCore;
 using OpenIddict.Validation.AspNetCore;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.RateLimiting;
-using OpenIddict.Server;
 using YangOne.Data;
 using YangOne.Data.Crud;
 using YangOne.Extensions;
@@ -31,11 +32,11 @@ namespace YOApp
         {
             services.AddSingleton(configuration);
             var serviceProvider = services.BuildServiceProvider();
-            //TODO can be used in Action Config in KachuwaSetup
+            //TODO can be used in Action Config in YOSetup
             //registering default database factory service
             IDatabaseFactory dbFactory = DatabaseFactories.SetFactory(Dialect.SQLServer, serviceProvider);
             services.AddSingleton(dbFactory);
-            services.RegisterKachuwaCoreServices(serviceProvider);
+            services.RegisterYOCoreServices(serviceProvider);
             services.AddControllers();
 
             services.AddSignalR(o =>
@@ -54,10 +55,17 @@ namespace YOApp
             services.AddScoped<IdentityServerAuthorizationStore>();
             services.AddScoped<IdentityServerScopeStore>();
             services.AddScoped<IdentityServerTokenStore>();
-            var encryptionCert = new X509Certificate2(
-                Path.Combine(hostingEnvironment.ContentRootPath, "app_data", "certs", "encryption.pfx"),
-                "MyStrongPassword123!",
-                X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.EphemeralKeySet);
+            //var encryptionCert = new X509Certificate2(
+            //    Path.Combine(hostingEnvironment.ContentRootPath, "app_data", "certs", "encryption.pfx"),
+            //    "MyStrongPassword123!",
+            //    X509KeyStorageFlags.MachineKeySet);
+
+            var encryptionCertificatePath = Path.Combine(hostingEnvironment.ContentRootPath,"app_data","certs","encryption.pfx");
+            var encryptionCertificatePassword = "MyStrongPassword123!";
+            var encryptionCert = X509CertificateLoader.LoadPkcs12FromFile(
+                encryptionCertificatePath,
+                encryptionCertificatePassword,
+                X509KeyStorageFlags.MachineKeySet);
             services.AddOpenIddict()
 
                 // Register the OpenIddict core components.
@@ -127,7 +135,7 @@ namespace YOApp
                         .AllowHybridFlow()
                         .AllowClientCredentialsFlow()
                         .AllowRefreshTokenFlow();
-                 
+
                     // Register the signing and encryption credentials.
                     //options.AddDevelopmentEncryptionCertificate()
                     //    .AddDevelopmentSigningCertificate();
@@ -181,6 +189,18 @@ namespace YOApp
             {
                 options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
                 {
+                    if (context.Request.Path.StartsWithSegments("/api/v1/localization/resource/missing"))
+                    {
+                        return RateLimitPartition.GetFixedWindowLimiter(
+                            partitionKey: "unlimited",
+                            factory: _ => new FixedWindowRateLimiterOptions
+                            {
+                                PermitLimit = int.MaxValue,
+                                Window = TimeSpan.FromMinutes(1),
+                                QueueLimit = 0
+                            });
+                    }
+
                     var key = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
                     return RateLimitPartition.GetTokenBucketLimiter(
                         partitionKey: key,
@@ -233,7 +253,9 @@ namespace YOApp
             services.AddOpenApi(options =>
             { // Specify the OpenAPI version to use
                 options.OpenApiVersion = Microsoft.OpenApi.OpenApiSpecVersion.OpenApi3_0;
+                // options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
                 options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+                options.AddOperationTransformer<AuthOperationTransformer>();
             });
             //services.ConfigureApplicationCookie(options =>
             //{
@@ -259,8 +281,8 @@ namespace YOApp
             })
                 .AddCookie("Cookies").AddJwtBearer(opts =>
                 {
-                    opts.Authority = hostingEnvironment.IsDevelopment() ? "https://localhost:44314" : configuration["KachuwaAppConfig:TokenAuthority"];
-                    opts.Audience = "aud";
+                    opts.Authority = hostingEnvironment.IsDevelopment() ? "https://localhost:7259" : configuration["YangOneAppConfig:TokenAuthority"];
+                    opts.Audience = configuration["YangOneAppConfig:Audience"];
                     opts.RequireHttpsMetadata = true;
                     opts.IncludeErrorDetails = true;
                     opts.TokenValidationParameters = new TokenValidationParameters
@@ -373,18 +395,13 @@ namespace YOApp
             //});
             //core
             app.UseWebSockets();
-            app.UseKachuwaCore(env, serviceProvider);
-            app.UseKachuwaWeb(env, false);
+            app.UseYOCore(env, serviceProvider);
+            app.UseYOWeb(env, false);
             app.UseRateLimiter();
             app.UseEndpoints(endpoints =>
             {
 
-                //endpoints.MapControllerRoute(
-                //    name: "default",
-                //    pattern: "{pageUrl?}",
-                //    defaults: new { controller = "KachuwaPage", action = "Index" }
-                //    //, constraints: new { pageUrl = @"\w+" }
-                //);
+                endpoints.MapGet("/", () => "YO Framework running...visit /scalar/v1 to explore apis.");
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller}/{action}/{id?}",
@@ -393,7 +410,7 @@ namespace YOApp
                 //endpoints.MapControllerRoute(
                 //    name: "default1",
                 //    pattern: "page/{pageUrl?}",
-                //    defaults: new { controller = "KachuwaPage", action = "Index" }
+                //    defaults: new { controller = "YOPage", action = "Index" }
                 //    //, constraints: new { pageUrl = @"\w+" }
                 //);
                 //endpoints.MapControllerRoute(
@@ -416,59 +433,65 @@ namespace YOApp
 
         }
     }
-    internal sealed class BearerSecuritySchemeTransformer
+    internal sealed class BearerSecuritySchemeTransformer(
+        IAuthenticationSchemeProvider authenticationSchemeProvider)
         : IOpenApiDocumentTransformer
     {
-        private readonly IAuthenticationSchemeProvider _schemeProvider;
-
-        public BearerSecuritySchemeTransformer(IAuthenticationSchemeProvider schemeProvider)
-        {
-            _schemeProvider = schemeProvider;
-        }
-
-        public async Task TransformAsync(OpenApiDocument document,
+        public async Task TransformAsync(
+            OpenApiDocument document,
             OpenApiDocumentTransformerContext context,
             CancellationToken cancellationToken)
         {
-            var schemes = await _schemeProvider.GetAllSchemesAsync();
-            if (!schemes.Any(a => a.Name == "Bearer"))
+            var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
+
+            var hasBearerAuthentication = authenticationSchemes.Any(authenticationScheme =>
+                authenticationScheme.Name == JwtBearerDefaults.AuthenticationScheme ||
+                authenticationScheme.Name == "Bearer");
+
+            if (!hasBearerAuthentication)
+            {
                 return;
+            }
 
             document.Components ??= new OpenApiComponents();
 
-            var bearerScheme = new OpenApiSecurityScheme
+            document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+
+            document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
             {
                 Type = SecuritySchemeType.Http,
                 Scheme = "bearer",
                 BearerFormat = "JWT",
                 In = ParameterLocation.Header,
-                Description = "JWT Authorization header using the Bearer scheme."
+                Description = "Paste JWT token only. Do not include Bearer prefix."
             };
-
-            // Add scheme
-            document.Components.SecuritySchemes["Bearer"] = bearerScheme;
-
-            // Require auth for all operations (optional, but usually what you want)
-            var securityRequirement = new OpenApiSecurityRequirement
-            {
-                [new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    { Id = "Bearer", Type = ReferenceType.SecurityScheme }
-                }
-                ] = Array.Empty<string>()
-            };
-
-            foreach (var path in document.Paths.Values)
-            {
-                foreach (var operation in path.Operations.Values)
-                {
-                    operation.Security ??= new List<OpenApiSecurityRequirement>();
-                    operation.Security.Add(securityRequirement);
-                }
-            }
         }
     }
+    internal sealed class AuthOperationTransformer : IOpenApiOperationTransformer
+    {
+        public Task TransformAsync(
+            OpenApiOperation openApiOperation,
+            OpenApiOperationTransformerContext openApiOperationContext,
+            CancellationToken cancellationToken)
+        {
+            var hasAllowAnonymousAttribute = openApiOperationContext.Description.ActionDescriptor.EndpointMetadata
+                .OfType<AllowAnonymousAttribute>()
+                .Any();
 
+            if (hasAllowAnonymousAttribute)
+            {
+                return Task.CompletedTask;
+            }
+
+            openApiOperation.Security ??= new List<OpenApiSecurityRequirement>();
+
+            openApiOperation.Security.Add(new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("Bearer", openApiOperationContext.Document)] = new List<string>()
+            });
+
+            return Task.CompletedTask;
+        }
+    }
 }
 

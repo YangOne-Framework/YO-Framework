@@ -2,7 +2,7 @@
   "YangOneAppConfig": {
     "AppName": "YangOne Framework",
     "SiteUrl": "https://localhost:7189",
-    "IsInstalled": false,
+    "IsInstalled": true,
     "DbProvider": "SQLServer",
     "Framework": "",
     "Version": "1.0.0",
@@ -17,10 +17,11 @@
     "RequireUppercase": false,
     "DataProtectionKeyPath": "app_data",
     "CookieDomain": "localhost",
-    "CookieIdentity": "kachuwa.id",
+    "CookieIdentity": "yoapp.id",
     "ApiTokenEndPoint": "https://localhost:7189/connect/token",
     "ApiEndPoint": "https://localhost:7189",
     "TokenAuthority": "https://localhost:7189",
+    "Audience": "Aud",
     "SMTMConfig": {
       "Host": "",
       "UserName": "",

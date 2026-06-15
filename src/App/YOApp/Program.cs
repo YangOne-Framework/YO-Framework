@@ -2,7 +2,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Scalar.AspNetCore;
 using YOApp;
 using YangOne.Configuration;
-using YangOne.IdentityServer;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -19,6 +18,7 @@ config.AddJsonFile("app_data/cspconfig.json", optional: false, reloadOnChange: t
 config.AddJsonFile("app_data/optimizationconfig.json", optional: false, reloadOnChange: true);
 config.AddJsonFile("app_data/fileconfig.json", optional: false, reloadOnChange: true);
 config.AddJsonFile("app_data/apiconfig.json", optional: false, reloadOnChange: true);
+config.AddJsonFile("app_data/cacheconfig.json", optional: true, reloadOnChange: true);
 
 
 

@@ -4,45 +4,53 @@
     <UserSecretsId>f3abe35f-9bc9-42b2-92a3-8bc7220ef997</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Remove="wwwroot\assets\js\yogridstyle.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\assets\js\yogridstyle.css" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\core\YangOne.Web\YangOne.Web.csproj" />
     <ProjectReference Include="..\..\modules\YandOne.Admin\YangOne.Admin.csproj" />
-    <ProjectReference Include="..\..\modules\YangOne.BlogEngine\YangOne.BlogEngine.csproj" />
+    <ProjectReference Include="..\..\Modules\YangOne.Agro\YangOne.Agro.csproj" />
     <ProjectReference Include="..\..\modules\YangOne.Identity.Web\YangOne.Identity.Web.csproj" />
     <ProjectReference Include="..\..\modules\YangOne.IdentityServer\YangOne.IdentityServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.11" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.11.0" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.12.8" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="App_Data\apiconfig.json">
+    <Content Update="app_data\apiconfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Update="App_Data\cspconfig.json">
+    <Content Update="app_data\cspconfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Update="App_Data\fileconfig.json">
+    <Content Update="app_data\fileconfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Update="App_Data\optimizationconfig.json">
+    <Content Update="app_data\optimizationconfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Update="App_Data\security.json">
+    <Content Update="app_data\security.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Update="App_Data\securityconfig.json">
+    <Content Update="app_data\securityconfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
-    <Content Update="App_Data\yoconfig.json">
+    <Content Update="app_data\yoconfig.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="App_Data\Certs\encryption.pfx">
+    <None Update="app_data\certs\encryption.pfx">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

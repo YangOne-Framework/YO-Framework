@@ -1,8 +1,6 @@
 {
- 
-  "EnableJsMinification": false,
-  "EnableCSSMinification": false,
-  "CachingDirectory": false,
+  "EnableJsMinification": true,
+  "EnableCSSMinification": true,
+  "CachingDirectory": true,
   "UseImageResizer": true
-
 }

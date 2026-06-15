@@ -1,7 +1,7 @@
 ﻿var Locale = (function (re, $) {
     "use strict";
     var __userLocale = '';
-    var __sysLocale = __kachuwaSettings.LocaleRegion.Culture;
+    var __sysLocale = __YOSettings.LocaleRegion.Culture;
     var _locales = [];
     var _userlocales = [];
     var getLocale = function (key,group) {
