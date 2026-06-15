@@ -8,7 +8,7 @@ namespace YangOne.Configuration
     {
         private readonly IWebHostEnvironment _hostingEnvironment;
         private const string AppSettingFile = "appsettings.json";
-        private const string KachuwaConfigFile = "config\\yoconfig.json";
+        private const string YOConfigFile = "config\\yoconfig.json";
         private static readonly object RatesFileLock = new object();
 
         public ConfigToJson(IWebHostEnvironment hostingEnvironment)
@@ -23,7 +23,7 @@ namespace YangOne.Configuration
             return true;
         }
 
-        public bool SaveKachuwaConfig(YangOneAppConfig config)
+        public bool SaveYOConfig(YangOneAppConfig config)
         {
             Attempt<YangOneAppConfig>(TryToUpdateRates<YangOneAppConfig>, config, maximumNumberOfAttempts: 50, timeToWaitBetweenRetriesInMs: 100);
             return true;
@@ -37,11 +37,11 @@ namespace YangOne.Configuration
                 if (instance == typeof(YangOneAppConfig))
                 {
                     string oriFileJson =
-                        File.ReadAllText(Path.Combine(_hostingEnvironment.ContentRootPath, KachuwaConfigFile));
+                        File.ReadAllText(Path.Combine(_hostingEnvironment.ContentRootPath, YOConfigFile));
                     JObject jsonObj = JObject.Parse(oriFileJson);
                     jsonObj["YangOneAppConfig"] = JObject.FromObject(config); 
                     var configJson1 = JsonConvert.SerializeObject(jsonObj, Formatting.Indented);
-                    File.WriteAllText(Path.Combine(_hostingEnvironment.ContentRootPath, KachuwaConfigFile),
+                    File.WriteAllText(Path.Combine(_hostingEnvironment.ContentRootPath, YOConfigFile),
                         configJson1);
                     //using (var stream1 = GetRatesFileStream<T>())
                     //{
@@ -69,7 +69,7 @@ namespace YangOne.Configuration
             var instance = typeof(T);
             if (instance == typeof(YangOneAppConfig))
             {
-                return File.Open(Path.Combine(_hostingEnvironment.ContentRootPath, KachuwaConfigFile), FileMode.OpenOrCreate, FileAccess.Write);
+                return File.Open(Path.Combine(_hostingEnvironment.ContentRootPath, YOConfigFile), FileMode.OpenOrCreate, FileAccess.Write);
             }
             else
             {

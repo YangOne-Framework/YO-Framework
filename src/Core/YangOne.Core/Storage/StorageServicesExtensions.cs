@@ -6,7 +6,7 @@ namespace YangOne.Storage
     public static class StorageServicesExtensions
     {
        
-        public static IServiceCollection RegisterKachuwaStorageService(this IServiceCollection services)
+        public static IServiceCollection RegisterYOStorageService(this IServiceCollection services)
         {
            
             services.AddSingleton<IKeyGenerator, KeyGenerator>();

@@ -20,9 +20,9 @@ namespace YangOne.Localization
         [AutoFill(false)]
         [IgnoreUpdate]
         public bool IsDeleted { get; set; }
-        [AutoFill(AutoFillProperty.CurrentUser)]
+        [AutoFill(AutoFillProperty.CurrentUserId)]
         [IgnoreUpdate]
-        public string AddedBy { get; set; }
+        public long AddedBy { get; set; }
         [IgnoreUpdate]
         [AutoFill(AutoFillProperty.CurrentUtcDate)]
         public DateTime AddedOn { get; set; }

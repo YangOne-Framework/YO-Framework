@@ -9,7 +9,7 @@ namespace YangOne.Localization
 
     public static class LocaleResourceExtension
     {
-        public static IServiceCollection EnableKachuwaLocalization(this IServiceCollection services,Action<LocaleSetting> config  )
+        public static IServiceCollection EnableYOLocalization(this IServiceCollection services,Action<LocaleSetting> config  )
         {
             var setting=new LocaleSetting();
             config(setting);
@@ -26,7 +26,7 @@ namespace YangOne.Localization
 
             return services;
         }
-        public static IApplicationBuilder UseKachuwaLocalization(this IApplicationBuilder app)
+        public static IApplicationBuilder UseYOLocalization(this IApplicationBuilder app)
         {
            var builder= app.ApplicationServices.GetService<ResourceBuilder>();
             Task.Run(async () => { await builder.Build(); });

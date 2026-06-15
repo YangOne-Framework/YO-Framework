@@ -8,7 +8,7 @@ using YangOne.Web;
 
 namespace YangOne.Grid.API
 {
-    [Route("api/v1/kachuwa/grid")]
+    [Route("api/v1/yo/grid")]
     public class FileUploadApiController : BaseController
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

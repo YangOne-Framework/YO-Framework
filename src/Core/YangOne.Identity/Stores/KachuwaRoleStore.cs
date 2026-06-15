@@ -5,17 +5,17 @@ using YangOne.Identity.Service;
 
 namespace YangOne.Identity.Stores
 {
-    public class KachuwaRoleStore<TRole, TKey, TUserRole, TRoleClaim>
+    public class YORoleStore<TRole, TKey, TUserRole, TRoleClaim>
         : IRoleStore<TRole>
         where TRole : YangOneIdentityRole<TKey, TUserRole, TRoleClaim>
         where TKey : IEquatable<TKey>
         where TUserRole : YangOneIdentityUserRole<TKey>
         where TRoleClaim : YangOneIdentityRoleClaim<TKey>
     {
-        private readonly ILogger<KachuwaRoleStore<TRole, TKey, TUserRole, TRoleClaim>> _log;
+        private readonly ILogger<YORoleStore<TRole, TKey, TUserRole, TRoleClaim>> _log;
         private readonly IIdentityRoleService _roleService;
-        public KachuwaRoleStore(IIdentityRoleService roleService,
-                               ILogger<KachuwaRoleStore<TRole, TKey, TUserRole, TRoleClaim>> log
+        public YORoleStore(IIdentityRoleService roleService,
+                               ILogger<YORoleStore<TRole, TKey, TUserRole, TRoleClaim>> log
 
                                )
         {

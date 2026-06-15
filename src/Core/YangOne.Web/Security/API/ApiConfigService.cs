@@ -26,7 +26,6 @@ public class ApiConfigService : IApiConfigService
 
     public async Task<ApiConfig> GetConfigAsync()
     {
-        // Default config if file does not exist yet
         if (!File.Exists(_configPath))
         {
             return new ApiConfig
@@ -56,6 +55,24 @@ public class ApiConfigService : IApiConfigService
             {
                 result.UseObfusication = obfProp.GetBoolean();
             }
+
+            if (apiConfigElement.TryGetProperty("ObfuscationKey", out var obfKey) &&
+                obfKey.ValueKind == JsonValueKind.String)
+            {
+                result.ObfuscationKey = obfKey.GetString();
+            }
+
+            if (apiConfigElement.TryGetProperty("EncryptionKey", out var encKey) &&
+                encKey.ValueKind == JsonValueKind.String)
+            {
+                result.EncryptionKey = encKey.GetString();
+            }
+
+            if (apiConfigElement.TryGetProperty("EncryptionIV", out var encIv) &&
+                encIv.ValueKind == JsonValueKind.String)
+            {
+                result.EncryptionIV = encIv.GetString();
+            }
         }
 
         return result;
@@ -68,7 +85,10 @@ public class ApiConfigService : IApiConfigService
             ["APIConfig"] = new
             {
                 UseEncryption = config.UseEncryption,
-                UseObfusication = config.UseObfusication
+                UseObfusication = config.UseObfusication,
+                ObfuscationKey = config.ObfuscationKey,
+                EncryptionKey = config.EncryptionKey,
+                EncryptionIV = config.EncryptionIV
             }
         };
 

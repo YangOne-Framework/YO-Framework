@@ -67,6 +67,11 @@ namespace YangOne.Web.Service
                 entity.Config = dto.Config;
                 entity.ContentStructure = dto.ContentStructure;
                 entity.HtmlTemplate = dto.HtmlTemplate;
+                entity.StateSchema = dto.StateSchema;
+                entity.ApiBindings = dto.ApiBindings;
+                entity.EventBindings = dto.EventBindings;
+                entity.RuntimeOptions = dto.RuntimeOptions;
+                entity.Version = dto.Version;
                 entity.IsActive = dto.IsActive;
 
                 entity.AutoFill();
@@ -84,6 +89,11 @@ namespace YangOne.Web.Service
                     Config = dto.Config,
                     ContentStructure = dto.ContentStructure,
                     HtmlTemplate = dto.HtmlTemplate,
+                    StateSchema = dto.StateSchema,
+                    ApiBindings = dto.ApiBindings,
+                    EventBindings = dto.EventBindings,
+                    RuntimeOptions = dto.RuntimeOptions,
+                    Version = dto.Version,
                     IsActive = dto.IsActive,
                     IsDeleted = false
                 };
@@ -120,7 +130,12 @@ namespace YangOne.Web.Service
             IsActive = x.IsActive,
             Config = x.Config,
             ContentStructure = x.ContentStructure,
-            HtmlTemplate = x.HtmlTemplate
+            HtmlTemplate = x.HtmlTemplate,
+            StateSchema = x.StateSchema,
+            ApiBindings = x.ApiBindings,
+            EventBindings = x.EventBindings,
+            RuntimeOptions = x.RuntimeOptions,
+            Version = x.Version
         };
         public async Task<bool> DeleteAsync(int id)
         {

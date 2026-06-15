@@ -9,9 +9,13 @@ public sealed class EmailTemplate
 {
     [Key]
     public int TemplateId { get; set; }
+    [Required]
     public string TemplateName { get; set; }
     public string TemplateType { get; set; }
     public string Template { get; set; }
+    public string HeaderTemplate { get; set; }
+    public string FooterTemplate { get; set; }
+    [Required]
     public string EmailSubject { get; set; }
     public bool IsActive { get; set; }
 
@@ -43,5 +47,8 @@ public sealed class EmailTemplate
 
     [IgnoreAll]
     public int RowTotal { get; set; }
+
+    [IgnoreAll]
+    public string FullTemplate => $"{HeaderTemplate}{Template}{FooterTemplate}";
 
 }

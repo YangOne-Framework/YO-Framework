@@ -26,6 +26,11 @@ namespace YangOne.Web.Dto
         public string Config { get; set; }
         public string ContentStructure { get; set; }
         public string HtmlTemplate { get; set; }
+        public string StateSchema { get; set; }
+        public string ApiBindings { get; set; }
+        public string EventBindings { get; set; }
+        public string RuntimeOptions { get; set; }
+        public string Version { get; set; }
         public bool IsActive { get; set; }
     }
     public class HtmlComponentItemDto
@@ -44,5 +49,10 @@ namespace YangOne.Web.Dto
         public string Config { get; set; }
         public string ContentStructure { get; set; }
         public string HtmlTemplate { get; set; }
+        public string StateSchema { get; set; }
+        public string ApiBindings { get; set; }
+        public string EventBindings { get; set; }
+        public string RuntimeOptions { get; set; }
+        public string Version { get; set; }
     }
 }

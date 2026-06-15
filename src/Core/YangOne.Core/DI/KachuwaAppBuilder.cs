@@ -5,13 +5,13 @@ using Microsoft.Extensions.DependencyModel;
 
 namespace YangOne.DI
 {
-    public class KachuwaAppBuilder
+    public class YOAppBuilder
     {
         private readonly IApplicationBuilder _app;
         private readonly IServiceProvider _serviceProvider;
         private readonly IWebHostEnvironment _hostingEnvironment;
 
-        public KachuwaAppBuilder(IApplicationBuilder app,
+        public YOAppBuilder(IApplicationBuilder app,
             IServiceProvider serviceProvider, IWebHostEnvironment hostingEnvironment)
         {
             _app = app;

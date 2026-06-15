@@ -13,14 +13,14 @@ namespace YangOne.RTC
         private readonly IHubContext<YangOneUserHub> _hubContext;
 
         private readonly IRTCConnectionManager _connectionManager;
-        // private readonly IHubContext<KachuwaNotificationHub, IKachuwaNotificationHubClient> _kachuwahubClientContext;
 
-        public RTCNotificationService(INotificationTempDataWrapper tempDataWrapper,IHubContext<YangOneUserHub> hubContext, IRTCConnectionManager connectionManager)
+        public RTCNotificationService(INotificationTempDataWrapper tempDataWrapper,
+            IHubContext<YangOneUserHub> hubContext,
+            IRTCConnectionManager connectionManager)
         {
             _tempDataWrapper = tempDataWrapper;
             _hubContext = hubContext;
             _connectionManager = connectionManager;
-            // _kachuwahubClientContext = kachuwahubClientContext;
         }
         private readonly string _key = NotificationConstants.NotificationKey;
 
@@ -46,7 +46,6 @@ namespace YangOne.RTC
             var userConnectionIds =
                 _connectionManager.GetUserConnectionIds(ContextResolver.Context.User.Identity.GetIdentityUserId()).Result;
             _hubContext.Clients.Clients(userConnectionIds.ToArray()).SendAsync("OnNotificationRecieved", notification);
-            //_kachuwahubClientContext.Clients.All.onNofify(notification);
             return true;
         }
 

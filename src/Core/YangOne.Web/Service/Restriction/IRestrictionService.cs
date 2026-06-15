@@ -8,14 +8,7 @@ namespace YangOne.Web.Service
         CrudService<RestrictionKey> KeyCrudService { get; set; }
         CrudService<Restriction> RestrictionCrudService { get; set; }
         CrudService<AdministrativeIPAccess> AdminIPAccessCrudService { get; set; }
-    }
-
-    public class RestrictionService : IRestrictionService
-    {
-        public CrudService<RestrictionKey> KeyCrudService { get; set; } = new CrudService<RestrictionKey>();
-        public CrudService<Restriction> RestrictionCrudService { get; set; } = new CrudService<Restriction>();
-
-        public CrudService<AdministrativeIPAccess> AdminIPAccessCrudService { get; set; } =
-            new CrudService<AdministrativeIPAccess>();
+        Task<IEnumerable<AdministrativeIPAccess>> GetCachedAdminIPAccessListAsync();
+        void InvalidateAdminIPAccessCache();
     }
 }

@@ -17,9 +17,18 @@
 		<ProjectReference Include="..\YangOne.Identity\YangOne.Identity.csproj" />
 	</ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="OpenTelemetry" Version="1.15.3" />
+		<PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.3" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.2" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.1" />
+		<PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.1" />
+		<PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.15.3" />
+		<PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.3" />
+	</ItemGroup>
+	<ItemGroup>
 		<PackageReference Include="DotNetCore.NPOI" Version="1.2.3" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.9" />
-		<PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.3.9" />
 		<PackageReference Include="Microsoft.AspNetCore.RateLimiting" Version="7.0.0-rc.2.22476.2" />
 		<PackageReference Include="Mustache" Version="1.0.1" />
 		<PackageReference Include="CommonMark.NET" Version="0.15.1" />
@@ -28,5 +37,8 @@
 		<PackageReference Include="Smidge" Version="4.6.0" />
 		<PackageReference Include="Smidge.Nuglify" Version="4.6.0" />
 		<PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="resources\" />
 	</ItemGroup>
 </Project>

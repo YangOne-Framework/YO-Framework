@@ -1,4 +1,5 @@
 ﻿using YangOne.Web.Service;
+using YangOne.Web.Model;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Options;
@@ -14,17 +15,18 @@ namespace YangOne.Web.TagHelpers
         private readonly ILogger _logger;
         private readonly ILocaleService _localeService;
         private readonly ISettingService _settingService;
+        private readonly ITimeZoneService _timeZoneService;
         private readonly YangOneAppConfig _appConfig;
 
-        //order to inject first or last
         public override int Order => 2;
         public SystemVariablesTagHelperComponent(IOptionsSnapshot<YangOneAppConfig> configSnapShot
-            , ILogger logger, ILocaleService localeService,ISettingService settingService)
+            , ILogger logger, ILocaleService localeService, ISettingService settingService,
+            ITimeZoneService timeZoneService)
         {
-          
             _logger = logger;
             _localeService = localeService;
             _settingService = settingService;
+            _timeZoneService = timeZoneService;
             _appConfig = configSnapShot.Value;
         }
 
@@ -35,29 +37,37 @@ namespace YangOne.Web.TagHelpers
                 if (string.Equals(context.TagName, "head", StringComparison.Ordinal))
                 {
                     var setting = await _settingService.GetSetting();
-                    //TODO::need to fix in linux /mac
-                    var utcDateNow = DateTime.UtcNow;
-                    var todaysDate = DateTime.Now;// TimeZoneInfo.ConvertTimeFromUtc(utcDateNow, TimeZoneInfo.FindSystemTimeZoneById(setting.TimeZoneName));
+                    var todaysDate = DateTime.Now;
                     var localization = await _localeService.GetDefaultLocaleRegion();
-                    var json = JsonConvert.SerializeObject( new
-                        { Today= todaysDate.ToString("yyyy-MM-dd"),
-                            setting.TimeZoneName,
-                            setting.TimeZoneOffset,
-                            setting.BaseCulture,
-                            setting.BaseCurrency,
-                            LocaleRegion = new { localization?.Culture,localization?.Flag,localization?.CountryId }
 
+                    string timeZoneName = "";
+                    int timeZoneOffset = 0;
+                    if (setting.TimeZoneId > 0)
+                    {
+                        var tz = await _timeZoneService.TimeZoneCrudService.GetAsync(setting.TimeZoneId);
+                        if (tz != null)
+                        {
+                            timeZoneName = tz.StandardName;
+                            timeZoneOffset = tz.BaseUtcOffsetSec;
                         }
-                    );
+                    }
+
+                    var json = JsonConvert.SerializeObject(new
+                    {
+                        Today = todaysDate.ToString("yyyy-MM-dd"),
+                        TimeZoneName = timeZoneName,
+                        TimeZoneOffset = timeZoneOffset,
+                        TimeZoneId = setting.TimeZoneId,
+                        setting.BaseCulture,
+                        setting.BaseCurrency,
+                        LocaleRegion = new { localization?.Culture, localization?.Flag, localization?.CountryId }
+                    });
                     string variables = @"<script type='text/javascript'>
-                        __kachuwaSettings=" + json + "</script><script type='text/javascript' src='/assets/js/locale/kachuwalocale.js'></script> ";
+                        __YOSettings=" + json + "</script><script type='text/javascript' src='/assets/js/locale/kachuwalocale.js'></script> ";
 
                     output.PostContent.AppendHtmlLine(variables);
-
                 }
-
             }
-
         }
     }
 }

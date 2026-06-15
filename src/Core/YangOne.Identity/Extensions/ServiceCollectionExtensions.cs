@@ -53,9 +53,9 @@ namespace YangOne.Identity.Extensions
             userClaimType = userClaimType ?? typeof(YangOneIdentityUserClaim<>).MakeGenericType(keyType);
             userLoginType = userLoginType ?? typeof(YangOneIdentityUserLogin<>).MakeGenericType(keyType);
 
-            var userStoreType = typeof(KachuwaUserStore<,,,,,,>).MakeGenericType(userType, keyType, userRoleType, roleClaimType,
+            var userStoreType = typeof(YOUserStore<,,,,,,>).MakeGenericType(userType, keyType, userRoleType, roleClaimType,
                 userClaimType, userLoginType, roleType);
-            var roleStoreType = typeof(KachuwaRoleStore<,,,>).MakeGenericType(roleType, keyType, userRoleType, roleClaimType);
+            var roleStoreType = typeof(YORoleStore<,,,>).MakeGenericType(roleType, keyType, userRoleType, roleClaimType);
             
             services.AddScoped<IIdentityRoleService, IdentityRoleService>();
             services.AddScoped<IIdentityUserService, IdentityUserService>();

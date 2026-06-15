@@ -168,14 +168,9 @@ namespace YangOne.Web.Service
                 var cell = header.CreateCell(i);
                 cell.SetCellValue(_headers[i]);
                 cell.CellStyle = headerStyle;
-            }
-
-            for (var i = 0; i < _headers.Count; i++)
-            {
-                _sheet.AutoSizeColumn(i);
-            }
-
-            using (var memoryStream = new MemoryStream()) //creating memoryStream
+             }
+             
+             using (var memoryStream = new MemoryStream()) //creating memoryStream
             {
                 _workbook.Write(memoryStream);
                 var response = new HttpResponseMessage(HttpStatusCode.OK)

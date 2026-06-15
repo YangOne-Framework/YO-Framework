@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace YangOne.Web.Model.CountrollerRoute
-{
+namespace YangOne.Web.Model;
     [Table("AppControllerUrl")]
     public class AppControllerUrl
     {
@@ -13,4 +12,4 @@ namespace YangOne.Web.Model.CountrollerRoute
         public string RouteUrl { get; set; }
         public string FriendlyUrl { get; set; }
     }
-}
+

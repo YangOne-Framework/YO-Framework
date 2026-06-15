@@ -1,9 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using YangOne.Data.Crud.Attribute;
-
-namespace YangOne.Web.Model
-{
+namespace YangOne.Web.Model;
     [Table("SMSLog")]
     public class SMSLog
     {
@@ -34,4 +32,4 @@ namespace YangOne.Web.Model
         [IgnoreAll]
         public int RowTotal { get; set; }
     }
-}
+

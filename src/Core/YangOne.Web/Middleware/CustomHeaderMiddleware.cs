@@ -15,21 +15,19 @@ namespace YangOne.Web.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly ISettingService _settingService;
-        private readonly YangOneAppConfig  _appConfig;
+        private readonly YangOneAppConfig _appConfig;
 
 
-        public CustomHeaderMiddleware(RequestDelegate next)//, ISettingService settingService, Microsoft.Extensions.Options.IOptionsSnapshot<Configuration.KachuwaAppConfig> appConfig)
+        public CustomHeaderMiddleware(RequestDelegate next)
         {
             _next = next;
-            //_settingService = settingService;
-            //_kachuwaAppConfig = appConfig.Value;
         }
 
         public async Task Invoke(HttpContext context)
         {
 
             //bool isInstalled = false;
-            //isInstalled = _kachuwaAppConfig.IsInstalled;
+            //isInstalled = _appConfig.IsInstalled;
             //if (isInstalled)
             //{
             //    var setting = await _settingService.GetSetting();

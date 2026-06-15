@@ -21,7 +21,7 @@ namespace YangOne.Web
     public class InstallerController : Controller
     {
         private readonly IConfiguration _configuration;
-        private readonly IYangOneConfigurationManager _kachuwaManager;
+        private readonly IYangOneConfigurationManager _yoManager;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IEmailSender _emailSender;
         private readonly SignInManager<IdentityUser> _signInManager;
@@ -31,8 +31,8 @@ namespace YangOne.Web
         private readonly YangOneAppConfig _appConfig;
 
         public InstallerController(IConfiguration configuration,
-            IOptionsSnapshot<YangOneAppConfig> kachuwaConfig,
-            IYangOneConfigurationManager kachuwaManager,
+            IOptionsSnapshot<YangOneAppConfig> yoConfig,
+            IYangOneConfigurationManager yoManager,
             UserManager<IdentityUser> userManager,
             //IEmailSender emailSender,
             SignInManager<IdentityUser> signInManager,
@@ -40,14 +40,14 @@ namespace YangOne.Web
             IAppUserService appUserService, ISettingService settingService)
         {
             _configuration = configuration;
-            _kachuwaManager = kachuwaManager;
+            _yoManager = yoManager;
             _userManager = userManager;
             //_emailSender = emailSender;
             _signInManager = signInManager;
             _identityRoleService = identityRoleService;
             _appUserService = appUserService;
             _settingService = settingService;
-            _appConfig = kachuwaConfig.Value;
+            _appConfig = yoConfig.Value;
         }
         [Route("install")]
         public async Task<IActionResult> Index()
@@ -66,15 +66,18 @@ namespace YangOne.Web
         }
 
         [Route("install")]
-        [HttpPost]
-        [ValidateAntiForgeryToken]
+        [HttpPost]        
         public async Task<JsonResult> Install(InstallerViewModel model)
         {
+            if (_appConfig.IsInstalled==true)
+            {
+                return Json(new { Code = 500, Data = model, Message = "Already installed" });
+            }
             try
             {
 
                 var connectionString = model.ToString();
-                if (await _kachuwaManager.Install(connectionString, model.DatabaseProvider))
+                if (await _yoManager.Install(connectionString, model.DatabaseProvider))
                 {
                     return Json(new { Code = 200, Data = model, Message = "Installed Successfully." });
                 }
@@ -95,13 +98,16 @@ namespace YangOne.Web
 
         [Route("install/checkconnection")]
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<JsonResult> CheckConnection(InstallerViewModel model)
         {
+            if (_appConfig.IsInstalled == true)
+            {
+                return Json(new { Code = 500, Data = model, Message = "Already installed" });
+            }
             try
             {
                 var connectionString = model.ToString();
-                if (await _kachuwaManager.CheckConnection(connectionString, model.DatabaseProvider))
+                if (await _yoManager.CheckConnection(connectionString, model.DatabaseProvider))
                 {
                     return Json(new { Code = 200, Data = model, Message = "Database connected successfully." });
                 }
@@ -121,6 +127,10 @@ namespace YangOne.Web
         [HttpPost]
         public async Task<JsonResult> SetUpAdmin(InstallerUserViewModel model)
         {
+            if (_appConfig.IsInstalled == true)
+            {
+                return Json(new { Code = 500, Data = model, Message = "Already installed" });
+            }
             try
             {
 
@@ -135,8 +145,7 @@ namespace YangOne.Web
                     userVm.IsActive = true;
                     userVm.UserRoles = new List<UserRolesSelected>
                     {
-                        new UserRolesSelected{IsSelected = true,RoleId = YORoles.SuperAdmin},
-                        new UserRolesSelected{IsSelected = true,RoleId = YORoles.Admin},
+                        new UserRolesSelected{IsSelected = true,RoleId = YORoles.SuperAdmin}
                     };
 
                     var result = await _appUserService.SaveNewUserAsync(userVm);
@@ -145,8 +154,7 @@ namespace YangOne.Web
                         await _signInManager.PasswordSignInAsync(model.Email, model.Password, true, lockoutOnFailure: false);
                         var defaultSetting = await _settingService.GetSetting();
                         defaultSetting.WebsiteName = model.SiteName;
-                        defaultSetting.TimeZoneOffset = model.TimeZoneOffset;
-                        defaultSetting.TimeZoneName = model.TimeZoneName;
+                        defaultSetting.TimeZoneId = model.TimeZoneId;
                         await _settingService.SaveSetting(defaultSetting);
                         return Json(
                             new

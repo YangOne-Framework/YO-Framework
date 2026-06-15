@@ -2,16 +2,15 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using YangOne.Data.Crud.Attribute;
 
-namespace YangOne.Web.Model
-{
+namespace YangOne.Web.Model;
     [Table("AdministrativeIPAccess")]
     public class AdministrativeIPAccess
     {
         [Key]
         public int AdministrativeIPAccessId { get; set; }
         public long RoleId { get; set; }
-        public bool AllowIPV4 { get; set; }
-        public bool AllowIPV6 { get; set; }
+        public string AllowIPV4 { get; set; }
+        public string AllowIPV6 { get; set; }
         public bool ActivateIPV6 { get; set; }
 
         public bool IsRange { get; set; }
@@ -48,4 +47,4 @@ namespace YangOne.Web.Model
         [IgnoreAll]
         public int RowTotal { get; set; }
     }
-}
+

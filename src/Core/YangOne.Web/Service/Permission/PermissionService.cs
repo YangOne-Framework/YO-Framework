@@ -8,6 +8,7 @@ using YangOne.Caching;
 using YangOne.Data;
 using YangOne.Data.Crud.Attribute;
 using YangOne.Data.Extension;
+using YangOne.Web.Model;
 
 namespace YangOne.Web.Service
 {
@@ -17,6 +18,7 @@ namespace YangOne.Web.Service
         public CrudService<ApplicationController> AppControllerCrudService { get; set; } = new CrudService<ApplicationController>();
         public CrudService<ApplicationControllerAction> ApplicationControllerActionCrudService { get; set; } = new CrudService<ApplicationControllerAction>();
         public CrudService<MasterRolePermission> RolePermissionCrudService { get; set; } = new CrudService<MasterRolePermission>();
+        public CrudService<UserPermission> UserPermissionCrudService { get; set; } = new CrudService<UserPermission>();
 
         private readonly IConfiguration _configuration;
         private readonly ICacheService _cacheService;
@@ -112,11 +114,11 @@ END",
             await RolePermissionCrudService.DeleteAsync("Where RoleId=@RoleId", new { RoleId = rolePermissions.RolePermission.FirstOrDefault().RoleId });
             foreach (var item in rolePermissions.RolePermission)
             {
-                if (item.AllowAccess)
+                if (item.HavePermission)
                 {
                     item.AutoFill();
                     item.RoleId = rolePermissions.RolePermission[0].RoleId;
-                    item.IsActive = true;
+                    //item.IsActive = true;
                     await RolePermissionCrudService.InsertAsync(item);
                 }
             }
@@ -195,6 +197,68 @@ END",
                 }
             }
             await SaveApplicationControllerActions(actions);
+        }
+
+        public async Task<IEnumerable<UserPermission>> GetUserPermissionsById(long userId)
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                var results = (await db.QueryAsync<UserPermission>("[dbo].[usp_UserPermission_GetByUserId]",
+                    new { UserId = userId },
+                    commandType: CommandType.StoredProcedure)).ToList();
+
+                var isSuperAdmin = await db.QueryFirstOrDefaultAsync<bool>(
+                    @"SELECT CAST(CASE WHEN EXISTS (
+                        SELECT 1 FROM dbo.IdentityUserRole ur
+                        INNER JOIN dbo.IdentityRole r ON r.Id = ur.RoleId
+                        WHERE ur.UserId = @UserId AND r.Name = 'SuperAdmin'
+                    ) THEN 1 ELSE 0 END AS BIT)",
+                    new { UserId = userId });
+
+                if (isSuperAdmin)
+                {
+                    foreach (var p in results)
+                    {
+                        p.RoleAllowAccess = true;
+                        p.EffectiveAccess = true;
+                    }
+                }
+
+                return results;
+            }
+        }
+
+        public async Task<IEnumerable<string>> GetMyPermissions(long userId)
+        {
+            var all = await GetUserPermissionsById(userId);
+            return all
+                .Where(p => p.EffectiveAccess)
+                .Select(p => p.RouteUrl)
+                .Distinct()
+                .ToList();
+        }
+
+        public async Task SaveUserPermissions(UserPermissionViewModel userPermissions)
+        {
+            if (userPermissions?.UserPermission == null || !userPermissions.UserPermission.Any())
+                return;
+
+            var userId = userPermissions.UserPermission.First().UserId;
+            await UserPermissionCrudService.DeleteAsync("Where UserId=@UserId", new { UserId = userId });
+
+            foreach (var item in userPermissions.UserPermission)
+            {
+                if (item.HasUserOverride)
+                {
+                    item.AutoFill();
+                    item.UserId = userId;
+                    item.AllowAccess = item.UserOverrideAccess;
+                    item.IsActive = true;
+                    await UserPermissionCrudService.InsertAsync(item);
+                }
+            }
         }
 
         public async  Task CleanupAsync()

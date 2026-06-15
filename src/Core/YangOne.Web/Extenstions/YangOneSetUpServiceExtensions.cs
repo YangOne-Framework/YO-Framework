@@ -19,6 +19,13 @@ public static class YangOneSetUpServiceExtensions
     }
     public static IServiceCollection UseRedisCache(this IServiceCollection services)
     {
+        services.Configure<RedisConfiguration>(config =>
+        {
+            config.EndPoints = new List<string> { "localhost:6379" };
+            config.UseSsl = false;
+            config.TimeOut = 5000;
+            config.SyncTimeOut = 5000;
+        });
         services.TryAddSingleton<ICacheService, RedisCacheService>();
         return services;
     }

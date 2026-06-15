@@ -106,7 +106,7 @@ namespace YangOne.Web.Service.Installer
                         _configToJson.SaveConnectionString(_connectionString);
                         _appConfig.IsInstalled = true;
                         _appConfig.DbProvider = dialect.ToString();
-                        _configToJson.SaveKachuwaConfig(_appConfig);
+                        _configToJson.SaveYOConfig(_appConfig);
                         _applicationLifetime.StopApplication();
                     }
 
@@ -138,7 +138,7 @@ namespace YangOne.Web.Service.Installer
                     _configToJson.SaveConnectionString(_connectionString);
                     _appConfig.IsInstalled = true;
                     _appConfig.DbProvider = dialect.ToString();
-                    _configToJson.SaveKachuwaConfig(_appConfig);
+                    _configToJson.SaveYOConfig(_appConfig);
                     _applicationLifetime.StopApplication();
                 }
 
@@ -200,7 +200,7 @@ namespace YangOne.Web.Service.Installer
                     _configToJson.SaveConnectionString(_connectionString);
                     _appConfig.IsInstalled = false;
                     _appConfig.DbProvider = "";// dialect.ToString();
-                    _configToJson.SaveKachuwaConfig(_appConfig);
+                    _configToJson.SaveYOConfig(_appConfig);
                     _applicationLifetime.StopApplication();
                 }
 

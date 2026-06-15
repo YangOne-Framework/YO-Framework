@@ -16,12 +16,12 @@ namespace YangOne.Caching
     /// Helps to cache for given duration.
     /// </summary>
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
-    public class KachuwaCacheAttribute : ResultFilterAttribute, IActionFilter
+    public class YOCacheAttribute : ResultFilterAttribute, IActionFilter
     {
         private ILogger _logger;
         protected ICacheService CacheService { set; get; }
 
-        public KachuwaCacheAttribute()
+        public YOCacheAttribute()
         {
 
         }

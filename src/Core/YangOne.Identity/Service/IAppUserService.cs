@@ -27,5 +27,8 @@ namespace YangOne.Identity.Service
         Task<bool> CheckPhoneNumberExists(string phoneNumber);
         Task<IEnumerable<BasicUserDetails>> GetUserByRole(string search, int roleId);
         Task<bool> UpdateAsVerifiedPhoneNumberAsync(long userId);
+
+        Task<IEnumerable<AppUser>> GetAllUsers(int offset, int limit, string search, string email, string phone,
+            string roleIds);
     }
 }

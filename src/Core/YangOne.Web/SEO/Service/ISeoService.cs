@@ -15,5 +15,6 @@ namespace YangOne.Web
         Task<string> GenerateJsonLdForPage(string page,int productId,string type);
         Task<string> GetSEOMetaContentsAsync(string url, string type);
         Task<SEO> GetSEODataAsync(string url, string type);
+        Task<string> GetSitemapXml();
     }
 }

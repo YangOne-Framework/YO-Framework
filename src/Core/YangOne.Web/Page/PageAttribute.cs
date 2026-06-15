@@ -4,9 +4,9 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace YangOne.Web
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
-    public class KachuwaPageAttribute : ActionFilterAttribute
+    public class YOPageAttribute : ActionFilterAttribute
     {
-        public KachuwaPageAttribute()
+        public YOPageAttribute()
         {
 
         }
@@ -20,12 +20,12 @@ namespace YangOne.Web
             if (pageUrl != null)
             {
                 PageUrl = pageUrl.ToString();
-                filterContext.HttpContext.Items.Add("KPageUrl", PageUrl);
+                filterContext.HttpContext.Items.Add("YOPageUrl", PageUrl);
             }
             else
             {//landing home page
 
-                filterContext.HttpContext.Items.Add("KPageUrl", "landing");
+                filterContext.HttpContext.Items.Add("YOPageUrl", "landing");
             }
 
             base.OnActionExecuting(filterContext);
@@ -41,8 +41,8 @@ namespace YangOne.Web
             }
             if (result != null && result.ViewName == "page-not-found")
             {
-                context.HttpContext.Items.Remove("KPageUrl");
-                context.HttpContext.Items.Add("KPageUrl", "page-not-found");
+                context.HttpContext.Items.Remove("YOPageUrl");
+                context.HttpContext.Items.Add("YOPageUrl", "page-not-found");
             }
             base.OnActionExecuted(context);
         }

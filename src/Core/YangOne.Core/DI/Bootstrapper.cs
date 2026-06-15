@@ -54,7 +54,7 @@ namespace YangOne.DI
                 .Where(t => TypeExtensions.GetInterfaces(t).Contains(typeof(IServiceRegistrar)) && t.GetConstructor(Type.EmptyTypes) != null)
                 .Select(y=>(IServiceRegistrar)Activator.CreateInstance(y));
             serviceInstances.AddRange(instances);
-            //will return assembly start with kachuwa
+            //will return assembly start with YO or YangOne
             //var assesmblies = AppDomain.CurrentDomain.GetAssemblies();
 
             //foreach (var assembly in assesmblies)

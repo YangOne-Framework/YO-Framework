@@ -21,7 +21,7 @@ namespace YangOne.Web.Theme
         private readonly ILogger _logger;
         private readonly IKeyGenerator _keyGenerator;
         private readonly IFileOptions _fileOptions;
-        private readonly YangOneAppConfig _kachuwaAppConfig;
+        private readonly YangOneAppConfig _yoAppConfig;
         private const string ThemeConfigFile = "themeconfig.json";
         public ThemeManager(IConfigToJson configToJson,
             IOptionsSnapshot<YangOneAppConfig> appConfig
@@ -36,7 +36,7 @@ namespace YangOne.Web.Theme
             _logger = logger;
             _keyGenerator = keyGenerator;
             _fileOptions = fileOptions;
-            _kachuwaAppConfig = appConfig.Value;
+            _yoAppConfig = appConfig.Value;
         }
         public async Task<bool> Install(ThemeInfo theme)
         {
@@ -52,8 +52,8 @@ namespace YangOne.Web.Theme
         {
             if (theme == null)
                 throw new Exception("Invalid Theme");
-            _kachuwaAppConfig.Theme = theme.ThemeName.Trim();
-            return Task.FromResult(_configToJson.SaveKachuwaConfig(_kachuwaAppConfig));
+            _yoAppConfig.Theme = theme.ThemeName.Trim();
+            return Task.FromResult(_configToJson.SaveYOConfig(_yoAppConfig));
         }
         public async Task<ThemeInfo> GetThemeInfo(string themeName)
         {

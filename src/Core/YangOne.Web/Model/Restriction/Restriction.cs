@@ -2,8 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using YangOne.Data.Crud.Attribute;
 
-namespace YangOne.Web.Model
-{
+namespace YangOne.Web.Model;
     [Table("Restriction")]
     public class Restriction
     {
@@ -46,4 +45,3 @@ namespace YangOne.Web.Model
         public int RowTotal { get; set; }
 
     }
-}

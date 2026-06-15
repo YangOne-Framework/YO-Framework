@@ -1,8 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using YangOne.Data.Crud.Attribute;
-
-namespace YangOne.Web.Model.CountrollerRoute
-{
+namespace YangOne.Web.Model;
     [Table("RolePermission")]
     public class RolePermission
     {
@@ -21,7 +19,8 @@ namespace YangOne.Web.Model.CountrollerRoute
         public string ControllerName { get; set; }
         [IgnoreAll]
         public string ControllerId { get; set; }
-
+        [IgnoreAll]
+        public bool AllowAccess { get; set; }
     }
     public sealed class RolePermissionViewModel
     {
@@ -29,4 +28,4 @@ namespace YangOne.Web.Model.CountrollerRoute
     }
 
 
-}
+

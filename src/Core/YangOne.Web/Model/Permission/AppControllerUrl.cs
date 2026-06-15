@@ -1,8 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace YangOne.Web
-{
+namespace YangOne.Web.Model;
     [Table("ApplicationControllerAction")]
     public class ApplicationControllerAction
     {
@@ -13,4 +12,4 @@ namespace YangOne.Web
         public string RouteUrl { get; set; }
         public string FriendlyName { get; set; }
     }
-}
+

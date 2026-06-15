@@ -25,6 +25,9 @@ namespace YangOne.Web.Security.API
     {
         public bool UseEncryption { get; set; }
         public bool UseObfusication { get; set; }
+        public string ObfuscationKey { get; set; }
+        public string EncryptionKey { get; set; }
+        public string EncryptionIV { get; set; }    
     }
     public interface IApiConfigService
     {

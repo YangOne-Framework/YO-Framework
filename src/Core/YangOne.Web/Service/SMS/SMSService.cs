@@ -52,6 +52,12 @@ namespace YangOne.Web.Service
 
         }
 
+        public async Task<IEnumerable<SMSGatewaySetting>> GetSettings(string name)
+        {
+            var provider = GatewayCrudService.Get("Where Name=@Name", new {Name = name});
+            return await SettingCrudService.GetListAsync(@"Where SmsGatewayId=@SmsGatewayId", new { provider.SMSGatewayId });
+        }
+
         public T GetSettings<T>(int smsGatewayId) where T : class
         {
             try
@@ -85,6 +91,35 @@ namespace YangOne.Web.Service
             catch (Exception ex)
             {
 
+                throw ex;
+            }
+        }
+
+        public T GetSettings<T>(string name) where T : class
+        {
+            try
+            {
+                IEnumerable<SMSGatewaySetting> settings = GetSettings(name).Result;
+
+                var settingObj = Activator.CreateInstance<T>();
+                var settingObjType = settingObj.GetType();
+                PropertyInfo[] pi = settingObjType.GetProperties();
+                foreach (var setting in settings)
+                {
+                    var prop = pi.SingleOrDefault(z => z.Name == setting.GatewayKey);
+                    if (prop != null)
+                    {
+                        Type tPropertyType = settingObjType.GetProperty(prop.Name).PropertyType;
+                        Type newT = Nullable.GetUnderlyingType(tPropertyType) ?? tPropertyType;
+                        object newValue = Convert.ChangeType(setting.GatewayValue, newT);
+                        settingObj.GetType().GetProperty(prop.Name).SetValue(settingObj, newValue, null);
+                    }
+                }
+
+                return settingObj as T;
+            }
+            catch (Exception ex)
+            {
                 throw ex;
             }
         }
@@ -183,13 +218,114 @@ namespace YangOne.Web.Service
 
         public async Task<bool> UpdateSettings(List<SMSGatewaySetting> settings)
         {
-            foreach (var setting in settings)
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
             {
-                setting.AutoFill();
-                await SettingCrudService.UpdateAsync(setting);
+                await db.OpenAsync();
+                using (var tran = await db.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        var providerId = settings.First().SMSGatewayId;
+                        await db.ExecuteAsync(
+                            @"delete from SMSGatewaySetting where SMSGatewayId=@Id",
+                            new { Id = providerId }, tran);
+
+                        foreach (var setting in settings)
+                        {
+                            setting.SMSGatewaySettingId = 0;
+                            await SettingCrudService.InsertAsync<int>(db, setting, tran, 30);
+                        }
+
+                        await tran.CommitAsync();
+                    }
+                    catch
+                    {
+                        await tran.RollbackAsync();
+                        throw;
+                    }
+                }
             }
 
             return true;
+        }
+
+        public async Task<int> InsertOrSave(SMSGateway model)
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            model.AutoFill();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+
+                if (model.IsDefault)
+                {
+                    await db.ExecuteAsync("update SMSGateway set IsDefault=0");
+                }
+
+                if (model.SMSGatewayId > 0)
+                {
+                    await db.ExecuteAsync(
+                        @"update SMSGateway set Description=@Description, Image=@Image, " +
+                        "IsActive=@IsActive, IsDefault=@IsDefault where SMSGatewayId=@SMSGatewayId",
+                        new { model.Name, model.Description, model.Image, model.IsActive, model.IsDefault, model.SMSGatewayId });
+                    return model.SMSGatewayId;
+                }
+
+                var existing = await db.QueryFirstOrDefaultAsync<int>(
+                    "select SMSGatewayId from SMSGateway where Name=@Name",
+                    new { model.Name });
+
+                if (existing > 0)
+                {
+                    await db.ExecuteAsync(
+                        "update SMSGateway set Description=@Description, Image=@Image, " +
+                        "IsActive=@IsActive, IsDefault=@IsDefault where SMSGatewayId=@Id",
+                        new { model.Description, model.Image, model.IsActive, model.IsDefault, Id = existing });
+                    return existing;
+                }
+
+                var newId = await db.ExecuteScalarAsync<int>(
+                    "insert into SMSGateway(Name,Image,Description,IsActive,IsDefault,AddedOn,AddedBy) " +
+                    "values (@Name,@Image,@Description,@IsActive,@IsDefault,@AddedOn,@AddedBy); select scope_identity();",
+                    new { model.Name, model.Description, model.Image, model.IsActive, model.IsDefault,
+                        AddedOn = DateTime.UtcNow, AddedBy = model.AddedBy });
+
+                if (model.SMSGatewaySettings?.Count > 0)
+                {
+                    foreach (var setting in model.SMSGatewaySettings)
+                    {
+                        setting.SMSGatewaySettingId = 0;
+                        setting.SMSGatewayId = newId;
+                        await SettingCrudService.InsertAsync<int>(setting);
+                    }
+                }
+
+                return newId;
+            }
+        }
+
+        public async Task<bool> DeleteSmsService(int id)
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+
+                var isDefault = await db.QueryFirstOrDefaultAsync<bool>(
+                    "select IsDefault from SMSGateway where SMSGatewayId=@Id",
+                    new { Id = id });
+
+                if (isDefault)
+                    return false;
+
+                await db.ExecuteAsync("Delete gs from SMSGatewaySetting as gs " +
+                                      "inner join SMSGateway as g on g.SMSGatewayId = gs.SMSGatewayId " +
+                                      "where g.SMSGatewayId = @Id ;" +
+                                      " Delete From SMSGateway Where SMSGatewayId=@Id;",
+                    new { Id = id });
+                return true;
+            }
         }
     }
 }

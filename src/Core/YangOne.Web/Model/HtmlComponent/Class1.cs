@@ -2,8 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 using YangOne.Data.Crud.Attribute;
 
-namespace YangOne.Web.Model
-{
+namespace YangOne.Web.Model;
     [Table("HtmlComponent")]
     public class HtmlComponent
     {
@@ -19,6 +18,11 @@ namespace YangOne.Web.Model
         public string Config { get; set; }
         public string ContentStructure { get; set; }
         public string HtmlTemplate { get; set; }
+        public string StateSchema { get; set; }
+        public string ApiBindings { get; set; }
+        public string EventBindings { get; set; }
+        public string RuntimeOptions { get; set; }
+        public string Version { get; set; }
         public bool IsActive { get; set; }
 
         [AutoFill(false)]
@@ -50,4 +54,4 @@ namespace YangOne.Web.Model
         [IgnoreAll]
         public int RowTotal { get; set; }
     }
-}
+

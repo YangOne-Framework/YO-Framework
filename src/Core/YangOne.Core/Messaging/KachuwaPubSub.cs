@@ -46,7 +46,7 @@ namespace YangOne.Messaging
         }
 
         /// <summary>
-        /// Publishes the <paramref name="message"/> on the <see cref="KachuwaPubSub"/>.
+        /// Publishes the <paramref name="message"/> on the <see cref="YangOnePubSub"/>.
         /// </summary>
         /// <param name="message">The message to published</param>
         public void Publish<T>(T message)
@@ -82,18 +82,18 @@ namespace YangOne.Messaging
         }
 
         /// <summary>
-        /// Subscribes a callback against the <see cref="KachuwaPubSub"/> for a specific type of message.
+        /// Subscribes a callback against the <see cref="YangOnePubSub"/> for a specific type of message.
         /// </summary>
         /// <typeparam name="T">The type of message to subscribe to</typeparam>
-        /// <param name="action">The callback to be invoked once the message is published on the <see cref="KachuwaPubSub"/></param>
+        /// <param name="action">The callback to be invoked once the message is published on the <see cref="YangOnePubSub"/></param>
         /// <returns>The token representing the subscription</returns>
         public Guid Subscribe<T>(Action<T> action) => Subscribe(action, TimeSpan.Zero);
 
         /// <summary>
-        /// Subscribes a callback against the <see cref="KachuwaPubSub"/> for a specific type of message.
+        /// Subscribes a callback against the <see cref="YangOnePubSub"/> for a specific type of message.
         /// </summary>
         /// <typeparam name="T">The type of message to subscribe to</typeparam>
-        /// <param name="action">The callback to be invoked once the message is published on the <see cref="KachuwaPubSub"/></param>
+        /// <param name="action">The callback to be invoked once the message is published on the <see cref="YangOnePubSub"/></param>
         /// <param name="throttleBy">The <see cref="TimeSpan"/> specifying the rate at which subscription is throttled</param>
         /// <returns>The token representing the subscription</returns>
         public Guid Subscribe<T>(Action<T> action, TimeSpan throttleBy)
@@ -103,26 +103,26 @@ namespace YangOne.Messaging
         }
 
         /// <summary>
-        /// Unsubscribes a subscription from the <see cref="KachuwaPubSub"/>.
+        /// Unsubscribes a subscription from the <see cref="YangOnePubSub"/>.
         /// </summary>
         /// <param name="token">The token representing the subscription</param>
         public void Unsubscribe(Guid token) => UnRegisterSubscriber(token);
 
         /// <summary>
-        /// Checks if a specific subscription is active on the <see cref="KachuwaPubSub"/>.
+        /// Checks if a specific subscription is active on the <see cref="YangOnePubSub"/>.
         /// </summary>
         /// <param name="token">The token representing the subscription</param>
         /// <returns><c>True</c> if the subscription is active otherwise <c>False</c></returns>
         public bool IsSubscribed(Guid token) => IsRegisteredSubscriber(token);
 
         /// <summary>
-        /// Clears all the subscriptions from the <see cref="KachuwaPubSub"/>.
+        /// Clears all the subscriptions from the <see cref="YangOnePubSub"/>.
         /// <remarks>The global handler and the global error handler are not affected</remarks>
         /// </summary>
         public void ClearSubscriptions() => ClearSubscriber();
 
         /// <summary>
-        /// Disposes the <see cref="KachuwaPubSub"/>.
+        /// Disposes the <see cref="YangOnePubSub"/>.
         /// </summary>
         public void Dispose()
         {

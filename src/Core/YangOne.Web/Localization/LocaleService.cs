@@ -173,17 +173,20 @@ namespace YangOne.Localization
                         try
                         {
                        
-                            var localRegionId = await db.ExecuteScalarAsync<int>(
-                                @"if(exists(select 1 from  LocaleRegion where Culture=@Culture))
-                                        begin
-                                        select LocaleRegionId from LocaleRegion  where Culture=@Culture
-                                        end
-                                        else
-                                        begin
-                                        insert into LocaleRegion select (select top 1 CountryId from Country where lower(Name)=lower(@CountryName) ) as CountryId,( (select  top 1 lower(ISO)  from Country where lower(Name)=lower(@CountryName) )+'.png') as flag,@Culture,0,1,0,getutcdate(),@AddedBy
-                                        select SCOPE_IDENTITY()
-                                        end ",
-                                new { first.Culture, first.CountryName, AddedBy = addedBy }, dbTran);
+                             var localRegionId = await db.ExecuteScalarAsync<int>(
+                                 @"if(exists(select 1 from  LocaleRegion where Culture=@Culture))
+                                         begin
+                                         select LocaleRegionId from LocaleRegion  where Culture=@Culture
+                                         end
+                                         else
+                                         begin
+                                         insert into LocaleRegion (CountryId, Flag, Culture, IsDefault, IsActive, IsDeleted, AddedOn, AddedBy) 
+                                         select (select top 1 CountryId from Country where lower(Name)=lower(@CountryName) ) as CountryId,
+                                                ( (select  top 1 lower(ISO)  from Country where lower(Name)=lower(@CountryName) )+'.png') as flag,
+                                                @Culture,0,1,0,getutcdate(),@AddedBy
+                                         select SCOPE_IDENTITY()
+                                         end ",
+                                 new { first.Culture, first.CountryName, AddedBy = addedBy }, dbTran);
 
                             foreach (var resource in importedDatas)
                             {
@@ -193,10 +196,10 @@ namespace YangOne.Localization
                                     begin
                                     update LocaleResource  set value=@Value  where Culture=@Culture and lower(Name)=lower(@Name)
                                     end
-                                    else
-                                    begin
-                                    insert into LocaleResource select @Culture,@Name,@Value,@GroupName
-                                    end
+                                     else
+                                     begin
+                                     insert into LocaleResource (Culture, Name, Value, GroupName) values (@Culture, @Name, @Value, @GroupName)
+                                     end
                                 ",
                                     new { resource.Culture, resource.Name, resource.Value, resource.GroupName }, dbTran);
                             }

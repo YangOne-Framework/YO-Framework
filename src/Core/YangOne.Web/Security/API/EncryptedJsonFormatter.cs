@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
 
-namespace YangOne.Web.Security;
+namespace YangOne.Web.Security.API;
 
 public class EncryptedJsonFormatter : TextOutputFormatter
 {

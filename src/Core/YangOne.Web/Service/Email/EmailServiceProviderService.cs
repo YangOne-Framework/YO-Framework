@@ -4,6 +4,7 @@ using Dapper;
 using YangOne.Data;
 using YangOne.Data.Extension;
 using YangOne.Plugin;
+using YangOne.Web.Model;
 
 namespace YangOne.Web.Services
 {
@@ -68,10 +69,33 @@ namespace YangOne.Web.Services
 
         public async Task<bool> UpdateSettings(List<EmailServiceProviderSetting> settings)
         {
-            foreach (var setting in settings)
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
             {
-                setting.AutoFill();
-                await SettingCrudService.UpdateAsync(setting);
+                await db.OpenAsync();
+                using (var tran = await db.BeginTransactionAsync())
+                {
+                    try
+                    {
+                        var providerId = settings.First().EmailServiceProviderId;
+                        await db.ExecuteAsync(
+                            @"delete from EmailServiceProviderSetting where EmailServiceProviderId=@Id",
+                            new { Id = providerId }, tran);
+
+                        foreach (var setting in settings)
+                        {
+                            setting.EmailServiceProviderSettingId = 0;
+                            await SettingCrudService.InsertAsync<int>(db,setting, tran,30);
+                        }
+
+                        await tran.CommitAsync();
+                    }
+                    catch
+                    {
+                        await  tran.RollbackAsync();
+                        throw;
+                    }
+                }
             }
 
             return true;
@@ -198,7 +222,7 @@ namespace YangOne.Web.Services
                 await db.OpenAsync();
                 var type = typeof(T);
                 var props = type.GetProperties();
-                using (var tran = db.BeginTransaction())
+                using (var tran =await db.BeginTransactionAsync())
                 {
                     try
                     {
@@ -213,14 +237,14 @@ namespace YangOne.Web.Services
                                 ProviderValue = prop.GetValue(setting, null).ToString()
                             };
 
-                            await SettingCrudService.InsertAsync(esetting);
+                            await SettingCrudService.InsertAsync<int>(db,esetting,tran,30);
                         }
-                        tran.Commit();
+                        await tran.CommitAsync();
                         return true;
                     }
                     catch (Exception ex)
                     {
-                        tran.Rollback();
+                        await tran.RollbackAsync();
                         throw ex;
                     }
                 }
@@ -234,15 +258,52 @@ namespace YangOne.Web.Services
             model.AutoFill();
             using (var db = (DbConnection)dbFactory.GetConnection())
             {
-
                 await db.OpenAsync();
-                return await db.ExecuteScalarAsync<int>("if exists( select 1 from EmailServiceProvider where Name=@Name)" +
-                                                        " BEGIN update EmailServiceProvider set IsActive=@IsActive where Name=@Name; " +
-                                                        "select EmailServiceProviderId from EmailServiceProvider where Name=@Name END  " +
-                                                        " ELSE BEGIN  insert into EmailServiceProvider(Name,Image,Description,IsActive,AddedOn,AddedBy) " +
-                                                        " values (@Name,@Image,@Description,@IsActive,@AddedOn,@AddedBy); select scope_identity(); END",
-                    new { model.Name, model.Description, model.Image, IsActive = true, AddedOn = DateTime.UtcNow, AddedBy = model.AddedBy });
 
+                if (model.IsDefault)
+                {
+                    await db.ExecuteAsync("update EmailServiceProvider set IsDefault=0");
+                }
+
+                if (model.EmailServiceProviderId > 0)
+                {
+                    await db.ExecuteAsync(
+                        @"update EmailServiceProvider set  Description=@Description, Image=@Image, " +
+                        "IsActive=@IsActive, IsDefault=@IsDefault where EmailServiceProviderId=@EmailServiceProviderId",
+                        new { model.Name, model.Description, model.Image, model.IsActive, model.IsDefault, model.EmailServiceProviderId });
+                    return model.EmailServiceProviderId;
+                }
+
+                var existing = await db.QueryFirstOrDefaultAsync<int>(
+                    "select EmailServiceProviderId from EmailServiceProvider where Name=@Name",
+                    new { model.Name });
+
+                if (existing > 0)
+                {
+                    await db.ExecuteAsync(
+                        "update EmailServiceProvider set Description=@Description, Image=@Image, " +
+                        "IsActive=@IsActive, IsDefault=@IsDefault where EmailServiceProviderId=@Id",
+                        new { model.Description, model.Image, model.IsActive, model.IsDefault, Id = existing });
+                    return existing;
+                }
+
+                var newId = await db.ExecuteScalarAsync<int>(
+                    "insert into EmailServiceProvider(Name,Image,Description,IsActive,IsDefault,AddedOn,AddedBy) " +
+                    "values (@Name,@Image,@Description,@IsActive,@IsDefault,@AddedOn,@AddedBy); select scope_identity();",
+                    new { model.Name, model.Description, model.Image, model.IsActive, model.IsDefault,
+                        AddedOn = DateTime.UtcNow, AddedBy = model.AddedBy });
+
+                if (model.EmailServiceProviderSettings?.Count > 0)
+                {
+                    foreach (var setting in model.EmailServiceProviderSettings)
+                    {
+                        setting.EmailServiceProviderSettingId = 0;
+                        setting.EmailServiceProviderId = newId;
+                        await SettingCrudService.InsertAsync<int>(setting);
+                    }
+                }
+
+                return newId;
             }
         }
         public async Task<bool> DeleteEmailService(string name)
@@ -251,10 +312,19 @@ namespace YangOne.Web.Services
             using (var db = (DbConnection)dbFactory.GetConnection())
             {
                 await db.OpenAsync();
-                await db.ExecuteAsync("Delete es from EmailServiceProvider as e inner join EmailServiceProviderSetting as es on e.EmailServiceProviderId = es.EmailServiceProviderId " +
-                                      "where Name = @Name ;" +
+
+                var isDefault = await db.QueryFirstOrDefaultAsync<bool>(
+                    "select IsDefault from EmailServiceProvider where Name=@Name",
+                    new { Name = name });
+
+                if (isDefault)
+                    return false;
+
+                await db.ExecuteAsync("Delete es from EmailServiceProviderSetting as es " +
+                                      "inner join EmailServiceProvider as e on e.EmailServiceProviderId = es.EmailServiceProviderId " +
+                                      "where e.Name = @Name ;" +
                                       " Delete From EmailServiceProvider Where Name=@Name;",
-                    new {isActive = false, Name = name});
+                    new { Name = name });
                 return true;
             }
         }

@@ -37,10 +37,10 @@
         Guid Subscribe<T>(Action<T> action);
 
         /// <summary>
-        /// Subscribes a callback against the <see cref="KachuwaPubSub"/> for a specific type of message.
+        /// Subscribes a callback against the <see cref="YangOnePubSub"/> for a specific type of message.
         /// </summary>
         /// <typeparam name="T">The type of message to subscribe to</typeparam>
-        /// <param name="action">The callback to be invoked once the message is published on the <see cref="KachuwaPubSub"/></param>
+        /// <param name="action">The callback to be invoked once the message is published on the <see cref="YangOnePubSub"/></param>
         /// <param name="throttleBy">The <see cref="TimeSpan"/> specifying the rate at which subscription is throttled</param>
         /// <returns>The token representing the subscription</returns>
         Guid Subscribe<T>(Action<T> action, TimeSpan throttleBy);
@@ -59,7 +59,7 @@
         bool IsSubscribed(Guid token);
 
         /// <summary>
-        /// Clears all the subscriptions from the <see cref="KachuwaPubSub"/>.
+        /// Clears all the subscriptions from the <see cref="YangOnePubSub"/>.
         /// <remarks>The global handler and the global error handler are not affected</remarks>
         /// </summary>
         void ClearSubscriptions();

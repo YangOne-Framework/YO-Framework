@@ -1,4 +1,6 @@
-﻿using YangOne.Caching;
+﻿using System.Data.Common;
+using Dapper;
+using YangOne.Caching;
 using YangOne.Data;
 using YangOne.Web.Model;
 
@@ -13,7 +15,7 @@ namespace YangOne.Web.Service
             _cacheService = cacheService;
         }
         public CrudService<Setting> CrudService { get; set; } = new CrudService<Setting>();
-        private const string Key = "Kachuwa.Setting";
+        private const string Key = "YO.Setting";
         public async Task<Setting> GetSetting()
         {
 
@@ -22,6 +24,14 @@ namespace YangOne.Web.Service
         }
 
         public async Task<Setting> SaveSetting(Setting setting)
+        {
+            _cacheService.Remove(Key);
+            setting.SettingId = 1;
+            await this.CrudService.UpdateAsync(setting);
+            return await GetSetting();
+        }
+
+        public async Task<Setting> SaveSetting(Setting setting, long userId)
         {
             _cacheService.Remove(Key);
             setting.SettingId = 1;

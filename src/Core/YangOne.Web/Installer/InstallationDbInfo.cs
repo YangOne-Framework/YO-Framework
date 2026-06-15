@@ -17,9 +17,9 @@ namespace YangOne.Installer
 
         public override string ToString()
         {
-            //Server=124.41.193.135;Port=3306;Database=k4;User Id=root;Password=thisisme@sushil;persistsecurityinfo=True;SslMode=none;"
-            //Server=124.41.193.135;Database=tixalaya;Persist Security Info=False;User ID=sa;Password=admin12345;;MultipleActiveResultSets=true;Connection Timeout=30;
-            //Server=127.0.0.1;Port=5432;Database=kachuwaps;User Id=postgres;Password=binod;CommandTimeout=30;
+            //Server=127.0.0.1;Port=3306;Database=k4;User Id=root;Password=thisisme@sushil;persistsecurityinfo=True;SslMode=none;"
+            //Server=127.0.0.1;Database=a;Persist Security Info=False;User ID=sa;Password=admin12345;;MultipleActiveResultSets=true;Connection Timeout=30;
+            //Server=127.0.0.1;Port=5432;Database=yo;User Id=postgres;Password=binod;CommandTimeout=30;
             string msSqlConnectionString = $"Server={this.DatabaseServer};Database={this.DatabaseName};Persist Security Info=False;User ID={this.DatabaseUser};Password={this.DatabasePassword};;MultipleActiveResultSets=true;Connection Timeout=30";
             string mySqlConnectionString = $"Server={this.DatabaseServer};Port={this.Port};Database={this.DatabaseName};User Id={this.DatabaseUser};Password={this.DatabasePassword};persistsecurityinfo=True;SslMode=none;";
             string npgSqlConnectionString = $"Server={this.DatabaseServer};Port={this.Port};Database={this.DatabaseName};User Id={this.DatabaseUser};Password={this.DatabasePassword};CommandTimeout=30";

@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using YangOne.Storage;
+using YangOne.Web.Security.API;
 
 namespace YangOne.Web.API
 {
     [Route("api/v1/file")]
     [AllowAnonymous]
+    [ExcludeFromPayloadProtection]
     public class ChunkFileUploadController : BaseApiController
     {
         private readonly IStorageProvider _storageProvider;

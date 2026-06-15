@@ -1,9 +1,4 @@
-using System.Collections.Concurrent;
-using System.Data.Common;
-using System.Text;
 using Dapper;
-using YangOne.Web.Model;
-using YangOne.Web.Service;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -17,9 +12,17 @@ using MXTires.Microdata.Core;
 using MXTires.Microdata.Core.CreativeWorks;
 using MXTires.Microdata.Core.Intangible;
 using MXTires.Microdata.Core.Intangible.StructuredValues;
+using System;
+using System.Collections.Concurrent;
+using System.Data;
+using System.Data.Common;
+using System.Text;
+using YangOne.Caching;
 using YangOne.Configuration;
 using YangOne.Data;
 using YangOne.Log;
+using YangOne.Web.Model;
+using YangOne.Web.Service;
 
 namespace YangOne.Web
 {
@@ -27,22 +30,25 @@ namespace YangOne.Web
     {
         private readonly ILogger _logger;
         private readonly ISettingService _settingService;
-        private readonly IActionContextAccessor _actionContextAccessor;
-        private IUrlHelper _urlHelper;
+        private readonly IActionContextAccessor _actionContextAccessor;      
         private Setting _setting;
         private YangOneAppConfig _appConfig;
+        private readonly ICacheService _cacheService;
 
 
         [ViewContext] public ViewContext ViewContext { get; set; }
 
         public IUrlHelperFactory UrlHelperFactory { get; set; }
 
-        public SeoService(ISettingService settingService, IActionContextAccessor actionContextAccessor, ILogger logger)
+        public SeoService(ISettingService settingService, IActionContextAccessor actionContextAccessor, ILogger logger,
+            IUrlHelperFactory urlHelperFactory,ICacheService cacheService)
         {
 
             _settingService = settingService;
             _actionContextAccessor = actionContextAccessor;
             _logger = logger;
+            UrlHelperFactory = urlHelperFactory;
+            _cacheService= cacheService;
         }
 
         public CrudService<SEO> Seo { get; set; } = new CrudService<SEO>();
@@ -69,10 +75,11 @@ namespace YangOne.Web
             else
             {
                 IsDynamicPage = false;
-                string actionName = ContextResolver.Context.GetRouteValue("action").ToString();
-                string controllerName = ContextResolver.Context.GetRouteValue("controller").ToString();
-                return _urlHelper.Action(actionName, controllerName);
-
+                // Use HttpContext.Request.Path to capture both MVC and React SPA routes
+                // (MapFallbackToController maps all React routes to Home/Index, so RouteData
+                //  always returns "Index"/"Home" � losing the actual page URL)
+                var path = ContextResolver.Context.Request.Path.Value;
+                return string.IsNullOrEmpty(path) || path == "/" ? "/" : path;
             }
 
         }
@@ -81,58 +88,67 @@ namespace YangOne.Web
         {
             try
             {
-                var appConfig = ContextResolver.Context.RequestServices
-                    .GetService<IOptionsSnapshot<YangOneAppConfig>>();
-                _appConfig = appConfig.Value;
-                var actionContext = _actionContextAccessor.ActionContext;
-                _urlHelper = new UrlHelper(actionContext);
-                _setting = await _settingService.CrudService.GetAsync(1);
                 string path = GetPage();
-
-                StringBuilder metatags = new StringBuilder();
-                var page = await GetPageContents(path);
-                if (page == null)
-                    return "";
-                else
-                {
-
-                    var title = new TitleTag(new ConcurrentDictionary<string, string> { ["title"] = page.MetaTitle });
-                    metatags.Append(title.Generate());
-                    var normalMetatag = new MetaTag(new ConcurrentDictionary<string, string>
+                string metatags = await _cacheService.GetAsync<string>($"SEOMetaTagHelper_{path}",
+                    async () =>
                     {
-                        ["title"] = page.MetaTitle,
-                        ["name"] = page.MetaTitle,
-                        ["description"] = page.MetaDescription,
-                        ["image"] = _appConfig.SiteUrl + page.Image
-                    });
-                    metatags.Append(normalMetatag.Generate());
-                    var openGrap = new OgMetaTag(new ConcurrentDictionary<string, string>
-                    {
+                        var appConfig = ContextResolver.Context.RequestServices
+                            .GetService<IOptionsSnapshot<YangOneAppConfig>>();
+                        _appConfig = appConfig.Value;
+                        var actionContext = _actionContextAccessor.ActionContext;
+                        var _urlHelper = UrlHelperFactory.GetUrlHelper(actionContext);
+                        _setting = await _settingService.CrudService.GetAsync(1);
 
-                        ["type"] = "website"
-                    ,
-                        ["title"] = page.MetaTitle,
-                        ["description"] = page.MetaDescription,
-                        ["type"] = "article",//product
-                        ["locale"] = _setting.BaseCulture,
-                        ["image"] = _appConfig.SiteUrl + page.Image,
-                        ["url"] = _appConfig.SiteUrl + page.Url,
 
-                    }, _appConfig.FacebookAppId);
-                    metatags.Append(openGrap.Generate());
+                        StringBuilder metatags = new StringBuilder();
+                        var page = await GetPageContents(path);
+                        if (page == null)
+                            return "";
+                        else
+                        {
 
-                    var twitter = new TwitterMetaTag(new ConcurrentDictionary<string, string>
-                    {
-                        ["card"] = "summary",
-                        ["title"] = page.MetaTitle,
-                        ["description"] = page.MetaDescription,
-                        ["image"] = _appConfig.SiteUrl + page.Image
-                    });
-                    metatags.Append(twitter.Generate());
-                    return metatags.ToString();
+                            var title = new TitleTag(new ConcurrentDictionary<string, string> { ["title"] = page.MetaTitle });
+                            metatags.Append(title.Generate());
+                            var normalMetatag = new MetaTag(new ConcurrentDictionary<string, string>
+                            {
+                                ["title"] = page.MetaTitle,
+                                ["name"] = page.MetaTitle,
+                                ["description"] = page.MetaDescription,
+                                ["image"] = _appConfig.SiteUrl + page.Image
+                            });
+                            metatags.Append(normalMetatag.Generate());
+                            var openGrap = new OgMetaTag(new ConcurrentDictionary<string, string>
+                            {
 
-                }
+                                ["type"] = "website"
+                                ,
+                                ["title"] = page.MetaTitle,
+                                ["description"] = page.MetaDescription,
+                                ["type"] = "article",//product
+                                ["locale"] = _setting.BaseCulture,
+                                ["image"] = _appConfig.SiteUrl + page.Image,
+                                ["url"] = _appConfig.SiteUrl + page.Url,
 
+                            }, _appConfig.FacebookAppId);
+                            metatags.Append(openGrap.Generate());
+
+                            var twitter = new TwitterMetaTag(new ConcurrentDictionary<string, string>
+                            {
+                                ["card"] = "summary",
+                                ["title"] = page.MetaTitle,
+                                ["description"] = page.MetaDescription,
+                                ["image"] = _appConfig.SiteUrl + page.Image
+                            });
+                            metatags.Append(twitter.Generate());
+                            return metatags.ToString();
+
+                        }
+
+
+                    }, TimeSpan.FromHours(1));
+
+
+                return metatags;
             }
             catch (Exception ex)
             {
@@ -180,7 +196,7 @@ namespace YangOne.Web
             try
             {
 
-
+                _setting = await _settingService.CrudService.GetAsync(1);
                 var appConfig = ContextResolver.Context.RequestServices
                     .GetService<IOptionsSnapshot<YangOneAppConfig>>();
                 _appConfig = appConfig.Value;
@@ -224,9 +240,19 @@ namespace YangOne.Web
                 };
 
                 Language language = new Language() { Name = "English" }; //may need more differentiation
+                string countryName = "";
+                if (storeInfo.CountryId > 0)
+                {
+                    var dbFactory = DbFactoryProvider.GetFactory();
+                    using var db = (DbConnection)dbFactory.GetConnection();
+                    await db.OpenAsync();
+                    countryName = await db.ExecuteScalarAsync<string>(
+                        "select Name from [dbo].[Country] where CountryId=@CountryId",
+                        new { storeInfo.CountryId });
+                }
                 shop.Address = new PostalAddress()
                 {
-                    AddressCountry = storeInfo.Country,
+                    AddressCountry = countryName,
                     //AddressRegion = "BC",
                     AddressLocality = storeInfo.Address1,
                     PostalCode = "",
@@ -250,6 +276,8 @@ namespace YangOne.Web
 
         public async Task<string> GenerateJsonLdForPage()
         {
+            var actionContext = _actionContextAccessor.ActionContext;
+            var _urlHelper = UrlHelperFactory.GetUrlHelper(actionContext);
             string path = GetPage();
 
             var page = await GetPageContents(path);
@@ -462,6 +490,27 @@ namespace YangOne.Web
             var page = await Seo.GetAsync("Where lower(seoType)=lower(@seoType) and (lower(Url)=lower(@url) or lower(Url)=lower('/'+@url))",
                 new { seoType = type, url });
             return page;
+        }
+
+        public async Task<string> GetSitemapXml()
+        {
+
+            var dbfactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbfactory.GetConnection())
+            {
+                await db.OpenAsync();
+                var xml = await db.ExecuteScalarAsync<string>(
+                    "dbo.usp_GenerateSitemapXml"
+                    , new
+                    {
+                        BaseUrl = "https://territoryhimalaya.com",
+                        IncludeSeo = false
+                    });
+
+                return $@"<?xml version=""1.0"" encoding=""UTF-8""?>
+{xml}";
+
+            }
         }
     }
 }

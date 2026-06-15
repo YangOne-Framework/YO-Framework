@@ -3,6 +3,6 @@
     public interface IConfigToJson
     {
         bool SaveConnectionString(YangOneConnectionStrings connectionString);
-        bool SaveKachuwaConfig(YangOneAppConfig config);
+        bool SaveYOConfig(YangOneAppConfig config);
     }
 }

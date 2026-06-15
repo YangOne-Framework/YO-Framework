@@ -5,7 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using YangOne.Caching;
 using YangOne.Configuration;
+using YangOne.Diagnostics;
 using YangOne.Log;
+using YangOne.Log.Serilog;
 using YangOne.Messaging;
 using YangOne.Plugin;
 using YangOne.Security;
@@ -23,7 +25,7 @@ namespace YangOne.Extensions
 {
     public static class YangOneCoreExtensions
     {
-        public static IServiceCollection RegisterKachuwaCoreServices(this IServiceCollection services,
+        public static IServiceCollection RegisterYOCoreServices(this IServiceCollection services,
             IServiceProvider serviceProvider)
         {
             var configuration = serviceProvider.GetService<IConfiguration>();
@@ -46,8 +48,7 @@ namespace YangOne.Extensions
             services.Configure<YangOneAppConfig>(configuration.GetSection("YangOneAppConfig"));
             services.AddScoped(cfg => cfg.GetService<IOptionsSnapshot<YangOneAppConfig>>().Value);
             services.AddScoped(cfg => cfg.GetService<IOptionsSnapshot<YangOneConnectionStrings>>().Value);
-            //to access kachuwa app config
-            //IOptions<KachuwaAppConfig> settings or Configuration.GetValue<string>("YangOneAppConfig:AppName");  
+            //to access YO app config           
 
             //TODO:: conflict on services
 
@@ -57,7 +58,8 @@ namespace YangOne.Extensions
             services.AddSingleton(services);
             services.TryAddSingleton<ILoggerSetting, DefaultLoggerSetting>();
             services.TryAddSingleton<ILogProvider, DefaultLogProvider>();
-            services.TryAddSingleton<ILogger, FileBaseLogger>();
+            services.TryAddSingleton<ILogger, SerilogFileLogger>();
+            services.TryAddSingleton<ActivitySourceProvider>();
             services.TryAddSingleton<IYangOnePubSub>(new YangOnePubSub());
             //removed 
             //services.TryAddSingleton<ILoggerService, FileBaseLogger>();
@@ -69,21 +71,13 @@ namespace YangOne.Extensions
             //services.TryAddSingleton<IPluginService, PluginService>();
             services.AddScoped<IViewRenderService, ViewRenderService>();
       
-            services.AddTransient<KachuwaCacheAttribute>();
+            services.AddTransient<YOCacheAttribute>();
             services.AddSingleton<IFileOptions, DefaultFileOptions>();
-            services.RegisterKachuwaStorageService();
+            services.RegisterYOStorageService();
             //TODO:: allow in start up
 
              new Bootstrapper(services, serviceProvider);
             services.AddLocalization();
-            //TODO::MOVED TO WEB
-            //services.EnableKachuwaLocalization(config =>
-            //{
-            //    config.UseDbResources = true;
-            //    config.UseJsonResources = true;
-            //});
-            //Add Cors support to the service
-            //services.AddCors();
             var policy = new Microsoft.AspNetCore.Cors.Infrastructure.CorsPolicy();
 
             policy.Headers.Add("*");
@@ -111,12 +105,10 @@ namespace YangOne.Extensions
         }
 
 
-        public static IApplicationBuilder UseKachuwaCore(this IApplicationBuilder app, IWebHostEnvironment hostingEnvironment, IServiceProvider serviceProvider)
+        public static IApplicationBuilder UseYOCore(this IApplicationBuilder app, IWebHostEnvironment hostingEnvironment, IServiceProvider serviceProvider)
         {
 
-            new KachuwaAppBuilder(app, serviceProvider, hostingEnvironment);
-           //TODO::moved to web
-           // app.UseKachuwaLocalization();
+            new YOAppBuilder(app, serviceProvider, hostingEnvironment);
             app.UseCors("corsGlobalPolicy");
             app.UseSession();
             app.UseResponseCompression();

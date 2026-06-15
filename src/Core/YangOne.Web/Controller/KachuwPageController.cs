@@ -8,14 +8,14 @@ using YangOne.Web.Service;
 namespace YangOne.Web
 {
 
-    public class KachuwaPageController : BaseController
+    public class YOPageController : BaseController
     {
         public readonly IPermissionService permissionService;
         public readonly IPageService PageService;
         private readonly IActionDescriptorCollectionProvider actionDescriptorCollectionProvider;
         private readonly IIdentityRoleService identityRoleService;
 
-        public KachuwaPageController(IPageService pageService,
+        public YOPageController(IPageService pageService,
             IPermissionService permissionService,
             IIdentityRoleService identityRoleService,
             IActionDescriptorCollectionProvider actionDescriptorCollectionProvider)
@@ -26,7 +26,7 @@ namespace YangOne.Web
             this.actionDescriptorCollectionProvider = actionDescriptorCollectionProvider;
         }
 
-        [KachuwaPage]
+        [YOPage]
         public async Task<IActionResult> Index(string pageUrl = "")
         {
             if (string.IsNullOrEmpty(pageUrl) || "access-denied" == pageUrl || pageUrl == "page-not-found")

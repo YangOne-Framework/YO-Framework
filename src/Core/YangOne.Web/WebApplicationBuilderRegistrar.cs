@@ -9,7 +9,7 @@ namespace YangOne.Web
     {
         public void Configure(IApplicationBuilder app, IServiceProvider serviceProvider, IWebHostEnvironment env)
         {
-            app.UseMiddleware<CustomHeaderMiddleware>();
+            //app.UseMiddleware<CustomHeaderMiddleware>();
             app.UseMiddleware<ImageResizerMiddleware>();
             app.UseStaticHttpContext();
         }

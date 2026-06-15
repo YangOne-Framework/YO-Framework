@@ -13,10 +13,10 @@ namespace YangOne.Web
 
         public void Register(IServiceCollection services, IConfiguration configuration)
         {
-            var str_isInstalled = configuration["YangOneAppConfig:IsInstalled"].ToLower();
+            var str_isInstalled = configuration["YangOneAppConfig:IsInstalled"]?.ToLower();
             _isInstalled = str_isInstalled != "false";
 
-            services.RegisterKachuwaWebServices(_isInstalled, configuration);
+            services.RegisterYOWebServices(_isInstalled, configuration);
             var embeddedAssembly = new EmbeddedFileProvider(typeof(WebServiceRegistrar).GetTypeInfo().Assembly);
             services.Configure<MvcRazorRuntimeCompilationOptions>(opts => { opts.FileProviders.Add(embeddedAssembly); });
             

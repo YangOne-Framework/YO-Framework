@@ -22,9 +22,8 @@ namespace YangOne.Localization
                 throw new ArgumentNullException();
             }
 
-            var kachuwaConfigSnap=httpContext.RequestServices.GetService<IOptionsSnapshot<YangOneAppConfig>>();
-           // var kachuwaConfig = kachuwaConfigSnap.Value;
-            var providerResultCulture = new ProviderCultureResult("");//kachuwaConfig.BaseCulture);
+            var yoConfigSnap=httpContext.RequestServices.GetService<IOptionsSnapshot<YangOneAppConfig>>();          
+            var providerResultCulture = new ProviderCultureResult("");//yoConfigSnap.BaseCulture);
 
             return Task.FromResult(providerResultCulture);
         }

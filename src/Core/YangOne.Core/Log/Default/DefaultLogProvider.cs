@@ -1,11 +1,8 @@
-using System.Diagnostics;
 using Microsoft.AspNetCore.Hosting;
+using YangOne.Log.Serilog;
 
 namespace YangOne.Log
 {
-    /// <summary>
-    /// Default Implementation of ILogProvider
-    /// </summary>
     public class DefaultLogProvider : ILogProvider
     {
         private readonly IWebHostEnvironment _hostingEnvironment;
@@ -16,10 +13,11 @@ namespace YangOne.Log
             _hostingEnvironment = hostingEnvironment;
             _loggerSetting = loggerSetting;
         }
+
         public ILogger GetLogger(string name)
         {
-            return new FileBaseLogger(_hostingEnvironment, _loggerSetting);
+            return new SerilogFileLogger(_hostingEnvironment, _loggerSetting);
         }
-       
+
     }
 }

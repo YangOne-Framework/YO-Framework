@@ -31,7 +31,7 @@ namespace YangOne.Web.TagHelpers
         {
             if (_appConfig.IsInstalled)
             { var area = _actionContextAccessor.ActionContext.RouteData.Values["area"];
-
+                //ignoring any admin/user pages
                 if (area == null)
                 {
                    
@@ -39,7 +39,7 @@ namespace YangOne.Web.TagHelpers
                     {
                         if (string.Equals(context.TagName, "head", StringComparison.Ordinal))
                         {
-                            string metatags = await _cacheService.GetAsync<string>("SEOMetaTagHelper", async () => await _seoService.GenerateMetaContents(), TimeSpan.FromHours(1));
+                            string metatags = await  _seoService.GenerateMetaContents();
                             output.PreContent.AppendHtmlLine($"{metatags}");
                         }
                     }

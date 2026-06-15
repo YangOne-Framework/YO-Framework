@@ -73,17 +73,17 @@
                         </div>
                         <div class="col-md-8 mb-2">
                             <label for="ddlTimeZone">Time Zone</label>
-                            <select id="ddlTimeZone" name="ddlTimeZone" class="form-control" placeholder="Time Zone">
+                            <select id="ddlTimeZone" name="TimeZoneId" class="form-control" placeholder="Time Zone">
                                 <option value="">Select</option>
                                 @{
-                                    var timeZones = TimeZoneInfo.GetSystemTimeZones();
-
-                                    foreach (var timeZone in timeZones)
-
+                                    var timeZoneService = Context.RequestServices.GetService(typeof(YangOne.Web.Service.ITimeZoneService)) as YangOne.Web.Service.ITimeZoneService;
+                                    if (timeZoneService != null)
                                     {
-
-                                        DateTime ts = Convert.ToDateTime("05:00:00");
-                                        <option value="@timeZone.BaseUtcOffset" stime="@timeZone.StandardName">@timeZone.DisplayName</option>
+                                        var timeZones = timeZoneService.GetAllTimeZones().Result;
+                                        foreach (var tz in timeZones)
+                                        {
+                                            <option value="@tz.Id">@tz.DisplayName (@tz.UTC)</option>
+                                        }
                                     }
                                 }
                             </select>
@@ -244,8 +244,7 @@
                         Email: $.trim($("#Email").val()),
                         Password: $.trim($("#Password").val()),
                         SiteName: $.trim($("input[name=SiteName]").val()),
-                        TimeOffset: $.trim($("#ddlTimeZone").val()),
-                        TimeZoneName: $.trim($("#ddlTimeZone option:selected").attr('stime'))
+                        TimeZoneId: parseInt($("#ddlTimeZone").val()) || 0
                     };
                     $ajaxCall("/install/setupadmin",
                         { model: model },
@@ -403,13 +402,13 @@
                             SiteName: { required: true },
                             Email: { required: true, email: true },
                             Password: { required: true, minlength: 8 },
-                            ddlTimeZone: { required: true }
+                            TimeZoneId: { required: true }
                         },
                         messages: {
                             SiteName: '',
                             Email: '',
                             Password: '',
-                            ddlTimeZone: ''
+                            TimeZoneId: ''
                         },
                         //highlight: function (input) {
                         //    $(input).parents('.form-group:eq(0)').addClass('has-error');

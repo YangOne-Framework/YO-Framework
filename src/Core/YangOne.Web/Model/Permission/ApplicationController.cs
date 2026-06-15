@@ -1,9 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using YangOne.Data.Crud.Attribute;
-
-namespace YangOne.Web
-{
+namespace YangOne.Web.Model;
     [Table("ApplicationController")]
     public class ApplicationController
     {
@@ -13,4 +11,4 @@ namespace YangOne.Web
         [IgnoreAll]
         public int RowTotal { get; set; }
     }
-}
+

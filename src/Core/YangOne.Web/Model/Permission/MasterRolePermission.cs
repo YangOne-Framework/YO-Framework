@@ -1,9 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using YangOne.Data.Crud.Attribute;
-
-namespace YangOne.Web
-{
+namespace YangOne.Web.Model;
     [Table("MasterRolePermission")]
     public class MasterRolePermission
     {
@@ -51,10 +49,10 @@ namespace YangOne.Web
 
     }
 
-    public sealed class RolePermissionViewModel
+    public sealed class UserPermissionViewModel
     {
-        public List<MasterRolePermission> RolePermission { get; set; }
+        public List<UserPermission> UserPermission { get; set; }
     }
 
 
-}
+

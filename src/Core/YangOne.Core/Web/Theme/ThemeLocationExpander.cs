@@ -14,9 +14,9 @@ namespace YangOne.Web.Theme
         {
             //var tenant = (CurrentTenant)context.ActionContext.HttpContext.Items[TenantConstant.TenantContextKey];
             context.Values["themedir"] = "Themes";//theme.Directory;
-            var kachuwaConfigSnapshot = context.ActionContext.HttpContext.RequestServices
+            var yoConfigSnapshot = context.ActionContext.HttpContext.RequestServices
                 .GetService<IOptionsSnapshot<YangOneAppConfig>>();
-            var kachuwaConfig = kachuwaConfigSnapshot.Value;
+            var yoConfig = yoConfigSnapshot.Value;
             //temporary for single site
             string themeName = "";
             var area = context.ActionContext.RouteData.Values["area"];
@@ -31,11 +31,11 @@ namespace YangOne.Web.Theme
             {
                 if (area != null)
                 {
-                    themeName = kachuwaConfig.AdminTheme;
+                    themeName = yoConfig.AdminTheme;
                 }
                 else
                 {
-                    themeName = kachuwaConfig.Theme;
+                    themeName = yoConfig.Theme;
                 }
 
             }

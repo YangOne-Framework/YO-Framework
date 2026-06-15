@@ -86,20 +86,20 @@ namespace YangOne.Web.Grid
 
             return column;
         }
-        public static YOHtmlGrid<T> CreateKachuwaGrid<T>(this IHtmlHelper html, IEnumerable<T> source) where T : class
+        public static YOHtmlGrid<T> CreateYOGrid<T>(this IHtmlHelper html, IEnumerable<T> source) where T : class
         {
             return new YOHtmlGrid<T>(html, new YoGrid<T>(source));
         }
-        public static YOHtmlGrid<T> CreateKachuwaGrid<T>(this IHtmlHelper html, String partialViewName, IEnumerable<T> source) where T : class
+        public static YOHtmlGrid<T> CreateYOGrid<T>(this IHtmlHelper html, String partialViewName, IEnumerable<T> source) where T : class
         {
             return new YOHtmlGrid<T>(html, new YoGrid<T>(source)) { PartialViewName = partialViewName };
         }
 
-        public static YOHtmlForm<T> CreateKachuwaForm<T>(this IHtmlHelper html,string name) where T : class, new()
+        public static YOHtmlForm<T> CreateYOForm<T>(this IHtmlHelper html,string name) where T : class, new()
         {
             return new YOHtmlForm<T>(html, new YOForm<T>(name));
         }
-        public static YOHtmlForm<T> CreateKachuwaForm<T>(this IHtmlHelper html,string name,T modalObj) where T : class, new()
+        public static YOHtmlForm<T> CreateYOForm<T>(this IHtmlHelper html,string name,T modalObj) where T : class, new()
         {
             return new YOHtmlForm<T>(html, new YOForm<T>(name,modalObj));
         }
@@ -137,7 +137,7 @@ namespace YangOne.Web.Grid
         private static string RenderForm(Object obj) 
         {
             string template =
-                "<div id=\"{{Name}}\" class=\"kachuwa-form\">< form name =\"{{Name}}\" class=\"{{CssClasses}}\"></form></div>";
+                "<div id=\"{{Name}}\" class=\"yo-form\">< form name =\"{{Name}}\" class=\"{{CssClasses}}\"></form></div>";
 
             FormatCompiler compiler = new FormatCompiler();
             Generator generator = compiler.Compile(template);

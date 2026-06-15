@@ -15,19 +15,7 @@ namespace YangOne.Web.ViewModels
         [Required]
         public string Password { get; set; }
         [Required]
-        //[Range(1,int.MaxValue)]
-        [IgnoreAll]
-        public TimeSpan TimeOffset { get; set; }
-        public string TimeZoneOffset
-        {
-            get
-            {
-                if (TimeOffset.Hours > 0)
-                    return "+" + TimeOffset.ToString(@"hh\:mm");
-                return "-" + TimeOffset.ToString(@"hh\:mm");
-            }
-        }
-        public string TimeZoneName { get; set; }
+        public int TimeZoneId { get; set; }
     }
     public class InstallerViewModel
     {

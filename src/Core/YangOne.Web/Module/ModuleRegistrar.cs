@@ -92,8 +92,8 @@ namespace YangOne.Web.Module
             }
             catch (Exception e)
             {
-                _logger.Log(LogType.Error, () => $"Razor engine module adding error.", e);
-                throw;
+                _logger.Log(LogType.Error, () => $"Module registration failed.", e);
+                throw e;
             }
         }
     }

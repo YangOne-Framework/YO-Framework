@@ -515,6 +515,26 @@ where  (au.FirstName like @Query or au.LastName like @Query) and r.Name=@RoleNam
                 return true;
             }
         }
+        public async Task<IEnumerable<AppUser>> GetAllUsers(int offset, int limit, string search, string email, string phone, string roleIds)
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                return await db.QueryAsync<AppUser>("[dbo].[usp_User_GetAll]",
+                    new
+                    {
+                        offset,
+                        limit,
+                        search,
+                        Email = email,
+                        Phone = phone,
+                        RoleIds = roleIds
+
+                    }, commandType: CommandType.StoredProcedure);
+
+            }
+        }
 
 
     }

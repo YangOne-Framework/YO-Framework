@@ -38,14 +38,16 @@ using YangOne.Web.Service;
 using YangOne.Web.Service.Installer;
 using YangOne.Web.Services;
 using YangOne.Web.TagHelpers;
+using YangOne.Web.Diagnostics;
 using YangOne.Web.Templating;
 using YangOne.Web.Theme;
+using YangOne.Web.Middleware;
 
 namespace YangOne.Web
 {
     public static class YOWebExtensions
     {
-        public static IServiceCollection RegisterKachuwaWebServices(this IServiceCollection services,
+        public static IServiceCollection RegisterYOWebServices(this IServiceCollection services,
             bool isInstalled, IConfiguration configuration)
         {
             services.AddAuthorization(options =>
@@ -55,8 +57,12 @@ namespace YangOne.Web
                     policy => policy.Requirements.Add(new PagePermissionRequirement()));
 
             });
-            services.UseDefaultMemoryCache();
-            services.EnableKachuwaLocalization((options) =>
+            var cacheProvider = configuration["CacheProvider"] ?? "Memory";
+            if (cacheProvider.Equals("Redis", StringComparison.OrdinalIgnoreCase))
+                services.UseRedisCache();
+            else
+                services.UseDefaultMemoryCache();
+            services.EnableYOLocalization((options) =>
             {
                 options.UseJsonResources = true;
             });
@@ -74,8 +80,8 @@ namespace YangOne.Web
             services.AddScoped<IModuleComponentProvider, ModuleComponentProvider>();
             services.AddScoped<ITemplateEngine, MustacheTemplateEngine>();
            
-            //services.AddScoped<ITagHelperComponent, SEOMetaTagHelperComponent>();
-            // services.AddScoped<ITagHelperComponent, JsonLdTagHelperComponent>();
+            services.AddScoped<ITagHelperComponent, SEOMetaTagHelperComponent>();
+            services.AddScoped<ITagHelperComponent, JsonLdTagHelperComponent>();
             //no use of time zone
             services.AddScoped<ITagHelperComponent, SystemVariablesTagHelperComponent>();
             //services.AddScoped<ITagHelperComponent, TokenTagHelperComponent>();
@@ -104,6 +110,8 @@ namespace YangOne.Web
             services.AddScoped<IUnSubscriptionService, UnSubscriptionService>();
             services.AddScoped<ICSPManager, CSPManager>();
             services.AddScoped<IApiConfigService, ApiConfigService>();
+            services.AddScoped<IApiPayloadSecurityService, ApiPayloadSecurityService>();
+            services.AddScoped<ProtectPayloadFilter>();
             services.AddScoped<IOptimizationConfigService, OptimizationConfigService>();
             services.AddScoped<IFileConfigService, FileConfigService>();
             services.AddScoped<IAppBasicSecurityService, AppBasicSecurityService>();
@@ -187,6 +195,7 @@ namespace YangOne.Web
             IMvcBuilder mvcBuilder = services.AddMvc(options =>
                 {
                     options.Filters.Add(new AuditAttribute());
+                    options.Filters.AddService<ProtectPayloadFilter>();
                 }).AddNewtonsoftJson(options =>
                 {
                     options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.DefaultContractResolver();
@@ -215,12 +224,12 @@ namespace YangOne.Web
                 options.CheckConsentNeeded = context => true;
                 options.ConsentCookie.Domain = configuration["YangOneAppConfig:CookieDomain"];
                 // options.MinimumSameSitePolicy = SameSiteMode.None;
-                options.ConsentCookie.Name = "_kachuwa_consent";
+                options.ConsentCookie.Name = "_yo_consent";
 
             });
             services.AddSession(options =>
             {
-                options.Cookie.Name = ".Kachuwa.Session";
+                options.Cookie.Name = ".yo.Session";
                 options.IdleTimeout = TimeSpan.FromMinutes(30);
                 options.Cookie.IsEssential = true; // make the session cookie Essential
             });
@@ -232,9 +241,10 @@ namespace YangOne.Web
                 options.MultipartHeadersLengthLimit = Int32.MaxValue;
                 options.ValueCountLimit = Int32.MaxValue;
             });
+            services.AddYOOpenTelemetry(configuration);
             return services;
         }
-        public static IApplicationBuilder UseKachuwaWeb(this IApplicationBuilder app, IWebHostEnvironment hostingEnvironment, bool useDefaultRoute = true)
+        public static IApplicationBuilder UseYOWeb(this IApplicationBuilder app, IWebHostEnvironment hostingEnvironment, bool useDefaultRoute = true)
         {
 
             app.UseMiddleware<ModuleResourceMiddleware>();
@@ -304,7 +314,7 @@ namespace YangOne.Web
                 RequestPath = new PathString("/locale")
             });
 
-            app.UseKachuwaLocalization();
+            app.UseYOLocalization();
             app.UseAuthentication(); // not needed, since UseIdentityServer adds the authentication middleware
             // app.UseIdentityServer();
             app.UseStaticHttpContext();
@@ -337,7 +347,7 @@ namespace YangOne.Web
             app.UseCookiePolicy();
             app.UseRouting();
             app.UseAuthorization();
-      
+            app.UseMiddleware<AdminIPAccessMiddleware>();
 
             if (useDefaultRoute)
             {
@@ -355,7 +365,7 @@ namespace YangOne.Web
                 endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{pageUrl?}",
-                    defaults: new { controller = "KachuwaPage", action = "Index" }
+                    defaults: new { controller = "YOPage", action = "Index" }
                 //, constraints: new { pageUrl = @"\w+" }
                 );
                 endpoints.MapControllerRoute(

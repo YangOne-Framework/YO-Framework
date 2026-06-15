@@ -2,9 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Http;
 using YangOne.Data.Crud.Attribute;
-
-namespace YangOne.Web.Model
-{
+namespace YangOne.Web.Model;
     [Table("Setting")]
     public class Setting
     {
@@ -16,7 +14,7 @@ namespace YangOne.Web.Model
 
         public string Description { get; set; }
 
-        public string Country { get; set; }
+        public int CountryId { get; set; }
         public string Email { get; set; }
         public string PhoneNumber { get; set; }
 
@@ -27,9 +25,7 @@ namespace YangOne.Web.Model
         public string State { get; set; }
 
         public string City { get; set; }
-        public string TimeZoneOffset { get; set; }
-        [Required(ErrorMessage = "Setting.TimeZone.Required")]
-        public string TimeZoneName { get; set; }
+        public int TimeZoneId { get; set; }
 
         public decimal Longitude { get; set; }
 
@@ -53,4 +49,3 @@ namespace YangOne.Web.Model
         public string SalesEmail { get; set; }
         public string MarketingEmail { get; set; }
     }
-}

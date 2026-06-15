@@ -29,6 +29,8 @@ namespace YangOne.Web.Caching
             lock (_lock)
             {
                 var cacheObj = _cache.Get(key);
+                if (cacheObj != null && !keys.Contains(key))
+                    keys.Add(key);
                 return (T)cacheObj;
             }
 
@@ -112,15 +114,12 @@ namespace YangOne.Web.Caching
         }
         public void Flush()
         {
-            foreach (var key in keys)
+            lock (_lock)
             {
-                lock (_lock)
-                {
+                foreach (var key in keys)
                     _cache.Remove(key);
-                }
-
+                keys.Clear();
             }
-
         }
 
         public List<string> GetKeys()

@@ -1,14 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace YangOne.Web
-{
+namespace YangOne.Web.Model;
     [Table("EmailServiceProviderSetting")]
     public class EmailServiceProviderSetting
     {
         [Key]
         public int EmailServiceProviderSettingId { get; set; }
-        [Range(1,int.MaxValue)]
         public int EmailServiceProviderId { get; set; }
         [Required]
         public string ProviderKey { get; set; }
@@ -19,4 +17,3 @@ namespace YangOne.Web
     {
         public string SystemName { get; set; }
     }
-}

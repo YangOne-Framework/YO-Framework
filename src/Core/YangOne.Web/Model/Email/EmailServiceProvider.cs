@@ -1,9 +1,9 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Http;
 using YangOne.Data.Crud.Attribute;
 
-namespace YangOne.Web
-{
+namespace YangOne.Web.Model;
     [Table("EmailServiceProvider")]
     public class EmailServiceProvider
     {
@@ -21,9 +21,12 @@ namespace YangOne.Web
         public bool IsActive { get; set; }
         [AutoFill(AutoFillProperty.CurrentDate)]
         public DateTime AddedOn { get; set; }
-        [AutoFill(AutoFillProperty.CurrentUser)]
-        public string AddedBy { get; set; }
+        [AutoFill(AutoFillProperty.CurrentUserId)]
+        public long AddedBy { get; set; }
         [IgnoreAll]
         public int RowTotal { get; set; }
+
+        [IgnoreAll] public IFormFile ImageFile { get; set; }
+
+        [IgnoreAll] public List<EmailServiceProviderSetting> EmailServiceProviderSettings { get; set; } = new();
     }
-}

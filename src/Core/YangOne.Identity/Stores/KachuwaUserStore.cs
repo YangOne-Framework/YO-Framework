@@ -13,7 +13,7 @@ using ILogger = YangOne.Log.ILogger;
 
 namespace YangOne.Identity.Stores
 {
-    public class KachuwaUserStore<TUser, TKey, TUserRole, TRoleClaim, TUserClaim, TUserLogin, TRole> :
+    public class YOUserStore<TUser, TKey, TUserRole, TRoleClaim, TUserClaim, TUserLogin, TRole> :
         IUserStore<TUser>,
         IUserLoginStore<TUser>,
         IUserRoleStore<TUser>,
@@ -38,14 +38,14 @@ namespace YangOne.Identity.Stores
         private DbConnection _connection;
 
 
-        private readonly ILogger<KachuwaUserStore<TUser, TKey, TUserRole, TRoleClaim, TUserClaim, TUserLogin, TRole>> _log;
+        private readonly ILogger<YOUserStore<TUser, TKey, TUserRole, TRoleClaim, TUserClaim, TUserLogin, TRole>> _log;
         private readonly ILogger _logger;
 
         private readonly IIdentityUserService _userService;
         private readonly IIdentityRoleService _roleService;
-        public KachuwaUserStore(IIdentityUserService userService,
+        public YOUserStore(IIdentityUserService userService,
                                 IIdentityRoleService roleService,
-                               ILogger<KachuwaUserStore<TUser, TKey, TUserRole, TRoleClaim, TUserClaim, TUserLogin, TRole>> log, ILogger logger
+                               ILogger<YOUserStore<TUser, TKey, TUserRole, TRoleClaim, TUserClaim, TUserLogin, TRole>> log, ILogger logger
                               )
         {
 
