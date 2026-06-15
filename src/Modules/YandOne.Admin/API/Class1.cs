@@ -1,0 +1,2 @@
+﻿namespace YandOne.Admin.API;
+
