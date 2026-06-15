@@ -17,6 +17,7 @@ namespace YangOne.Admin.Service
 
         Task<IEnumerable<MenuViewModel>> GetFooterMenu();
         Task<IEnumerable<MenuViewModel>> GetAdminMenus(IEnumerable<string> roles);
+        Task<IEnumerable<MenuViewModel>> GetAdminMenusByRole(string roleNames);
         Task<IEnumerable<MenuViewModel>> GetSiteFrontendMenuForUser();
     }
 }

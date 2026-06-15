@@ -41,7 +41,7 @@ public class AccountController : Controller
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAppUserService _appUserService;
-    private readonly YangOneAppConfig _kachuwaConfig;
+    private readonly YangOneAppConfig _yoConfig;
     private readonly ILocaleResourceProvider _localeResourceProvider;
     private readonly IConfiguration _configuration;
     private readonly IWebHostEnvironment _hostingEnvironment;
@@ -64,7 +64,7 @@ public class AccountController : Controller
         SignInManager<IdentityUser> signInManager,
         IHttpContextAccessor httpContextAccessor
         , IAppUserService appUserService
-        , IOptionsSnapshot<YangOneAppConfig> kachuwaConfig,
+        , IOptionsSnapshot<YangOneAppConfig> yoConfig,
         ILocaleResourceProvider localeResourceProvider,
         IConfiguration configuration,
         IWebHostEnvironment hostingEnvironment,
@@ -85,7 +85,7 @@ public class AccountController : Controller
         _signInManager = signInManager;
         _httpContextAccessor = httpContextAccessor;
         _appUserService = appUserService;
-        _kachuwaConfig = kachuwaConfig.Value;
+        _yoConfig = yoConfig.Value;
         _localeResourceProvider = localeResourceProvider;
         _configuration = configuration;
         _hostingEnvironment = hostingEnvironment;
@@ -332,7 +332,7 @@ public class AccountController : Controller
         CookieOptions option = new CookieOptions
         {
             HttpOnly = false,
-            Domain = _hostingEnvironment.IsDevelopment() ? "localhost" : _kachuwaConfig.CookieDomain,
+            Domain = _hostingEnvironment.IsDevelopment() ? "localhost" : _yoConfig.CookieDomain,
             SameSite = SameSiteMode.Lax,
             IsEssential = true,
             Expires = DateTime.Now.AddDays(90)
@@ -345,7 +345,7 @@ public class AccountController : Controller
         CookieOptions option = new CookieOptions
         {
             HttpOnly = false,
-            Domain = _hostingEnvironment.IsDevelopment() ? "localhost" : _kachuwaConfig.CookieDomain,
+            Domain = _hostingEnvironment.IsDevelopment() ? "localhost" : _yoConfig.CookieDomain,
             SameSite = SameSiteMode.Lax,
             IsEssential = true,
             Expires = DateTime.Now.AddDays(365)
@@ -464,15 +464,15 @@ public class AccountController : Controller
                 OTPCode = otp,
                 FirstName = $"{user.FirstName}",
                 LastName = user.LastName,
-                AccountLink = $"{_kachuwaConfig.SiteUrl}/user/dashboard",
-                PricingURL = $"{_kachuwaConfig.SiteUrl}/pricing",
-                DomainUrl = _kachuwaConfig.SiteUrl,
-                LogoUrl = $"{_kachuwaConfig.SiteUrl}{webSetting.Logo}",
+                AccountLink = $"{_yoConfig.SiteUrl}/user/dashboard",
+                PricingURL = $"{_yoConfig.SiteUrl}/pricing",
+                DomainUrl = _yoConfig.SiteUrl,
+                LogoUrl = $"{_yoConfig.SiteUrl}{webSetting.Logo}",
                 webSetting.SupportEmail,
                 InfoEmail = webSetting.DefaultEmail,
                 webSetting.SalesEmail,
-                EmailPreferenceUrl = $"{_kachuwaConfig.SiteUrl}/account/email",
-                UnSubscribeUrl = $"{_kachuwaConfig.SiteUrl}/account/email/unsubscribe?id=" + QuerySecurity.EncryptString(user.Email),
+                EmailPreferenceUrl = $"{_yoConfig.SiteUrl}/account/email",
+                UnSubscribeUrl = $"{_yoConfig.SiteUrl}/account/email/unsubscribe?id=" + QuerySecurity.EncryptString(user.Email),
             }, new EmailAddress[]
             {
                     new EmailAddress
@@ -611,7 +611,7 @@ public class AccountController : Controller
                     CookieOptions option1 = new CookieOptions
                     {
                         HttpOnly = false,
-                        Domain = _hostingEnvironment.IsDevelopment() ? "localhost" : _kachuwaConfig.CookieDomain,
+                        Domain = _hostingEnvironment.IsDevelopment() ? "localhost" : _yoConfig.CookieDomain,
                         SameSite = SameSiteMode.Lax,
                         IsEssential = true,
                         Expires = DateTime.Now.AddDays(-1)
@@ -732,15 +732,15 @@ public class AccountController : Controller
                 {
                     FirstName = $"{newAppUser.FirstName}",
                     LastName = newAppUser.LastName,
-                    //AccountLink = $"{_kachuwaConfig.SiteUrl}/user/dashboard",
-                    AccountLink = $"{_kachuwaConfig.SiteUrl}/user/dashboard",
-                    DomainUrl = _kachuwaConfig.SiteUrl,
-                    LogoUrl = $"{_kachuwaConfig.SiteUrl}{webSetting.Logo}",
+                    //AccountLink = $"{_yoConfig.SiteUrl}/user/dashboard",
+                    AccountLink = $"{_yoConfig.SiteUrl}/user/dashboard",
+                    DomainUrl = _yoConfig.SiteUrl,
+                    LogoUrl = $"{_yoConfig.SiteUrl}{webSetting.Logo}",
                     webSetting.SupportEmail,
                     InfoEmail = webSetting.DefaultEmail,
                     webSetting.SalesEmail,
-                    EmailPreferenceUrl = $"{_kachuwaConfig.SiteUrl}/account/email",
-                    UnSubscribeUrl = $"{_kachuwaConfig.SiteUrl}/account/email/unsubscribe?id=" + QuerySecurity.EncryptString(newAppUser.Email),
+                    EmailPreferenceUrl = $"{_yoConfig.SiteUrl}/account/email",
+                    UnSubscribeUrl = $"{_yoConfig.SiteUrl}/account/email/unsubscribe?id=" + QuerySecurity.EncryptString(newAppUser.Email),
                 }, new EmailAddress[]
                 {
                         new EmailAddress
@@ -766,13 +766,13 @@ public class AccountController : Controller
                    {
                        VerificationUrl = callbackUrl,
                        FullName = $"{newAppUser.FirstName} {newAppUser.LastName}",
-                       DomainUrl = _kachuwaConfig.SiteUrl,
-                       LogoUrl = $"{_kachuwaConfig.SiteUrl}{webSetting.Logo}",
+                       DomainUrl = _yoConfig.SiteUrl,
+                       LogoUrl = $"{_yoConfig.SiteUrl}{webSetting.Logo}",
                        webSetting.SupportEmail,
                        InfoEmail = webSetting.DefaultEmail,
                        webSetting.SalesEmail,
-                       EmailPreferenceUrl = $"{_kachuwaConfig.SiteUrl}/account/email",
-                       UnSubscribeUrl = $"{_kachuwaConfig.SiteUrl}/account/email/unsubscribe?id=" + QuerySecurity.EncryptString(newAppUser.Email),
+                       EmailPreferenceUrl = $"{_yoConfig.SiteUrl}/account/email",
+                       UnSubscribeUrl = $"{_yoConfig.SiteUrl}/account/email/unsubscribe?id=" + QuerySecurity.EncryptString(newAppUser.Email),
                    }, new EmailAddress[]
                     {
                             new EmailAddress
@@ -863,13 +863,13 @@ public class AccountController : Controller
                         {
                             FullName = $"{appuser.FirstName} {appuser.LastName}",
                             ResetPasswordLink = callbackUrl,
-                            DomainUrl = _kachuwaConfig.SiteUrl,
-                            LogoUrl = $"{_kachuwaConfig.SiteUrl}{webSetting.Logo}",
+                            DomainUrl = _yoConfig.SiteUrl,
+                            LogoUrl = $"{_yoConfig.SiteUrl}{webSetting.Logo}",
                             webSetting.SupportEmail,
                             InfoEmail = webSetting.DefaultEmail,
                             webSetting.SalesEmail,
-                            EmailPreferenceUrl = $"{_kachuwaConfig.SiteUrl}/account/email",
-                            UnSubscribeUrl = $"{_kachuwaConfig.SiteUrl}/account/email/unsubscribe?id=" + QuerySecurity.EncryptString(appuser.Email),
+                            EmailPreferenceUrl = $"{_yoConfig.SiteUrl}/account/email",
+                            UnSubscribeUrl = $"{_yoConfig.SiteUrl}/account/email/unsubscribe?id=" + QuerySecurity.EncryptString(appuser.Email),
                         }, new EmailAddress[]
                         {
                             new EmailAddress

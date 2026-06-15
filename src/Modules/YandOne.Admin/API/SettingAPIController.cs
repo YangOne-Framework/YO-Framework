@@ -53,7 +53,7 @@ public class SettingApiController : BaseApiController
     #region Web Settings
 
     [HttpGet("web")]
-    //[Authorize(Roles = "Admin,SuperUser")]
+    // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetWebSetting()
     {
         try
@@ -69,7 +69,7 @@ public class SettingApiController : BaseApiController
     }
 
     [HttpPost("web/save")]
-    //[Authorize(Roles = "Admin,SuperUser")]
+    // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> SaveWebSetting([FromForm] Setting model)
     {
         if (!ModelState.IsValid)
@@ -88,21 +88,7 @@ public class SettingApiController : BaseApiController
                 model.Logo = await _storageProvider.Save("Logo", model.LogoFile);
             }
 
-            if (!string.IsNullOrWhiteSpace(model.TimeZoneName))
-            {
-                var tz = TimeZoneInfo.GetSystemTimeZones()
-                    .SingleOrDefault(x => x.StandardName == model.TimeZoneName);
-
-                if (tz != null)
-                {
-                    var offset = tz.BaseUtcOffset;
-                    model.TimeZoneOffset =
-                        (offset >= TimeSpan.Zero ? "+" : "-") +
-                        offset.ToString(@"hh\:mm");
-                }
-            }
-
-            await _settingService.SaveSetting(model);
+            await _settingService.SaveSetting(model, userId);
             return SuccessResponse("Web settings saved successfully", model);
         }
         catch (Exception e)
@@ -137,7 +123,7 @@ public class SettingApiController : BaseApiController
     #region CSP
 
     [HttpGet("csp")]
-    //[Authorize(Roles = "Admin,SuperUser")]
+    // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetCspConfig()
     {
         try
@@ -153,7 +139,7 @@ public class SettingApiController : BaseApiController
     }
 
     [HttpPost("csp/save")]
-    //[Authorize(Roles = "Admin,SuperUser")]
+    // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> SaveCspConfig([FromBody] CspConfig config)
     {
         if (!ModelState.IsValid)
@@ -176,7 +162,7 @@ public class SettingApiController : BaseApiController
     #region API Config
 
     [HttpGet("api")]
-    //[Authorize(Roles = "Admin,SuperUser")]
+    // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetApiConfig()
     {
         try
@@ -192,7 +178,7 @@ public class SettingApiController : BaseApiController
     }
 
     [HttpPost("api/save")]
-    //[Authorize(Roles = "Admin,SuperUser")]
+    // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> SaveApiConfig([FromBody] ApiConfig model)
     {
         if (!ModelState.IsValid)
@@ -200,6 +186,23 @@ public class SettingApiController : BaseApiController
 
         try
         {
+            // Safety: both encryption and obfuscation cannot be active simultaneously.
+            // If both are true, reset both to false.
+            if (model.UseEncryption && model.UseObfusication)
+            {
+                model.UseEncryption = false;
+                model.UseObfusication = false;
+            }
+
+            // Preserve existing keys if not provided in the save payload
+            var existing = await _apiConfigService.GetConfigAsync();
+            if (string.IsNullOrEmpty(model.ObfuscationKey))
+                model.ObfuscationKey = existing.ObfuscationKey;
+            if (string.IsNullOrEmpty(model.EncryptionKey))
+                model.EncryptionKey = existing.EncryptionKey;
+            if (string.IsNullOrEmpty(model.EncryptionIV))
+                model.EncryptionIV = existing.EncryptionIV;
+
             await _apiConfigService.SaveConfigAsync(model);
             return SuccessResponse("API configuration saved successfully", true);
         }
@@ -215,7 +218,7 @@ public class SettingApiController : BaseApiController
     #region Optimization
 
     [HttpGet("optimization")]
-    //[Authorize(Roles = "Admin,SuperUser")]
+    // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetOptimizationConfig()
     {
         try
@@ -231,7 +234,7 @@ public class SettingApiController : BaseApiController
     }
 
     [HttpPost("optimization/save")]
-    //[Authorize(Roles = "Admin,SuperUser")]
+    // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> SaveOptimizationConfig([FromBody] OptimizationConfig model)
     {
         if (!ModelState.IsValid)
@@ -254,7 +257,7 @@ public class SettingApiController : BaseApiController
     #region File Config
 
     [HttpGet("file")]
-    //[Authorize(Roles = "Admin,SuperUser")]
+    // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetFileConfig()
     {
         try
@@ -270,7 +273,7 @@ public class SettingApiController : BaseApiController
     }
 
     [HttpPost("file/save")]
-    //[Authorize(Roles = "Admin,SuperUser")]
+    // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> SaveFileConfig([FromBody] FileConfig config)
     {
         if (!ModelState.IsValid)
@@ -293,7 +296,7 @@ public class SettingApiController : BaseApiController
     #region Basic Security
 
     [HttpGet("basic")]
-    //[Authorize(Roles = "Admin,SuperUser")]
+    // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetBasicSecurityConfig()
     {
         try
@@ -309,7 +312,7 @@ public class SettingApiController : BaseApiController
     }
 
     [HttpPost("basic/save")]
-    //[Authorize(Roles = "Admin,SuperUser")]
+    // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> SaveBasicSecurityConfig([FromBody] AppBasicSecurity model)
     {
         if (!ModelState.IsValid)

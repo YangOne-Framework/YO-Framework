@@ -6,6 +6,7 @@ using YangOne.Identity.Service;
 using YangOne.Log;
 using YangOne.Web;
 using YangOne.Web.API;
+using YangOne.Web.Model;
 using YangOne.Web.Service;
 
 namespace YandOne.Admin.API;
@@ -29,7 +30,7 @@ public class PermissionApiController : BaseApiController
 
    
     [HttpGet("role/{roleId:int}")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetRolePermissions([FromRoute] int roleId)
     {
         try
@@ -56,7 +57,7 @@ public class PermissionApiController : BaseApiController
 
     
     [HttpPost("role/{roleId:int}/save")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> SaveRolePermissions(
         [FromRoute] int roleId,
         [FromBody] RolePermissionViewModel rolePermissions)
@@ -88,7 +89,7 @@ public class PermissionApiController : BaseApiController
 
    
     [HttpGet("role/all")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetRolesList()
     {
         try
@@ -99,6 +100,76 @@ public class PermissionApiController : BaseApiController
 
             var roles = await GetRoles();
             return SuccessResponse("Success", roles);
+        }
+        catch (Exception e)
+        {
+            _logger.Log(LogType.Error, () => e.Message, e);
+            return ErrorResponse(501, e.Message);
+        }
+    }
+
+    [HttpGet("my")]
+    [Authorize]
+    public async Task<IActionResult> GetMyPermissions()
+    {
+        try
+        {
+            var userId = User.Identity.GetIdentityUserId();
+            if (userId == 0)
+                return NotAuthorizedResponse();
+
+            var permissions = await _permissionService.GetMyPermissions(userId);
+            return SuccessResponse("Success", permissions);
+        }
+        catch (Exception e)
+        {
+            _logger.Log(LogType.Error, () => e.Message, e);
+            return ErrorResponse(501, e.Message);
+        }
+    }
+
+    [HttpGet("user/{userId:long}")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
+    public async Task<IActionResult> GetUserPermissions([FromRoute] long userId)
+    {
+        try
+        {
+            var currentUserId = User.Identity.GetIdentityUserId();
+            if (currentUserId == 0)
+                return NotAuthorizedResponse();
+
+            var userPermissions = await _permissionService.GetUserPermissionsById(userId);
+            return SuccessResponse("Success", new { UserPermission = userPermissions });
+        }
+        catch (Exception e)
+        {
+            _logger.Log(LogType.Error, () => e.Message, e);
+            return ErrorResponse(501, e.Message);
+        }
+    }
+
+    [HttpPost("user/{userId:long}/save")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
+    public async Task<IActionResult> SaveUserPermissions(
+        [FromRoute] long userId,
+        [FromBody] UserPermissionViewModel userPermissions)
+    {
+        if (!ModelState.IsValid)
+            return ErrorResponse(ModelState, 600, userPermissions);
+
+        try
+        {
+            var currentUserId = User.Identity.GetIdentityUserId();
+            if (currentUserId == 0)
+                return NotAuthorizedResponse();
+
+            foreach (var item in userPermissions.UserPermission)
+            {
+                item.UserId = userId;
+            }
+
+            await _permissionService.SaveUserPermissions(userPermissions);
+            return SuccessResponse("User permissions saved successfully", true);
         }
         catch (Exception e)
         {

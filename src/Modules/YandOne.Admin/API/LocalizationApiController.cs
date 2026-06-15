@@ -1,12 +1,16 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Dapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using YangOne.Admin.Dto;
+using YangOne.Data;
 using YangOne.Data.Extension;
 using YangOne.Identity.Extensions;
 using YangOne.Localization;
 using YangOne.Log;
+using YangOne.Web;
 using YangOne.Web.API;
 using YangOne.Web.Localization;
 using YangOne.Web.Service;
@@ -43,7 +47,7 @@ public class LocalizationApiController : BaseApiController
     }
 
     [HttpGet("region/all")]
-   //[Authorize(Roles = "Admin,SuperUser")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetRegions(
         [FromQuery] int pageNo = 1,
         [FromQuery] int rowsPerPage = 10,
@@ -78,7 +82,7 @@ public class LocalizationApiController : BaseApiController
 
 
     [HttpGet("country/all")]
-   //[Authorize(Roles = "Admin,SuperUser")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetCountries()
     {
         try
@@ -94,7 +98,7 @@ public class LocalizationApiController : BaseApiController
     }
 
     [HttpPost("import")]
-   //[Authorize(Roles = "Admin,SuperUser")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Import([FromForm] LocalizationImportRequest request)
     {
         try
@@ -123,7 +127,7 @@ public class LocalizationApiController : BaseApiController
 
   
     [HttpPost("region/new")]
-   //[Authorize(Roles = "Admin,SuperUser")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> CreateRegion([FromBody] LocaleRegion model)
     {
         if (!ModelState.IsValid)
@@ -162,7 +166,7 @@ public class LocalizationApiController : BaseApiController
 
 
     [HttpPost("region/update")]
-   //[Authorize(Roles = "Admin,SuperUser")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> UpdateRegion([FromBody] LocaleRegionEditViewModel model)
     {
         if (!ModelState.IsValid)
@@ -202,7 +206,7 @@ public class LocalizationApiController : BaseApiController
 
    
     [HttpGet("region/{localRegionId:int}/resource/all")]
-   //[Authorize(Roles = "Admin,SuperUser")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetResources(
         [FromRoute] int localRegionId,
         [FromQuery] int pageNo = 1,
@@ -227,7 +231,7 @@ public class LocalizationApiController : BaseApiController
 
    
     [HttpGet("export/{localRegionId:int}")]
-   //[Authorize(Roles = "Admin,SuperUser")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Export([FromRoute] int localRegionId)
     {
         try
@@ -257,7 +261,7 @@ public class LocalizationApiController : BaseApiController
 
    
     [HttpPost("set-default")]
-   //[Authorize(Roles = "Admin,SuperUser")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> SetDefault([FromBody] SetDefaultLocaleRequest request)
     {
         if (!ModelState.IsValid)
@@ -288,8 +292,49 @@ public class LocalizationApiController : BaseApiController
     }
 
    
+    [AllowAnonymous]
+    [HttpPost("resource/missing")]
+    [DisableRateLimiting]
+    public async Task<IActionResult> SaveMissingKeys([FromBody] Dictionary<string, string> missingKeys)
+    {
+        try
+        {
+            if (missingKeys == null || missingKeys.Count == 0)
+                return SuccessResponse("No missing keys provided", true);
+
+            var culture = Request.Headers["X-Culture"].FirstOrDefault()
+                ?? Request.Headers["Accept-Language"].FirstOrDefault()?.Split(',').FirstOrDefault()?.Split(';').FirstOrDefault()?.Trim()
+                ?? "en-us";
+            culture = culture.ToLowerInvariant();
+
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using var db = dbFactory.GetConnection();
+
+            foreach (var kvp in missingKeys)
+            {
+                var groupName = kvp.Key.Contains('.') ? kvp.Key.Split('.')[0] : "";
+
+                await db.ExecuteAsync(
+                    "if(Not Exists(select 1 from LocaleResource where LTRIM(RTRIM(Name))=LTRIM(RTRIM(@Name)) and LTRIM(RTRIM(Culture))=LTRIM(RTRIM(@Culture)) and LTRIM(RTRIM(GroupName))=LTRIM(RTRIM(@GroupName)))) " +
+                    "BEGIN Insert into LocaleResource(Culture,Name,Value,GroupName) values(@Culture,@Name,@Value,@GroupName); END",
+                    new { Name = kvp.Key, Culture = culture, Value = kvp.Value ?? kvp.Key, GroupName = groupName });
+            }
+
+            if (ContextResolver.Context.RequestServices.GetService(typeof(ResourceBuilder)) is ResourceBuilder rb)
+                await rb.Build();
+
+            return SuccessResponse("Missing keys saved successfully", true);
+        }
+        catch (Exception e)
+        {
+            _logger.Log(LogType.Error, () => e.Message, e);
+            return ErrorResponse(501, e.Message);
+        }
+    }
+
+
     [HttpPost("resource/save")]
-   //[Authorize(Roles = "Admin,SuperUser")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> UpdateLocaleValue([FromBody] LocaleResource model)
     {
         if (!ModelState.IsValid)
@@ -315,7 +360,7 @@ public class LocalizationApiController : BaseApiController
 
    
     [HttpDelete("region/{id:int}")]
-   //[Authorize(Roles = "Admin,SuperUser")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> DeleteRegion([FromRoute] int id)
     {
         try
@@ -342,7 +387,7 @@ public class LocalizationApiController : BaseApiController
 
 
     [HttpPost("language")]
-   //[Authorize(Roles = "Admin,SuperUser")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public IActionResult SetLanguage([FromBody] SetLanguageRequest request)
     {
         try

@@ -19,7 +19,7 @@ namespace YangOne.Admin.Service
         public CrudService<MenuGroup> GroupCrudService { get; set; } = new CrudService<MenuGroup>();
         public CrudService<MenuSetting> SettingCrudService { get; set; } = new CrudService<MenuSetting>();
         public CrudService<MenuPermission> PermissionCrudService { get; set; } = new CrudService<MenuPermission>();
-        private string _cacheKey = "Kachuwa.MenuPermissions";
+        private string _cacheKey = "YO.MenuPermissions";
 
         public MenuService(IWebHostEnvironment hostingEnvironment, ICacheService cacheService)
         {
@@ -116,6 +116,18 @@ namespace YangOne.Admin.Service
                 inner join MenuPermission mp on mp.MenuId = m.MenuId
                 where m.IsBackend=@IsBackend and m.IsActive=@IsActive and  RoleId in (Select Id from identityRole where name in (Select items from dbo.udf_Split(@Roles, ','))) and AllowAccess = @AllowAccess",
                     new { IsBackend = true, IsActive = true, AllowAccess = true, Roles = string.Join(',', roles) });
+            }
+        }
+
+        public async Task<IEnumerable<MenuViewModel>> GetAdminMenusByRole(string roleNames)
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                return await db.QueryAsync<MenuViewModel>("dbo.usp_Menu_GetAdminAllByRole",
+                    new { RoleNames = roleNames },
+                    commandType: CommandType.StoredProcedure);
             }
         }
 

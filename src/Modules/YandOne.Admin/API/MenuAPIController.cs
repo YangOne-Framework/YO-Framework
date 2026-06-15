@@ -34,6 +34,7 @@ public class MenuAPIController : BaseApiController
     {
         try
         {
+           
             var data = await _menuService.GetSiteFrontendMenuForUser();
 
             return SuccessResponse("Success", data);
@@ -45,10 +46,29 @@ public class MenuAPIController : BaseApiController
         }
     }
     #region Lists
-    
+
+    /// <summary>
+    /// Get admin navigation menus by user roles (calls usp_Menu_GetAdminAllByRole).
+    /// </summary>
+    [HttpGet("admin-menus")]
+    public async Task<IActionResult> GetAdminMenusByRole()
+    {
+        try
+        {
+           
+
+            var data = await _menuService.GetAdminMenusByRole(string.Join(',',User.Identity.GetRoles()));
+            return SuccessResponse("Success", data);
+        }
+        catch (Exception e)
+        {
+            _logger.Log(LogType.Error, () => e.Message, e);
+            return ErrorResponse(501, e.Message);
+        }
+    }
 
     [HttpGet("group")]
-    [Authorize(Roles = "Admin,SuperUser")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetMenuByGroup([FromQuery] int groupId = 0,
         [FromQuery] int offset = 01,
         [FromQuery] int limit = 50,
@@ -152,7 +172,7 @@ public class MenuAPIController : BaseApiController
     /// Admin: Get single menu with permissions by id.
     /// </summary>
     [HttpGet("{id:int}")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetMenuById(int id)
     {
         try
@@ -185,7 +205,7 @@ public class MenuAPIController : BaseApiController
     /// POST: /api/v1/menu/save
     /// </summary>
     [HttpPost("save")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> SaveMenu([FromBody] MenuViewModel model)
     {
         if (!ModelState.IsValid)
@@ -216,7 +236,7 @@ public class MenuAPIController : BaseApiController
     /// Admin: Soft-delete menu and its permissions.
     /// </summary>
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> DeleteMenu(int id)
     {
         try
@@ -243,7 +263,7 @@ public class MenuAPIController : BaseApiController
     /// Admin: Save menu order (drag & drop sort).
     /// </summary>
     [HttpPost("order/save")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> SaveMenuOrder(
         [FromBody] List<MenuOrderViewModel> orders)
     {
@@ -272,7 +292,7 @@ public class MenuAPIController : BaseApiController
     /// Admin: Get roles for menu permission UI.
     /// </summary>
     [HttpGet("roles")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetRoles()
     {
         try
@@ -292,7 +312,7 @@ public class MenuAPIController : BaseApiController
     /// Admin: Get active menu groups.
     /// </summary>
     [HttpGet("groups")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetGroups()
     {
         try
@@ -310,7 +330,7 @@ public class MenuAPIController : BaseApiController
         }
     }
     [HttpPost("groups/save")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> SaveMenuGropup([FromBody] MenuGroup model)
     {
         if (!ModelState.IsValid)
@@ -348,7 +368,7 @@ public class MenuAPIController : BaseApiController
     }
 
     [HttpDelete("groups/delete/{id:int}")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> DeleteMenuGroup(int id)
     {
         try

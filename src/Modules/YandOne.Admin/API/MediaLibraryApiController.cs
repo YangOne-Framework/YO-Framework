@@ -25,7 +25,7 @@ public class MediaLibraryApiController : BaseApiController
 
     
     [HttpPost("directory/save")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> SaveDirectory([FromBody] DirectoryViewModel model)
     {
         if (!ModelState.IsValid)
@@ -49,7 +49,7 @@ public class MediaLibraryApiController : BaseApiController
 
     
     [HttpPost("file/rename")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> RenameFile([FromBody] RenameFileRequest request)
     {
         if (!ModelState.IsValid)
@@ -83,7 +83,7 @@ public class MediaLibraryApiController : BaseApiController
 
    
     [HttpGet("content/all")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetItemsByDirectory([FromQuery] string currentDir = "/")
     {
         try
@@ -104,7 +104,7 @@ public class MediaLibraryApiController : BaseApiController
 
    
     [HttpGet("directory/all")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> GetDirectoriesOnly([FromQuery] string currentDir = "/")
     {
         try
@@ -125,7 +125,7 @@ public class MediaLibraryApiController : BaseApiController
 
     
     [HttpPost("file/upload")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     [RequestSizeLimit(long.MaxValue)]
     public async Task<IActionResult> UploadFile([FromForm] UploadFileRequest request)
     {
@@ -154,7 +154,7 @@ public class MediaLibraryApiController : BaseApiController
 
    
     [HttpPost("file/copy")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> CopyFilesOrDirectories([FromBody] FileTransferRequest request)
     {
         if (!ModelState.IsValid)
@@ -184,7 +184,7 @@ public class MediaLibraryApiController : BaseApiController
 
    
     [HttpPost("file/move")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> MoveFilesOrDirectories([FromBody] FileTransferRequest request)
     {
         if (!ModelState.IsValid)
@@ -214,7 +214,7 @@ public class MediaLibraryApiController : BaseApiController
 
    
     [HttpPost("file/delete")]
-    [Authorize(Roles = "Admin,SuperAdmin")]
+   // [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> DeleteFilesOrDirectories([FromBody] DeleteFilesRequest request)
     {
         if (!ModelState.IsValid)

@@ -28,7 +28,7 @@ public class ModuleApiController : BaseApiController
     // GET: api/v1/modules?pageNo=1&pageSize=8&status=1&query=
     [HttpGet]
     [Route("all")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
 
     // If your Service supports filters, expose them; otherwise keep minimal.
     public async Task<IActionResult> GetPaged(
@@ -51,7 +51,7 @@ public class ModuleApiController : BaseApiController
 
    
     [HttpPost("install")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Install( ModuleActionRequest request)
     {
         if (!ModelState.IsValid)
@@ -86,7 +86,7 @@ public class ModuleApiController : BaseApiController
 
    
     [HttpPost("uninstall")]
-    [Authorize(Roles = "Admin,SuperUser")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Uninstall(ModuleActionRequest request)
     {
         if (!ModelState.IsValid)

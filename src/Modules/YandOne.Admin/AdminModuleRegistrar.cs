@@ -25,6 +25,7 @@ public class AdminModuleRegistrar : IServiceRegistrar
         services.AddScoped<IMediaLibraryService, MediaLibraryService>();
         services.AddScoped<IHtmlComponentService, HtmlComponentService>();
         services.AddSingleton<ICountryService, CountryService>();
+        services.AddScoped<ITimeZoneService, TimeZoneService>();
         services.AddSingleton<IRestrictionService, RestrictionService>();
 
 
