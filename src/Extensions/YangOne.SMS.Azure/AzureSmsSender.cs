@@ -1,30 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Composition;
-using System.Reflection;
-using System.Threading.Tasks;
-using Azure.Communication.Sms;
+﻿using Azure.Communication.Sms;
 using Newtonsoft.Json;
-using NPOI.SS.Formula.Functions;
-using WholisticMinds.Caching;
-using WholisticMinds.Data.Extension;
-using WholisticMinds.Log;
-using WholisticMinds.Plugin;
-using WholisticMinds.Web;
-using WholisticMinds.Web.Model;
-using WholisticMinds.Web.Service;
+using YangOne.Caching;
+using YangOne.Data.Extension;
+using YangOne.Log;
+using YangOne.Web;
+using YangOne.Web.Model;
+using YangOne.Web.Service;
+using YangOne.Web.Services;
 
 namespace Azure.SMSSender
 {
-    
+
     public class AzureSmsSender : ISmsSender
     {
         public AzureSmsSender()
         {
-           
+
         }
         public string Name { get; } = "Azure SMS Sender";
-        public async  Task SendSmsAsync(string number, string message)
+        public async Task SendSmsAsync(string number, string message)
         {
             var log = new SMSLog()
             {
@@ -39,17 +33,17 @@ namespace Azure.SMSSender
             var _smsService = (ISMSService)ContextResolver.Context.RequestServices.GetService(typeof(ISMSService));
             try
             {
-               
-                
-              
-               
+
+
+
+
                 log.AutoFill();
 
                 log.SMSLogId = await _smsLogService.LogCrudService.InsertAsync<long>(log);
-                var setting=await _cacheService.GetAsync<AzureSmsSetting>("SMSSETTING", async ()=>
+                var setting = await _cacheService.GetAsync<AzureSmsSetting>("SMSSETTING", async () =>
                 {
-                    return  _smsService.GetSettings<AzureSmsSetting>(this.Name);
-                },TimeSpan.FromSeconds(30));
+                    return _smsService.GetSettings<AzureSmsSetting>(this.Name);
+                }, TimeSpan.FromSeconds(30));
                 //xxlZvX+EknYqRKmyXeqPNJiuhrsLtXfgNLGUGaZpVkx0p9e31jF9p63vznJzKxNGrZZBs2XR10VHzCj47NfQTA==
                 string connectionString = $"endpoint=https://wm-sms.communication.azure.com/;accesskey={setting.AccessKey}";
                 SmsClient smsClient = new SmsClient(connectionString);
@@ -70,7 +64,7 @@ namespace Azure.SMSSender
                 {
                     log.IsSent = false;
                     log.DeliveredDate = DateTime.Now;
-                    log.GatewayResponse =JsonConvert.SerializeObject(d);
+                    log.GatewayResponse = JsonConvert.SerializeObject(d);
                     await _smsLogService.LogCrudService.UpdateAsync(log);
                     throw new Exception($"Unable to send with {d.Value.HttpStatusCode} status code");
                 }
@@ -83,12 +77,12 @@ namespace Azure.SMSSender
                 await _smsLogService.LogCrudService.UpdateAsync(log);
                 var _logger = (ILogger)ContextResolver.Context.RequestServices.GetService(typeof(ILogger));
                 _logger.Log(LogType.Error, () => e.Message, e);
-                
+
             }
-           
+
 
         }
 
-    
+
     }
 }

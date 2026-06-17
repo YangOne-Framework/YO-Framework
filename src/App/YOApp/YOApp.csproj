@@ -15,14 +15,13 @@
   <ItemGroup>
     <ProjectReference Include="..\..\core\YangOne.Web\YangOne.Web.csproj" />
     <ProjectReference Include="..\..\modules\YandOne.Admin\YangOne.Admin.csproj" />
-    <ProjectReference Include="..\..\Modules\YangOne.Agro\YangOne.Agro.csproj" />
     <ProjectReference Include="..\..\modules\YangOne.Identity.Web\YangOne.Identity.Web.csproj" />
     <ProjectReference Include="..\..\modules\YangOne.IdentityServer\YangOne.IdentityServer.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.2" />
-    <PackageReference Include="Scalar.AspNetCore" Version="2.12.8" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.16.3" />
   </ItemGroup>
 
   <ItemGroup>

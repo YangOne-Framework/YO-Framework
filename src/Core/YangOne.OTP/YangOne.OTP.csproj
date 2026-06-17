@@ -3,7 +3,7 @@
     <ProjectReference Include="..\YangOne.Data\YangOne.Data.csproj" />
   </ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.2" />
+		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.9" />
 		<PackageReference Include="Wiry.Base32" Version="1.1.1" />
 	</ItemGroup>
 

@@ -1,15 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-  </PropertyGroup>
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <PackageReference Include="Azure.Communication.Sms" Version="1.0.1" />
+    <PackageReference Include="Azure.Communication.Sms" Version="1.0.2" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WholisticMinds.Web\WholisticMinds.Web.csproj" />
+    <ProjectReference Include="..\..\core\YangOne.Web\YangOne.Web.csproj" />
   </ItemGroup>
 
 </Project>
