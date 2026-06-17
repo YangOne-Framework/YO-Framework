@@ -1,4 +1,6 @@
-﻿
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
@@ -70,3 +72,4 @@ namespace YangOne.Identity.Cryptography
         }
     }
 }
+

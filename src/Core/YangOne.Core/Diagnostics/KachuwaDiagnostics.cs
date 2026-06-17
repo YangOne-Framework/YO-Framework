@@ -1,3 +1,5 @@
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Diagnostics
 {
     public static class YODiagnostics
@@ -8,3 +10,4 @@ namespace YangOne.Diagnostics
         public const string MeterName = "YO-Framework";
     }
 }
+

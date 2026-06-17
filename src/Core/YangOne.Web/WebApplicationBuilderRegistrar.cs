@@ -1,4 +1,6 @@
-﻿using YangOne.Web.Middleware;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+using YangOne.Web.Middleware;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using YangOne.DI;

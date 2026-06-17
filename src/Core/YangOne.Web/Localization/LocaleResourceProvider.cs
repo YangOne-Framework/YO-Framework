@@ -1,3 +1,5 @@
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 using YangOne.Web;
 using Microsoft.AspNetCore.Localization;
 using LocaleResource=YangOne.Localization.LocaleResource;

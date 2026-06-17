@@ -1,4 +1,6 @@
-﻿
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -494,4 +496,5 @@ namespace YOApp
         }
     }
 }
+
 

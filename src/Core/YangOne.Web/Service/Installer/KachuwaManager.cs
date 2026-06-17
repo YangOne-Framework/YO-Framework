@@ -1,4 +1,6 @@
-﻿using YangOne.Web.Module;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+using YangOne.Web.Module;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -229,3 +231,4 @@ namespace YangOne.Web.Service.Installer
        
     }
 }
+

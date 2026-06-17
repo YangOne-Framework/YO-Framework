@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.FileProviders;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+using Microsoft.Extensions.FileProviders;
 
 namespace YangOne.Web.Optimizer
 {

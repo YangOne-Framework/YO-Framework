@@ -1,4 +1,6 @@
-﻿namespace YangOne.Configuration
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+namespace YangOne.Configuration
 {
     public class YangOneAppConfig
     {
@@ -27,3 +29,4 @@
         public string JobConnection { get; set; }
     }
 }
+

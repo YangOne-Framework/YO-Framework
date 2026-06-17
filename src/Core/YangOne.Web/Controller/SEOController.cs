@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+using Microsoft.AspNetCore.Mvc;
 using System.Text;
 
 namespace YangOne.Web
@@ -25,3 +27,4 @@ namespace YangOne.Web
 
 
 }
+

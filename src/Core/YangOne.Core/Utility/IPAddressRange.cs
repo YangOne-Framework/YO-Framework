@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+using System.Collections;
 using System.ComponentModel;
 using System.Net;
 using System.Text.RegularExpressions;

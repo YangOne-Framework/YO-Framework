@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+using System.Collections.Immutable;
 using System.Data.Common;
 using System.Globalization;
 using System.Runtime.CompilerServices;
@@ -159,3 +161,4 @@ OFFSET @Skip ROWS FETCH NEXT @Take ROWS ONLY;";
     private static string? WriteLocalized(ImmutableDictionary<CultureInfo, string> names) =>
         names is null || names.Count == 0 ? null : JsonSerializer.Serialize(names.ToDictionary(k => k.Key.Name, v => v.Value));
 }
+

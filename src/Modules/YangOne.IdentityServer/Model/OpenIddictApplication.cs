@@ -1,4 +1,6 @@
-﻿//using Microsoft.IdentityModel.Tokens;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+//using Microsoft.IdentityModel.Tokens;
 //using System.Collections.Immutable;
 //using System.Globalization;
 //using System.Text.Json;

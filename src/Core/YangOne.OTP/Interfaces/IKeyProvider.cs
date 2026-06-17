@@ -1,4 +1,6 @@
-﻿using YangOne.OTP.Types;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+using YangOne.OTP.Types;
 
 namespace YangOne.OTP.Interfaces
 {
@@ -22,3 +24,4 @@ namespace YangOne.OTP.Interfaces
 		byte[] ComputeHmac(OtpHashMode mode, byte[] data);
 	}
 }
+

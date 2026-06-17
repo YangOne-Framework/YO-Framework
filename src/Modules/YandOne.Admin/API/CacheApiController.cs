@@ -1,3 +1,5 @@
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -215,3 +217,4 @@ public class CacheApiController : BaseApiController
         public string Provider { get; set; }
     }
 }
+

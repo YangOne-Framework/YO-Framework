@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+using System.Collections.Generic;
 
 namespace YangOne.OTP
 {
@@ -47,3 +49,4 @@ namespace YangOne.OTP
 		public static readonly VerificationWindow RfcSpecifiedNetworkDelay = new VerificationWindow(previous: 1, future: 1);
 	}
 }
+

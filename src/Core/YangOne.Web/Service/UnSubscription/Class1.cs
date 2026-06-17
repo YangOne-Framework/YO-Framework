@@ -1,4 +1,6 @@
-﻿using System.Data.Common;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+using System.Data.Common;
 using Dapper;
 using YangOne.Data;
 using YangOne.Data.Extension;
@@ -88,3 +90,4 @@ namespace YangOne.Web.Service
         }
     }
 }
+

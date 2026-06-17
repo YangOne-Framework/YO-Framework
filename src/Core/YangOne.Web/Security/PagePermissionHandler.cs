@@ -1,4 +1,6 @@
-﻿using YangOne.Web.Service;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+using YangOne.Web.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.DependencyInjection;
 using YangOne.Identity.Extensions;
@@ -62,3 +64,4 @@ namespace YangOne.Web.Security
     }
    
 }
+

@@ -1,4 +1,6 @@
-﻿using Dapper;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+using Dapper;
 using OpenIddict.Abstractions;
 using System;
 using System.Collections.Generic;
@@ -435,4 +437,5 @@ WHERE ([CreationDate] IS NULL OR [CreationDate] < @Threshold)
     private static string? WriteDict(ImmutableDictionary<string, JsonElement> dict) =>
         dict is null || dict.Count == 0 ? null : JsonSerializer.Serialize(dict);
 }
+
 

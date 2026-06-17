@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
 using System.Security.Claims;
@@ -931,3 +933,4 @@ namespace YangOne.Identity.Stores
 
     }
 }
+

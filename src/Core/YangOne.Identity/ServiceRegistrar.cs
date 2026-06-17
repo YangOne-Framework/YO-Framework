@@ -1,4 +1,6 @@
-﻿using System.Security.Claims;
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+using System.Security.Claims;
 using Microsoft.Extensions.DependencyInjection;
 using YangOne.Identity.Extensions;
 using Microsoft.Extensions.Configuration;
@@ -100,3 +102,4 @@ namespace YangOne.Identity
         }
     }
 }
+

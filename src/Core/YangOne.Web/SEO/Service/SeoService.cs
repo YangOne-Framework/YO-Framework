@@ -1,3 +1,5 @@
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -77,7 +79,7 @@ namespace YangOne.Web
                 IsDynamicPage = false;
                 // Use HttpContext.Request.Path to capture both MVC and React SPA routes
                 // (MapFallbackToController maps all React routes to Home/Index, so RouteData
-                //  always returns "Index"/"Home" � losing the actual page URL)
+                //  always returns "Index"/"Home" ï¿½ losing the actual page URL)
                 var path = ContextResolver.Context.Request.Path.Value;
                 return string.IsNullOrEmpty(path) || path == "/" ? "/" : path;
             }

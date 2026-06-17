@@ -1,4 +1,6 @@
-﻿
+﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Licensed under the MIT License. See LICENSE in the project root for license information.
+
 namespace YangOne.FCM
 {
     public interface IFCMService
@@ -6,3 +8,4 @@ namespace YangOne.FCM
         void FcmSend(string token, string title, string message, string click_Url, string image_Uri, string key1, string key2,string key3);
     }
 }
+
