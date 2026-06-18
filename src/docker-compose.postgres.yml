@@ -1,0 +1,43 @@
+services:
+  yoapp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:8080"
+      - "5001:8081"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=https://+:8081;http://+:8080
+      - ASPNETCORE_Kestrel__Certificates__Default__Password=your-cert-password
+      - ASPNETCORE_Kestrel__Certificates__Default__Path=/app/certs/aspnet.pfx
+      - ConnectionStrings__DefaultConnection=Host=postgres;Port=5432;Database=YOdb;Username=postgres;Password=postgres
+      - ConnectionStrings__JobConnection=Host=postgres;Port=5432;Database=YOdb;Username=postgres;Password=postgres
+    volumes:
+      - yoapp_data:/app/app_data
+      - yoapp_wwwroot:/app/wwwroot/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=YOdb
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  yoapp_data:
+  yoapp_wwwroot:
+  postgres_data:
