@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace YangOne.Web.TagHelpers
 {
+    /// <summary>
+    /// Renders a placeholder container for content areas.
+    /// </summary>
     [HtmlTargetElement("placeholder")]
     public class PlaceHolderTagHelper : TagHelper
     {

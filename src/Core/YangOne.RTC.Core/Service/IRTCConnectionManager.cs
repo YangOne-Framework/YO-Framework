@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.RTC
 {
+    /// <summary>
+    /// Defines the contract for managing real-time communication connections
+    /// </summary>
     public interface IRTCConnectionManager
     {   
        // string GetId(RTCUser user);

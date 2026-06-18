@@ -8,6 +8,9 @@ using System.Text;
 
 namespace YangOne.Storage
 {
+    /// <summary>
+    /// Generates cryptographically random string keys.
+    /// </summary>
     public class KeyGenerator : IKeyGenerator
     {
         public string GetKey()

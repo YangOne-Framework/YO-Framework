@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Localization;
 using LocaleResource=YangOne.Localization.LocaleResource;
 namespace YangOne.Localization
 {
+    /// <summary>
+    /// Provides locale resource strings for the current culture.
+    /// </summary>
     public class LocaleResourceProvider : ILocaleResourceProvider
     {
         private readonly IEnumerable<LocaleResource> _resources;

@@ -47,6 +47,9 @@ using YangOne.Web.Middleware;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Provides extension methods for registering and configuring YO web services.
+    /// </summary>
     public static class YOWebExtensions
     {
         public static IServiceCollection RegisterYOWebServices(this IServiceCollection services,

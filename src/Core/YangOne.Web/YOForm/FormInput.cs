@@ -17,6 +17,9 @@ namespace YangOne.Web.Form
 {
 
 
+    /// <summary>
+    /// Provides extension methods for HTML helper expression text resolution.
+    /// </summary>
     public static class HtmlHelperExtensions
     {
         public static string GetExpressionText<TModel, TResult>(
@@ -29,6 +32,9 @@ namespace YangOne.Web.Form
             return expresionProvider.GetExpressionText(expression);
         }
     }
+    /// <summary>
+    /// Defines a form input control.
+    /// </summary>
     public interface IFormInput
     {
         string Id { get; set; }
@@ -53,6 +59,9 @@ namespace YangOne.Web.Form
         //IHtmlContent RenderDataSource(object model);
         IHtmlContent Template { get; set; }
     }
+    /// <summary>
+    /// Defines a typed form input bound to a model expression.
+    /// </summary>
     public interface IFormInput<T> : IFormInput
     {
         IForm<T> Form { get; }
@@ -62,9 +71,15 @@ namespace YangOne.Web.Form
 
 
     }
+    /// <summary>
+    /// Defines a collection of form inputs.
+    /// </summary>
     public interface IFormInputs<out T> : IEnumerable<T> where T : IFormInput
     {
     }
+    /// <summary>
+    /// Defines operations for adding typed form inputs.
+    /// </summary>
     public interface IFormInputsOf<T> : IFormInputs<IFormInput<T>>
     {
         IForm<T> Form { get; }
@@ -77,12 +92,18 @@ namespace YangOne.Web.Form
 
     }
 
+    /// <summary>
+    /// Specifies the type of form input control.
+    /// </summary>
     public enum FormInputControl
     {
         Label, TextBox, Password, Select, Radio, CheckBox, RadioList, CheckBoxList,
         Number, File, Image, Email, Url, Telephone, Date, DateTime, Color, TextArea, Editor, Hidden, Tag, Template, Switch, ImageViewer, Empty
     }
 
+    /// <summary>
+    /// Base class for form input implementations.
+    /// </summary>
     public abstract class BaseFormInput<T, TValue> : IFormInput<T>
     {
         public string Id { get; set; }
@@ -115,6 +136,9 @@ namespace YangOne.Web.Form
         public IHtmlContent Template { get; set; }
     }
 
+    /// <summary>
+    /// Default implementation of a form input with value rendering and validation.
+    /// </summary>
     public class FormInput<T, TValue> : BaseFormInput<T, TValue> where T : class
     {
         private IModelMetadataProvider _metadataProvider;
@@ -518,6 +542,9 @@ namespace YangOne.Web.Form
     }
 
 
+    /// <summary>
+    /// Default collection of typed form inputs.
+    /// </summary>
     public class FormInputs<T> : List<IFormInput<T>>, IFormInputsOf<T> where T : class
     {
         public FormInputs(IForm<T> form)

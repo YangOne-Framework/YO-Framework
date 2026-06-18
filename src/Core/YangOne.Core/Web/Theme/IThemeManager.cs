@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace YangOne.Web.Theme
 {
+    /// <summary>
+    /// Defines operations for managing themes.
+    /// </summary>
     public interface IThemeManager
     {
         Task<bool> Install(ThemeInfo theme);

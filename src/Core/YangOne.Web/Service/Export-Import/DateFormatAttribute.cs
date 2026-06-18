@@ -3,6 +3,9 @@
 namespace YangOne.Web
 {
     [AttributeUsage(AttributeTargets.Property)]
+    /// <summary>
+    /// Specifies a custom date format for export/import operations.
+    /// </summary>
     public class DateFormatAttribute : Attribute
     {
         public string DateFormatter;

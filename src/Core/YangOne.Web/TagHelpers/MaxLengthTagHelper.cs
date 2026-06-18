@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace YangOne.Web.TagHelpers
 {
+    /// <summary>
+    /// Adds max-length validation attributes to input elements.
+    /// </summary>
     [HtmlTargetElement("input", Attributes = "asp-for")]
     public class MaxLengthTagHelper : TagHelper
     {

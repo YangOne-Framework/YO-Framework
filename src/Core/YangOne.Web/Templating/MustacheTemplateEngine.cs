@@ -6,6 +6,9 @@ using YangOne.Log;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Renders Mustache templates with support for HTML and plain text.
+    /// </summary>
     public class MustacheTemplateEngine : ITemplateEngine
     {
         private readonly ILogger _logger;

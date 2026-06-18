@@ -9,6 +9,9 @@ namespace YangOne.Localization
 {
   
 
+    /// <summary>
+    /// Extension methods for registering YO localization services.
+    /// </summary>
     public static class LocaleResourceExtension
     {
         public static IServiceCollection EnableYOLocalization(this IServiceCollection services,Action<LocaleSetting> config  )

@@ -5,6 +5,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Provides methods to manage SEO metadata, generate meta tags, JSON-LD, and sitemap XML.
+    /// </summary>
     public interface ISeoService
     {
         CrudService<SEO> Seo { get; set; }

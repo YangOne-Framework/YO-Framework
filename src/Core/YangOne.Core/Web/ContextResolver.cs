@@ -7,6 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 namespace YangOne.Web
 {
     
+    /// <summary>
+    /// Provides static access to the current HTTP context.
+    /// </summary>
     public static class ContextResolver
     {
         private static IHttpContextAccessor _contextAccessor;
@@ -18,6 +21,9 @@ namespace YangOne.Web
             _contextAccessor = contextAccessor;
         }
     }
+    /// <summary>
+    /// Extension methods for enabling static HTTP context access.
+    /// </summary>
     public static class StaticHttpContextExtensions
     {
         //public static void AddHttpContextAccessor(this IServiceCollection services)

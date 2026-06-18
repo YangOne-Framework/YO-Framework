@@ -3,6 +3,9 @@
 
 namespace YangOne.Log
 {
+    /// <summary>
+    /// Represents a log entry with status, timestamp, type, and error details.
+    /// </summary>
     public class Log
     {
         public string LogId { get; set; } 

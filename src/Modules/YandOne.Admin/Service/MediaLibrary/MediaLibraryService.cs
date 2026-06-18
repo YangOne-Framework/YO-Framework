@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System;
 using System.Collections.Generic;
@@ -16,6 +16,9 @@ using YangOne.Storage;
 
 namespace YangOne.Admin.Service
 {
+    /// <summary>
+    /// Represents a class MediaLibraryService.
+    /// </summary>
     public class MediaLibraryService : IMediaLibraryService
     {
         private readonly IWebHostEnvironment _webHostEnvironment;

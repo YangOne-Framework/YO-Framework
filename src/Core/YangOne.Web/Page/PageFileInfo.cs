@@ -9,6 +9,9 @@ using YangOne.Log;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Represents a page file from the database, implementing <see cref="IFileInfo"/> for the Razor view engine.
+    /// </summary>
     public class PageFileInfo : IFileInfo
     {
         private string _viewPath;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
@@ -12,6 +12,9 @@ using YangOne.Web.API;
 namespace YandOne.Admin.API;
 
 [Route("api/v1/cache")]
+/// <summary>
+/// Represents a class CacheApiController.
+/// </summary>
 public class CacheApiController : BaseApiController
 {
     private readonly ILogger _logger;
@@ -212,6 +215,9 @@ public class CacheApiController : BaseApiController
         }
     }
 
+    /// <summary>
+    /// Represents a class SwitchProviderModel.
+    /// </summary>
     public class SwitchProviderModel
     {
         public string Provider { get; set; }

@@ -3,6 +3,9 @@
 using YangOne.Data;
 using YangOne.Web.Model;
 namespace YangOne.Web.Service;
+/// <summary>
+/// Defines the contract for time zone management operations.
+/// </summary>
 public interface ITimeZoneService
 {
     CrudService<Timezone> TimeZoneCrudService { get; set; }

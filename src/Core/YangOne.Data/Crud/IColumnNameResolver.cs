@@ -4,6 +4,9 @@ using System.Reflection;
 
 namespace YangOne.Data.Crud
 {
+    /// <summary>
+    /// Resolves a property's column name for database queries.
+    /// </summary>
     public interface IColumnNameResolver
     {
         string ResolveColumnName(PropertyInfo propertyInfo);

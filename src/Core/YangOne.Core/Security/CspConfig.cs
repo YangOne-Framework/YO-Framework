@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Security;
 
+/// <summary>
+/// Represents the Content Security Policy configuration.
+/// </summary>
 public class CspConfig
 {
     public Dictionary<string, List<string>> Directives { get; set; } = new();

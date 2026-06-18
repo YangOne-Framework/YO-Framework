@@ -6,6 +6,9 @@ using YangOne.Log;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Implements <see cref="IChangeToken"/> to detect when a page view has been modified.
+    /// </summary>
     public class PageChangeToken : IChangeToken
     {
         private readonly IPageService _pageService;

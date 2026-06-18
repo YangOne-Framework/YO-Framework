@@ -12,6 +12,9 @@ using YangOne.Extensions;
 using YangOne.Web.Model;
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Default implementation of <see cref="IPageService"/> providing full page management including CRUD, layout, and SEO.
+    /// </summary>
     public class PageService : IPageService
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

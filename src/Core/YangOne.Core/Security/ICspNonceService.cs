@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Security
 {
+    /// <summary>
+    /// Provides a cryptographically random nonce for Content Security Policy.
+    /// </summary>
     public interface ICspNonceService
     {
         /// <summary>

@@ -4,6 +4,9 @@ using Microsoft.Extensions.FileProviders;
 
 namespace YangOne.Web.Optimizer
 {
+    /// <summary>
+    /// Represents a file in the Smidge optimization system, implementing <see cref="IFileInfo"/>.
+    /// </summary>
     public class SmidgeFileInfo : IFileInfo
     {
         private readonly string _physicalPath;

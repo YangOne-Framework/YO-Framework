@@ -12,6 +12,9 @@ using KeyAttribute = System.ComponentModel.DataAnnotations.KeyAttribute;
 
 namespace YangOne.Data
 {
+    /// <summary>
+    /// Provides SQL query building capabilities for CRUD operations.
+    /// </summary>
     public abstract class QueryBuilder
     {
         private ISQLTemplate SqlTemplate { get; set; }

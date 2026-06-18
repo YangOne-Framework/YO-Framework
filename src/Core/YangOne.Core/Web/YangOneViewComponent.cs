@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace YangOne.Web;
 
+/// <summary>
+/// Base class for YangOne view components with display metadata.
+/// </summary>
 public abstract class YangOneViewComponent : ViewComponent
 {
 

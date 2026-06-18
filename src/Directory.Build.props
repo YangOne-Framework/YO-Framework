@@ -9,13 +9,25 @@
 		<UseSharedCompilation>false</UseSharedCompilation>
 	</PropertyGroup>
 	<PropertyGroup Label="NuGet">
-		<Authors>YO Framework Contributors</Authors>
+		<Authors>Binod Tamang</Authors>
 		<Company>YangOne</Company>
 		<Copyright>Copyright (c) Yang One Framework. All rights reserved.</Copyright>
-		<PackageProjectUrl>https://github.com/anomalyco/YO-Framework</PackageProjectUrl>
+		<PackageProjectUrl>https://github.com/YangOne-Framework/YO-Framework</PackageProjectUrl>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>YO;Framework;YangOne;DotNet;Web</PackageTags>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
 		<NoWarn>$(NoWarn);CS1591</NoWarn>
+		<RepositoryUrl>https://github.com/YangOne-Framework/YO-Framework.git</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageIcon>icon.png</PackageIcon>
+		<PackageReadmeFile>NUGET-README.md</PackageReadmeFile>
+		<IncludeSymbols>true</IncludeSymbols>
+		<SymbolPackageFormat>snupkg</SymbolPackageFormat>
+		<PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
 	</PropertyGroup>
+
+	<ItemGroup Label="NuGetFiles">
+		<None Include="$(MSBuildThisFileDirectory)..\nugetpub\icon.png" Pack="true" PackagePath="\" Visible="false" />
+		<None Include="$(MSBuildThisFileDirectory)..\nugetpub\NUGET-README.md" Pack="true" PackagePath="\" Visible="false" />
+	</ItemGroup>
 </Project>

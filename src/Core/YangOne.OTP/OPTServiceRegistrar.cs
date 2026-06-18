@@ -10,6 +10,9 @@ using YangOne.OTP.Service;
 
 namespace YangOne.OTP
 {
+    /// <summary>
+    /// Registers OTP-related services into the dependency injection container
+    /// </summary>
     public class OPTServiceRegistrar : IServiceRegistrar
     {
         public void Update(IServiceCollection serviceCollection)

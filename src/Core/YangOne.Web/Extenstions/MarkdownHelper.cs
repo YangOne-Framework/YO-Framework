@@ -5,6 +5,9 @@ using CommonMark;
 namespace YangOne.Web.Extensions
 {
    
+    /// <summary>
+    /// Extension methods for converting Markdown content to HTML.
+    /// </summary>
     public static class MarkdownHelper
     {
         public static string ToHtml(this string content)

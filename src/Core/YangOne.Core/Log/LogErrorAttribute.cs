@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace YangOne.Log
 {
+    /// <summary>
+    /// Logs unhandled exceptions to the configured logger.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
     public class LogErrorAttribute : Attribute, IExceptionFilter
     {

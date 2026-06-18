@@ -6,6 +6,9 @@ using YangOne.Log;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Manages dashboard widget configuration storage and retrieval.
+    /// </summary>
     public class DashboardWidgetManager : IDashboardWidgetManager
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

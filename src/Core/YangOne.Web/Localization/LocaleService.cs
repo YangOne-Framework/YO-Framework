@@ -12,6 +12,9 @@ using YangOne.Web.Localization;
 
 namespace YangOne.Localization
 {
+    /// <summary>
+    /// Manages locale regions and resource strings.
+    /// </summary>
     public class LocaleService : ILocaleService
     {
         private readonly ICacheService _cacheService;

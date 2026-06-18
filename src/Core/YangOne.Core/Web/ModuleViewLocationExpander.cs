@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Expands Razor view locations for modular plugin views.
+    /// </summary>
     public class ModuleViewLocationExpander : IYangOneViewLocationExpander
     {
         private const string _moduleKey = "module";

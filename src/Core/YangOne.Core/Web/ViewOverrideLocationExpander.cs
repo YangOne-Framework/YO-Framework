@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Expands Razor view locations to support override paths.
+    /// </summary>
     public class ViewOverrideLocationExpander : IYangOneViewLocationExpander
     {
         public void PopulateValues(ViewLocationExpanderContext context)

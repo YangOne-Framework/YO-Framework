@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Manages dashboard widget configurations.
+    /// </summary>
     public interface IDashboardWidgetManager
     {
         Task<IEnumerable<DashboardWidgetConfig>> GetDashboardWidgetConfigs(string dashboardName);

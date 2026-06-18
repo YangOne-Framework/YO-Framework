@@ -6,6 +6,9 @@ using System.Text.Json;
 
 namespace YangOne.Web.Optimizer
 {
+    /// <summary>
+    /// Provides methods to bundle CSS and JavaScript files.
+    /// </summary>
     public interface IYOBundler
     {
         Task<HtmlString> BundleCss(string[] files);
@@ -13,6 +16,9 @@ namespace YangOne.Web.Optimizer
         Task<HtmlString> BundleJs(string[] files);
         Task<HtmlString> BundleJs(string name, string[] files);
     }
+    /// <summary>
+    /// Configuration settings for asset optimization, including minification and caching options.
+    /// </summary>
     public class OptimizationConfig
     {
         public bool EnableJsMinification { get; set; }
@@ -20,6 +26,9 @@ namespace YangOne.Web.Optimizer
         public bool CachingDirectory { get; set; }
         public bool UseImageResizer { get; set; }
     }
+    /// <summary>
+    /// Provides information about the optimization cache, including size and file count.
+    /// </summary>
     public class CacheInfo
     {
         public long SizeInBytes { get; set; }
@@ -27,6 +36,9 @@ namespace YangOne.Web.Optimizer
         public string SizeFormatted { get; set; }
     }
 
+    /// <summary>
+    /// Describes a registered bundle with its name, file count, and type.
+    /// </summary>
     public class BundleInfo
     {
         public string Name { get; set; }
@@ -34,6 +46,9 @@ namespace YangOne.Web.Optimizer
         public string Type { get; set; }
     }
 
+    /// <summary>
+    /// Provides methods to manage optimization configuration and cache.
+    /// </summary>
     public interface IOptimizationConfigService
     {
         Task<OptimizationConfig> GetConfigAsync();
@@ -43,6 +58,9 @@ namespace YangOne.Web.Optimizer
         Task<string> IncrementVersionAsync();
     }
 
+    /// <summary>
+    /// Default implementation of <see cref="IOptimizationConfigService"/> that reads/writes configuration from JSON files.
+    /// </summary>
     public class OptimizationConfigService : IOptimizationConfigService
     {
         private readonly string _configPath;

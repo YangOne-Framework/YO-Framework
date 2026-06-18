@@ -4,6 +4,9 @@ using YangOne.Web.Module;
 
 namespace YangOne.Web.ViewModels
 {
+    /// <summary>
+    /// View model that associates a module with its related pages.
+    /// </summary>
     public class ModuleWithPages:ModuleInfo
     {
 

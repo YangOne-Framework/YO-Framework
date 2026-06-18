@@ -11,6 +11,9 @@ using YangOne.Plugin;
 
 namespace YangOne.Web.TagHelpers
 {
+    /// <summary>
+    /// Renders a plugin view component.
+    /// </summary>
     [HtmlTargetElement("plugin")]
     public class PluginTagHelper : TagHelper
     {

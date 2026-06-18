@@ -10,6 +10,9 @@ using TimeZone =YangOne.Web.Model.Timezone;
 
 namespace YangOne.Web.Service;
 
+/// <summary>
+/// Manages time zone data and user time zone preferences.
+/// </summary>
 public class TimeZoneService : ITimeZoneService
   {
       public CrudService<Timezone> TimeZoneCrudService { get; set; } = new CrudService<Timezone>();

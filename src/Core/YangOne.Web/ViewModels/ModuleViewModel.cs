@@ -6,6 +6,9 @@ using YangOne.Web.Module;
 
 namespace YangOne.Web.ViewModels
 {
+    /// <summary>
+    /// View model for displaying module information.
+    /// </summary>
     public class ModuleViewModel
     {
         public string ModuleName { get; set; }
@@ -13,6 +16,9 @@ namespace YangOne.Web.ViewModels
         public List<ModuleComponentDescription> ModuleComponents { get; set; }=new List<ModuleComponentDescription>();
     }
 
+    /// <summary>
+    /// View model for editing a role.
+    /// </summary>
     public class RoleEditViewModel : IdentityRole
     {
         [IgnoreAll]

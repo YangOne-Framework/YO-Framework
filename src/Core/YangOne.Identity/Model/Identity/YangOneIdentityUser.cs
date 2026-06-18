@@ -1,9 +1,12 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.ComponentModel.DataAnnotations;
 
 namespace YangOne.Identity.Model
 {
+    /// <summary>
+    /// Represents the base class for identity users with a generic key type.
+    /// </summary>
     public class YangOneIdentityUser : YangOneIdentityUser<int>
     {
         public YangOneIdentityUser() { }
@@ -14,6 +17,9 @@ namespace YangOne.Identity.Model
         }
     }
 
+    /// <summary>
+    /// Represents the base class for identity users with a generic key type.
+    /// </summary>
     public class YangOneIdentityUser<TKey> : YangOneIdentityUser<TKey, YangOneIdentityUserClaim<TKey>, YangOneIdentityUserRole<TKey>, YangOneIdentityUserLogin<TKey>>
        where TKey : IEquatable<TKey>
     {
@@ -25,6 +31,9 @@ namespace YangOne.Identity.Model
         }
     }
 
+    /// <summary>
+    /// Represents the base class for identity users with a generic key type.
+    /// </summary>
     public class YangOneIdentityUser<TKey, TUserClaim, TUserRole, TUserLogin> where TKey : IEquatable<TKey>
     {
         public YangOneIdentityUser() { }

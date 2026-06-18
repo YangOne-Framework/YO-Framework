@@ -7,6 +7,9 @@ using System.Reflection;
 
 namespace YangOne.Plugin
 {
+    /// <summary>
+    /// Configuration metadata for a plugin.
+    /// </summary>
     public class PluginConfig
     {
 

@@ -10,6 +10,9 @@ using YangOne.Web.Service;
 namespace YangOne.Web
 {
 
+    /// <summary>
+    /// Controller for rendering dynamic pages and managing language/culture settings.
+    /// </summary>
     public class YOPageController : BaseController
     {
         public readonly IPermissionService permissionService;

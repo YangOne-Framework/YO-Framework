@@ -10,6 +10,9 @@ using YangOne.Log;
 
 namespace YangOne.Web.Module
 {
+    /// <summary>
+    /// Discovers and registers all modules from the application assemblies.
+    /// </summary>
     public class ModuleRegistrar
     {
         private readonly IServiceCollection _services;

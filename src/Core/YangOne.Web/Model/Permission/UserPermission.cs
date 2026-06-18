@@ -5,6 +5,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.Model;
     [Table("UserPermission")]
+    /// <summary>
+    /// Represents permission settings assigned to individual users for controller actions.
+    /// </summary>
     public class UserPermission
     {
         [Key]

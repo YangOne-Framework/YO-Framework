@@ -10,6 +10,9 @@ using YangOne.Plugin;
 
 namespace YangOne.Web.Module
 {
+    /// <summary>
+    /// Provides embedded view files from installed modules.
+    /// </summary>
     public class ModuleViewProvider : IFileProvider
     {
         private readonly IModuleManager _moduleManager;

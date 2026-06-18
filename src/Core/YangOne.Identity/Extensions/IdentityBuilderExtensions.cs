@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using YangOne.Identity.ClaimFactory;
 using Microsoft.AspNetCore.Identity;
@@ -7,6 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 namespace YangOne.Identity.Extensions
 
 {
+    /// <summary>
+    /// Provides extension methods for configuring the user claims principal factory on IdentityBuilder.
+    /// </summary>
     public static class IdentityServerIdentityBuilderExtensions
     {
         public static IdentityBuilder AddUserClaimsPrincipalFactory(this IdentityBuilder builder)

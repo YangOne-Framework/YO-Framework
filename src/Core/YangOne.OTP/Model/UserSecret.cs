@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.OTP.Model
 {
     [Table("UserSecretKey")]
+    /// <summary>
+    /// Represents a user's secret key used for OTP generation
+    /// </summary>
     public class UserSecretKey
     {
         [Key]

@@ -5,6 +5,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Services
 {
+    /// <summary>
+    /// Defines the contract for country-related data operations.
+    /// </summary>
     public interface ICountryService
     {
         CrudService<Country> CountryCrudService { get; set; }

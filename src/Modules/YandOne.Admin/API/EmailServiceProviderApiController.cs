@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using Microsoft.AspNetCore.Mvc;
 using YangOne.Admin.Dto;
@@ -12,6 +12,9 @@ using YangOne.Web.Services;
 namespace YandOne.Admin.API;
 
 [Route("api/v1/emailserviceprovider")]
+/// <summary>
+/// Represents a class EmailServiceProviderApiController.
+/// </summary>
 public class EmailServiceProviderApiController : BaseApiController
 {
     private readonly ILogger _logger;

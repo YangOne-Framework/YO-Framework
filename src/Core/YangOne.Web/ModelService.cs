@@ -4,6 +4,9 @@ using YangOne.Data;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Generic CRUD service for database operations using CrudService.
+    /// </summary>
     public class ModelService
     {
         public async Task<T> GetAsync<T>(object id)

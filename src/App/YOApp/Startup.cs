@@ -22,11 +22,15 @@ using YangOne.Extensions;
 using YangOne.IdentityServer.Model;
 using YangOne.IdentityServer.Service;
 using YangOne.Web;
+using Hangfire;
 using YangOne.Web.API;
 using YangOne.Web.Service;
 
 namespace YOApp
 {
+    /// <summary>
+    /// Configures application services and the HTTP request pipeline
+    /// </summary>
     public class Startup
     {
 
@@ -40,6 +44,22 @@ namespace YOApp
             services.AddSingleton(dbFactory);
             services.RegisterYOCoreServices(serviceProvider);
             services.AddControllers();
+
+            var disableHttpsRedirection = configuration.GetValue<bool>("DisableHttpsRedirection");
+            if (!disableHttpsRedirection)
+            {
+                services.AddHsts(options =>
+                {
+                    options.Preload = true;
+                    options.IncludeSubDomains = true;
+                    options.MaxAge = TimeSpan.FromDays(1);
+                });
+                services.AddHttpsRedirection(options =>
+                {
+                    options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
+                    options.HttpsPort = hostingEnvironment.IsDevelopment() ? 7259 : 443;
+                });
+            }
 
             services.AddSignalR(o =>
             {
@@ -326,18 +346,6 @@ namespace YOApp
             {
                 options.AllowSynchronousIO = true;
             });
-            services.AddHsts(options =>
-            {
-                options.Preload = true;
-                options.IncludeSubDomains = true;
-                options.MaxAge = TimeSpan.FromDays(1);
-
-            });
-            services.AddHttpsRedirection(options =>
-            {
-                options.RedirectStatusCode = StatusCodes.Status308PermanentRedirect;
-                options.HttpsPort = hostingEnvironment.IsDevelopment() ? 7152 : 443;
-            });
             services.AddDistributedMemoryCache();
 
             services.AddSession(options =>
@@ -366,17 +374,25 @@ namespace YOApp
         public static void Configure(IApplicationBuilder app, IServiceProvider serviceProvider,
             IWebHostEnvironment env)
         {
-            app.UseHttpsRedirection();
+            var config = serviceProvider.GetRequiredService<IConfiguration>();
+            var disableHttpsRedirection = config.GetValue<bool>("DisableHttpsRedirection");
+
+            if (!disableHttpsRedirection)
+            {
+                app.UseHttpsRedirection();
+            }
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-
             }
             else
             {
                 app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
+                if (!disableHttpsRedirection)
+                {
+                    app.UseHsts();
+                }
             }
             app.UseCookiePolicy();
             app.UseSession();
@@ -400,6 +416,12 @@ namespace YOApp
             app.UseYOCore(env, serviceProvider);
             app.UseYOWeb(env, false);
             app.UseRateLimiter();
+            app.UseHangfireDashboard("/hangfire", new DashboardOptions
+            {
+                DashboardTitle = "YO Framework - Background Jobs",
+                AppPath = "/",
+                Authorization = new[] { new HangfireAuthorizationFilter() }
+            });
             app.UseEndpoints(endpoints =>
             {
 
@@ -435,6 +457,9 @@ namespace YOApp
 
         }
     }
+    /// <summary>
+    /// Adds a Bearer security scheme to the OpenAPI document
+    /// </summary>
     internal sealed class BearerSecuritySchemeTransformer(
         IAuthenticationSchemeProvider authenticationSchemeProvider)
         : IOpenApiDocumentTransformer
@@ -469,6 +494,9 @@ namespace YOApp
             };
         }
     }
+    /// <summary>
+    /// Adds security requirements to non-anonymous OpenAPI operations
+    /// </summary>
     internal sealed class AuthOperationTransformer : IOpenApiOperationTransformer
     {
         public Task TransformAsync(

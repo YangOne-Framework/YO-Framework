@@ -3,6 +3,9 @@
 
 namespace YangOne.Web.Service
 {
+    /// <summary>
+    /// Provides helper methods for phone number formatting and SMS sender operations.
+    /// </summary>
     public static class PhoneNoHelper
     {
         public static string PhoneNumberWithoutCountry(this string phoneNumber)
@@ -53,16 +56,25 @@ namespace YangOne.Web.Service
         }
     }
 
+    /// <summary>
+    /// Defines the contract for sending SMS messages.
+    /// </summary>
     public interface ISmsSender
     {
         Task SendSmsAsync(string number, string message);
     }
 
+    /// <summary>
+    /// Defines the contract for SMS template operations.
+    /// </summary>
     public interface ISMSTemplateService
     {
 
     }
 
+    /// <summary>
+    /// Provides SMS template management functionality.
+    /// </summary>
     public class SMSTemplateService: ISMSTemplateService
     {
 

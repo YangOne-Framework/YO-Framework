@@ -7,6 +7,9 @@ using YangOne.Web.Razor;
 
 namespace YangOne.Web.Grid
 {
+    /// <summary>
+    /// Renders a YOGrid as HTML content with fluent configuration.
+    /// </summary>
     public class YOHtmlGrid<T> : IHtmlGrid<T>
     {
         public IYOGrid<T> Grid { get; set; }

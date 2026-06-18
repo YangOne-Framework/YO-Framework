@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace YangOne.Web.Service
 {
+    /// <summary>
+    /// Defines the contract for data import operations.
+    /// </summary>
     public interface IImportService
     {
         List<T> Import<T>(IFormFile file);

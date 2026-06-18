@@ -5,6 +5,9 @@ using System.Collections.Generic;
 
 namespace YangOne.Data.Crud
 {
+    /// <summary>
+    /// Provides extension methods for <see cref="Type"/> to determine simple types.
+    /// </summary>
     public static class TypeExtension
     {
         //You can't insert or update complex types. Lets filter them out.

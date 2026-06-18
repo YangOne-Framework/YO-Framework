@@ -1,9 +1,12 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.ComponentModel.DataAnnotations;
 
 namespace YangOne.IdentityServer.Dto;
 
+/// <summary>
+/// Represents a class ApiResourceDto.
+/// </summary>
 public class ApiResourceDto
 {
     public string Id { get; set; } = default!;
@@ -12,6 +15,9 @@ public class ApiResourceDto
     public string Description { get; set; }
 }
 
+/// <summary>
+/// Represents a class AuthorizeViewModel.
+/// </summary>
 public class AuthorizeViewModel
 {
     [Display(Name = "Application")]

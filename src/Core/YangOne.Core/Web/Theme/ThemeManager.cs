@@ -14,6 +14,9 @@ using YangOne.Storage;
 
 namespace YangOne.Web.Theme
 {
+    /// <summary>
+    /// Manages theme installation, uninstallation, and configuration.
+    /// </summary>
     public class ThemeManager : IThemeManager
     {
         private readonly IConfigToJson _configToJson;

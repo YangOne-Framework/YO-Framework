@@ -9,6 +9,9 @@ using YangOne.Web.Razor;
 
 namespace YangOne.Web.Form
 {
+    /// <summary>
+    /// Defines the basic form contract.
+    /// </summary>
     public interface IForm
     {
         string Name { get; set; }
@@ -39,6 +42,9 @@ namespace YangOne.Web.Form
 
     }
 
+    /// <summary>
+    /// Defines a typed form contract with a model.
+    /// </summary>
     public interface IForm<T> : IForm
     {
         T Model { get; set; }
@@ -50,6 +56,9 @@ namespace YangOne.Web.Form
 
     }
 
+    /// <summary>
+    /// Default implementation of a form with sections and commands.
+    /// </summary>
     public class YOForm<T> : IForm<T> where T : class, new()
     {
         public IForm<T> Form { get; set; }
@@ -107,10 +116,16 @@ namespace YangOne.Web.Form
 
     }
 
+    /// <summary>
+    /// Defines the HTML rendering contract for a typed form.
+    /// </summary>
     public interface IYOHtmlForm<T> : IHtmlContent
     {
 
     }
+    /// <summary>
+    /// Renders a form as HTML content with fluent configuration.
+    /// </summary>
     public class YOHtmlForm<T> : IYOHtmlForm<T>
     {
         public IForm<T> Form { get; set; }

@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace YangOne.Data.Crud.Attribute
 {
+    /// <summary>
+    /// Specifies a friendly route name for an action or controller.
+    /// </summary>
     public class FriendlyNameAttribute : System.Attribute, IRouteTemplateProvider
     {
         private int? _order;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using Microsoft.AspNetCore.Http;
 using System.ComponentModel.DataAnnotations;
@@ -8,10 +8,16 @@ using YangOne.Web.Model;
 
 namespace YandOne.Admin.ViewModel
 {
+    /// <summary>
+    /// Represents a class MenuViewModel.
+    /// </summary>
     public class MenuViewModel : Menu { 
         public List<MenuPermission> Permissions { get; set; }
     }
 
+    /// <summary>
+    /// Represents a class MenuOrderViewModel.
+    /// </summary>
     public class MenuOrderViewModel
     {
         public int MenuId { get; set; }
@@ -19,6 +25,9 @@ namespace YandOne.Admin.ViewModel
         public int ParentId { get; set; }
     }
 
+    /// <summary>
+    /// Represents a class FooterMenuViewModel.
+    /// </summary>
     public class FooterMenuViewModel
     {
         public int Id { get; set; }
@@ -26,6 +35,9 @@ namespace YandOne.Admin.ViewModel
         public List<Menu> Children { get; set; }
     }
 
+    /// <summary>
+    /// Represents a class UserImportViewModel.
+    /// </summary>
     public class UserImportViewModel
     {
         public List<UserRolesSelected> UserRoles { get; set; }=new List<UserRolesSelected>();
@@ -36,6 +48,9 @@ namespace YandOne.Admin.ViewModel
         public bool ImportStatus { get; set; } = false;
         public string Message { get; set; }
     }
+    /// <summary>
+    /// Represents a class DirectoryViewModel.
+    /// </summary>
     public class DirectoryViewModel
     {
         public string DirName { get; set; }
@@ -44,6 +59,9 @@ namespace YandOne.Admin.ViewModel
         public string OldDirName { get; set; }
 
     }
+    /// <summary>
+    /// Represents a class MediaLibraryStatus.
+    /// </summary>
     public class MediaLibraryStatus
     {
         public bool Success { get; set; }
@@ -51,6 +69,9 @@ namespace YandOne.Admin.ViewModel
 
     }
 
+    /// <summary>
+    /// Represents a class MediaLibraryItem.
+    /// </summary>
     public class MediaLibraryItem
     {
         public bool IsDirectory { get; set; }
@@ -62,6 +83,9 @@ namespace YandOne.Admin.ViewModel
         public DateTime CreationTime { get; set; }
         public string FileSize { get; set; }
     }
+    /// <summary>
+    /// Represents a class MediaLibraryImage.
+    /// </summary>
     public class MediaLibraryImage
     {
 
@@ -70,10 +94,16 @@ namespace YandOne.Admin.ViewModel
         public DateTime CreationTime { get; set; }
         public string FileSize { get; set; }
     }
+    /// <summary>
+    /// Represents a class MediaLibConst.
+    /// </summary>
     public class MediaLibConst
     {
         public const string MediaLibRootPath = "uploads";
     }
+    /// <summary>
+    /// Represents a class CspConfigViewModel.
+    /// </summary>
     public class CspConfigViewModel
     {
         public bool SupportNonce { get; set; }
@@ -81,17 +111,26 @@ namespace YandOne.Admin.ViewModel
         public List<DirectiveViewModel> Directives { get; set; } = new();
     }
 
+    /// <summary>
+    /// Represents a class DirectiveViewModel.
+    /// </summary>
     public class DirectiveViewModel
     {
         [Required]
         public string Name { get; set; } = string.Empty;
         public string Values { get; set; } = string.Empty;
     }
+    /// <summary>
+    /// Represents a class FileConfigViewModel.
+    /// </summary>
     public class FileConfigViewModel
     {
         public List<FileTypeEntryViewModel> FileTypes { get; set; } = new();
     }
 
+    /// <summary>
+    /// Represents a class FileTypeEntryViewModel.
+    /// </summary>
     public class FileTypeEntryViewModel
     {
         public string Extension { get; set; } = string.Empty; // e.g. "png"

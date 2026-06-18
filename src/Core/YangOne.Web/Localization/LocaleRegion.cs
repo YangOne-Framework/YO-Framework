@@ -6,6 +6,9 @@ using YangOne.Data.Crud.Attribute;
 
 namespace YangOne.Localization
 {
+    /// <summary>
+    /// Represents a locale region with culture settings.
+    /// </summary>
     [Table("LocaleRegion")]
     public class LocaleRegion
     {

@@ -12,6 +12,9 @@ using YangOne.Log;
 
 namespace YangOne.Web.TagHelpers
 {
+    /// <summary>
+    /// Injects system variable settings (timezone, locale, etc.) into the page head.
+    /// </summary>
     public class SystemVariablesTagHelperComponent : TagHelperComponent
     {
         private readonly ILogger _logger;

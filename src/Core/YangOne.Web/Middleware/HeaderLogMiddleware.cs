@@ -7,6 +7,9 @@ using YangOne.Log;
 
 namespace YangOne.Web.Middleware
 {
+    /// <summary>
+    /// Logs HTTP request headers and response information.
+    /// </summary>
     public class HeaderLogMiddleware
     {
         const string MessageTemplate =

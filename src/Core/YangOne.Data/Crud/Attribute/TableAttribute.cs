@@ -6,6 +6,9 @@ namespace YangOne.Data.Crud.Attribute
 {
     [AttributeUsage(AttributeTargets.Class , AllowMultiple = true)]
 
+    /// <summary>
+    /// Specifies a JOIN relationship with another table for query building.
+    /// </summary>
     public class JoinAttribute : System.Attribute
     {
         public Type TableName { get; set; }
@@ -13,10 +16,16 @@ namespace YangOne.Data.Crud.Attribute
         public JoinType JoinType { get; set; } 
     }
 
+    /// <summary>
+    /// Specifies the type of JOIN for a <see cref="JoinAttribute"/>.
+    /// </summary>
     public enum JoinType
     {
         InnerJoin,CrossJoin,LeftJoin,RightJoin,LeftOuterJoin,RightOuterJoin
     }
+    /// <summary>
+    /// Specifies that a property should be selected from a related table.
+    /// </summary>
     public class GetFromAttribute : System.Attribute
     {
         public Type TableName { get; set; }

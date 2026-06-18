@@ -13,6 +13,9 @@ namespace YangOne.Localization
 {
 
 
+    /// <summary>
+    /// Provides the system culture based on application configuration.
+    /// </summary>
     public class SystemCultureProvider : RequestCultureProvider
     {
         public IConfigurationRoot Configuration { get; set; }

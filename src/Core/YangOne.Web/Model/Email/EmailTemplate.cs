@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.Model;
 
 [Table("EmailTemplate")]
+/// <summary>
+/// Represents an email template with header, body, footer and subject.
+/// </summary>
 public sealed class EmailTemplate
 {
     [Key]

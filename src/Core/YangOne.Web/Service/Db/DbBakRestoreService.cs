@@ -9,10 +9,16 @@ using YangOne.Storage;
 
 namespace YangOne.Web.Service
 {
+    /// <summary>
+    /// Defines the contract for database backup and restore operations.
+    /// </summary>
     public interface IDbBakRestoreService
     {
         Task<bool> Backup();
     }
+    /// <summary>
+    /// Provides database backup and restore functionality.
+    /// </summary>
     public class DbBakRestoreService: IDbBakRestoreService
     {
         private readonly IConfiguration _configuration;

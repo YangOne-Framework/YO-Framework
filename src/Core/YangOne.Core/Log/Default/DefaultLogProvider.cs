@@ -5,6 +5,9 @@ using YangOne.Log.Serilog;
 
 namespace YangOne.Log
 {
+    /// <summary>
+    /// Provides default logger instances using Serilog file logging.
+    /// </summary>
     public class DefaultLogProvider : ILogProvider
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

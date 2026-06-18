@@ -4,6 +4,9 @@ using YangOne.Identity.Extensions;
 
 namespace YangOne.Web.Notification
 {
+    /// <summary>
+    /// Default implementation of <see cref="INotificationService"/> that queues notifications into TempData.
+    /// </summary>
     public class NotificationService : INotificationService
     {
         private readonly INotificationTempDataWrapper _tempDataWrapper;

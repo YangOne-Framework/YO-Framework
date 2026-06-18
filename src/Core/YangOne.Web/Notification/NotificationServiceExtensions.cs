@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace YangOne.Web.Notification
 {
+    /// <summary>
+    /// Provides extension methods to register notification services with the DI container.
+    /// </summary>
     public static class NotificationServiceExtensions
     {
 

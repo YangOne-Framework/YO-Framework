@@ -9,6 +9,9 @@ using Microsoft.Extensions.Primitives;
 
 namespace YangOne.Plugin
 {
+    /// <summary>
+    /// Provides embedded view files from plugin assemblies.
+    /// </summary>
     public class PluginViewProvider : IFileProvider
     {
         private readonly Dictionary<string, Assembly> _pluginAssemblies;

@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.Model
 {
     [Table("Country")]
+    /// <summary>
+    /// Represents a country with ISO codes, name, currency and phone code information.
+    /// </summary>
     public class Country
     {
         [Key]

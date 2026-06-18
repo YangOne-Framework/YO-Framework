@@ -5,12 +5,18 @@ using Microsoft.AspNetCore.Http;
 
 namespace YangOne.Web.Theme
 {
+    /// <summary>
+    /// View model for theme upload.
+    /// </summary>
     public class ThemeViewModel
     {
         [Required]
         public IFormFile ThemeZip { get; set; }
     }
 
+    /// <summary>
+    /// Represents the result of a theme installation operation.
+    /// </summary>
     public class ThemeStatus
     {
         public bool IsInstalled { get; set; }

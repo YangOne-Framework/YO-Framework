@@ -6,6 +6,9 @@ using System.Text.RegularExpressions;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Represents a matching expression with regex patterns and an action.
+    /// </summary>
     public class MatchExpression
     {
         public List<Regex> Regexes { get; set; }

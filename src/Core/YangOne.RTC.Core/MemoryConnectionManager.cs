@@ -6,6 +6,9 @@ using YangOne.Web;
 
 namespace YangOne.RTC;
 
+/// <summary>
+/// Manages RTC connections in-memory using a concurrent dictionary
+/// </summary>
 public class MemoryConnectionManager : IRTCConnectionManager
 {
     public static ConcurrentDictionary<string, RTCUser> RealWebUsers { get; set; } = new ConcurrentDictionary<string, RTCUser>();

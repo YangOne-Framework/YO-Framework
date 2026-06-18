@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.Module
 {
     [Table("Module")]
+    /// <summary>
+    /// Represents a module record in the database.
+    /// </summary>
     public class ModuleInfo
     {
         [Key]

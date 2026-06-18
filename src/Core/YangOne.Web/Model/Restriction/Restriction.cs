@@ -6,6 +6,9 @@ using YangOne.Data.Crud.Attribute;
 
 namespace YangOne.Web.Model;
     [Table("Restriction")]
+    /// <summary>
+    /// Represents a restriction rule with a value, reason and narration.
+    /// </summary>
     public class Restriction
     {
         [Key]

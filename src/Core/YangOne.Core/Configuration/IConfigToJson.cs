@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Configuration
 {
+    /// <summary>
+    /// Provides functionality to save configuration data to JSON files.
+    /// </summary>
     public interface IConfigToJson
     {
         bool SaveConnectionString(YangOneConnectionStrings connectionString);

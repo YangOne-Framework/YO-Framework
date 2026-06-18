@@ -9,6 +9,9 @@ using YangOne.Web.Form;
 
 namespace YangOne.Web.Grid
 {
+    /// <summary>
+    /// Provides extension methods for grid, form, and column configuration.
+    /// </summary>
     public static class YOGridExtensions
     {
         public static object GetPriamaryKey(this IYOGridRow<Object> row)

@@ -7,6 +7,9 @@ using System.Text.RegularExpressions;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Parses a user agent string to identify the client operating system.
+    /// </summary>
     public class ClientOS
     {
         private static Dictionary<string, string> _versionMap = new Dictionary<string, string>{

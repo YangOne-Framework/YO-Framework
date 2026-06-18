@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace YangOne.Localization
 {
+    /// <summary>
+    /// HTML helper extensions for retrieving localized values.
+    /// </summary>
     public static class LocaleHtmlHelper
     {
 

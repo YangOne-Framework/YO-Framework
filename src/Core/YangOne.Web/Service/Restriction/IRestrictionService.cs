@@ -5,6 +5,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Service
 {
+    /// <summary>
+    /// Defines the contract for restriction and IP access management.
+    /// </summary>
     public interface IRestrictionService
     {
         CrudService<RestrictionKey> KeyCrudService { get; set; }

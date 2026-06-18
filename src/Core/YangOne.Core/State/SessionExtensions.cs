@@ -5,6 +5,9 @@ using Newtonsoft.Json;
 
 namespace YangOne.State
 {
+    /// <summary>
+    /// Extension methods for serializing and deserializing session state as JSON.
+    /// </summary>
     public static class SessionExtensions
     {
         public static void Set(this ISession session, string key, object value)

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
@@ -7,6 +7,9 @@ using YangOne.Identity.Model;
 
 namespace YangOne.Identity.Dto;
 
+/// <summary>
+/// Represents a new user registration data transfer object.
+/// </summary>
 public class NewUser : AppUser
 {
     [Required]
@@ -20,6 +23,9 @@ public class NewUser : AppUser
     public string ImportMessage { get; set; }
 
 }
+/// <summary>
+/// Represents a selected user role during registration.
+/// </summary>
 public class UserRolesSelected
 {
     public long RoleId { get; set; }

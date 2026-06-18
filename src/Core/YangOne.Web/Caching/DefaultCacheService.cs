@@ -5,6 +5,9 @@ using YangOne.Caching;
 
 namespace YangOne.Web.Caching
 {
+    /// <summary>
+    /// In-memory cache service implementation using MemoryCache.
+    /// </summary>
     public class DefaultCacheService : ICacheService
     {
         private readonly MemoryCache _cache;

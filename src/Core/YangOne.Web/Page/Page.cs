@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web
 {
     [Table("Page")]
+    /// <summary>
+    /// Represents a page entity stored in the database.
+    /// </summary>
     public class Page
     {
         [Key]

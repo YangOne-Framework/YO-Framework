@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Log
 {
+    /// <summary>
+    /// Default logger setting that enables logging by default.
+    /// </summary>
     public class DefaultLoggerSetting : ILoggerSetting
     {
         public bool AllowLogging { get; set; } = true;

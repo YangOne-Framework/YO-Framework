@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Diagnostics
 {
+    /// <summary>
+    /// Contains diagnostic constants for OpenTelemetry instrumentation.
+    /// </summary>
     public static class YODiagnostics
     {
         public const string ServiceName = "YO-Framework";

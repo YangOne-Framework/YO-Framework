@@ -4,6 +4,9 @@ using System.Collections;
 
 namespace YangOne.Web.Form
 {
+    /// <summary>
+    /// Defines a form section with rows.
+    /// </summary>
     public interface IFormSection
     {
         string Name { get; set; }
@@ -14,15 +17,24 @@ namespace YangOne.Web.Form
         IFormRows<IFormRow> Rows { get; }
 
     }
+    /// <summary>
+    /// Defines a typed form section bound to a model.
+    /// </summary>
     public interface IFormSection<T> : IFormSection
     {
         IForm<T> Form { get; }
        // Func<T, Object> RenderValue { get; set; }
         new IFormRowsOf<T> Rows { get;  }
     }
+    /// <summary>
+    /// Defines a collection of form sections.
+    /// </summary>
     public interface IFormSections<out T> : IEnumerable<T> where T : IFormSection
     {
     }
+    /// <summary>
+    /// Defines operations for adding typed form sections.
+    /// </summary>
     public interface IFormSectionsOf<T> : IFormSections<IFormSection<T>>
     {
         IForm<T> Form { get; set; }
@@ -33,6 +45,9 @@ namespace YangOne.Web.Form
     }
 
 
+    /// <summary>
+    /// Base class for form section implementations.
+    /// </summary>
     public abstract class BaseFormSection<T> : IFormSection<T>
     {
        
@@ -55,6 +70,9 @@ namespace YangOne.Web.Form
         public string HelpLine { get; set; }
     }
 
+    /// <summary>
+    /// Default implementation of a form section.
+    /// </summary>
     public class FormSection<T> : BaseFormSection<T> where T : class
     {
 
@@ -82,6 +100,9 @@ namespace YangOne.Web.Form
 
     }
 
+    /// <summary>
+    /// Default collection of typed form sections.
+    /// </summary>
     public class FormSections<T> : List<IFormSection<T>>, IFormSectionsOf<T> where T : class
     {
         public IForm<T> Form { get; set; }

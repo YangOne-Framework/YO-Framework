@@ -3,6 +3,9 @@
 namespace YangOne.Web.Form
 {
 
+    /// <summary>
+    /// Provides extension methods for configuring form sections, inputs, and columns.
+    /// </summary>
     public static class YOFormHelpers
     {
 

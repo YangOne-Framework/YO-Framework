@@ -10,6 +10,9 @@ using YangOne.Log;
 
 namespace YangOne.Web.TagHelpers
 {
+    /// <summary>
+    /// Renders a pagination control for data paging.
+    /// </summary>
     [HtmlTargetElement("pagination")]
     public class PaginationTagHelper : TagHelper
     {

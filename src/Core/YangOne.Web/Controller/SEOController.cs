@@ -5,6 +5,9 @@ using System.Text;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Controller providing SEO-related endpoints such as sitemap generation.
+    /// </summary>
     public class SEOController : BaseController
     {
         private readonly ISeoService _seoService;

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 
@@ -14,6 +14,9 @@ namespace YangOne.IdentityServer.Service
 
 {
 
+    /// <summary>
+    /// Represents a class DbOpen.
+    /// </summary>
     static class DbOpen
     {
         public static async Task<DbConnection> OpenAsync(CancellationToken ct)

@@ -3,6 +3,9 @@
 namespace YangOne.Web
 {
     [AttributeUsage(AttributeTargets.Property)]
+    /// <summary>
+    /// Indicates that a property should be hidden from export/import reports.
+    /// </summary>
     public class ReportHideAttribute : Attribute
     {
         public ReportHideAttribute()

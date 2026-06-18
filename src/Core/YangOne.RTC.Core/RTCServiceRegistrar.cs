@@ -6,6 +6,9 @@ using YangOne.DI;
 
 namespace YangOne.RTC
 {
+    /// <summary>
+    /// Registers RTC-related services into the dependency injection container
+    /// </summary>
     public class RTCServiceRegistrar : IServiceRegistrar
     {
         public void Update(IServiceCollection serviceCollection)

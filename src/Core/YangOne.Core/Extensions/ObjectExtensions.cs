@@ -6,6 +6,9 @@ using Microsoft.Extensions.Primitives;
 
 namespace YangOne.Extensions
 {
+    /// <summary>
+    /// Provides extension methods for object mapping and conversion.
+    /// </summary>
     public static class ObjectExtensions
     {
         public static T ToObject<T>(this IFormCollection postedForm)

@@ -7,6 +7,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Service
 {
+    /// <summary>
+    /// Manages HTML components including CRUD operations and uniqueness validation.
+    /// </summary>
     public class HtmlComponentService: IHtmlComponentService
     {
         public CrudService<HtmlComponent> HtmlComponentCrudService { get; set; } = new();

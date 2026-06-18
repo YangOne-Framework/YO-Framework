@@ -4,6 +4,9 @@ using Microsoft.Extensions.Hosting;
 
 namespace YangOne.Configuration;
 
+/// <summary>
+/// Listens for configuration changes and stops the application to reload.
+/// </summary>
 public class YangOneConfigChangeListner : IConfigChangeListner
 {
     private readonly IHostApplicationLifetime _applicationLifetime;

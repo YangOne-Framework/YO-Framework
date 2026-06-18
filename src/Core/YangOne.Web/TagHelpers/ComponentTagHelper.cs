@@ -9,6 +9,9 @@ using YangOne.Log;
 
 namespace YangOne.Web.TagHelpers
 {
+    /// <summary>
+    /// Renders a named view component.
+    /// </summary>
     [HtmlTargetElement("component")]
     public class ComponentTagHelper : TagHelper
     {

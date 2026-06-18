@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Module
 {
+    /// <summary>
+    /// Defines operations for managing module lifecycle.
+    /// </summary>
     public interface IModuleManager
     {
         Task<bool> InstallAsync(IModule module);

@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Represents an email address with an optional display name.
+    /// </summary>
     public class EmailAddress
     {
         public string Email { get; set; }

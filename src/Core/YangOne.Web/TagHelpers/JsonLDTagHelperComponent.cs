@@ -11,6 +11,9 @@ using YangOne.Log;
 
 namespace YangOne.Web.TagHelpers
 {
+    /// <summary>
+    /// Injects JSON-LD structured data into the page head.
+    /// </summary>
     public class JsonLdTagHelperComponent : TagHelperComponent
     {
         private readonly ISeoService _seoService;

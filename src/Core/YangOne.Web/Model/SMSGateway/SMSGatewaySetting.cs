@@ -5,6 +5,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace YangOne.Web.Model;
     [Table("SMSGatewaySetting")]
+    /// <summary>
+    /// Represents a key-value setting for an SMS gateway provider.
+    /// </summary>
     public class SMSGatewaySetting
     {
         [Key]

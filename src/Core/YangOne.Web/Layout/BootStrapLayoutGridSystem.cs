@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Layout
 {
+    /// <summary>
+    /// Implements a Bootstrap-based layout grid system.
+    /// </summary>
     public class BootStrapLayoutGridSystem : ILayoutGridSystem
     {
         public string Row { get; set; } = "row";

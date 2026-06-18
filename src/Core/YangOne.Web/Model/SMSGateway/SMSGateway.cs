@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.Model;
 
     [Table("SMSGateway")]
+    /// <summary>
+    /// Represents an SMS gateway provider configuration.
+    /// </summary>
     public class SMSGateway
     {
 

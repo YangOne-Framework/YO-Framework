@@ -10,6 +10,9 @@ using YangOne.Log;
 
 namespace YangOne.Data
 {
+    /// <summary>
+    /// PostgreSQL database factory implementation using Npgsql.
+    /// </summary>
     public class NpgSqlFactory : IDatabaseFactory
     {
         public IDbConnection Db { get; set; }

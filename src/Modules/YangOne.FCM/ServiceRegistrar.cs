@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
@@ -9,6 +9,9 @@ using YangOne.DI;
 
 namespace YangOne.FCM
 {
+    /// <summary>
+    /// Represents a class ServiceRegistrar.
+    /// </summary>
     public class ServiceRegistrar : IServiceRegistrar
     {
         public void Register(IServiceCollection serviceCollection, IConfiguration configuration)

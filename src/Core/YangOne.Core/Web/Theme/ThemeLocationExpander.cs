@@ -8,6 +8,9 @@ using Microsoft.Extensions.Options;
 
 namespace YangOne.Web.Theme
 {
+    /// <summary>
+    /// Expands Razor view locations to support theme-based views.
+    /// </summary>
     public class ThemeLocationExpander : IYangOneViewLocationExpander
     {
 

@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace YangOne.Plugin;
 
+/// <summary>
+/// Data transfer object for uploading a new plugin.
+/// </summary>
 public class NewPluginDto
 {
     [Required]

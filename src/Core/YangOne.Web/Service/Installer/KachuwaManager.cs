@@ -11,6 +11,9 @@ using YangOne.Web.ViewModels;
 
 namespace YangOne.Web.Service.Installer
 {
+    /// <summary>
+    /// Manages application installation and configuration, including database setup and scripting.
+    /// </summary>
     public class YOConfigurationManager : IYangOneConfigurationManager
     {
         private readonly YangOneConnectionStrings _connectionString;

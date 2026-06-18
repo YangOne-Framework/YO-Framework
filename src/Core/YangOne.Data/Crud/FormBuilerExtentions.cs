@@ -10,6 +10,9 @@ using Microsoft.AspNetCore.Localization;
 
 namespace YangOne.Data.Extension
 {
+    /// <summary>
+    /// Provides extension methods to auto-fill object properties using <see cref="AutoFillAttribute"/>.
+    /// </summary>
     public static class FormBuilerExtentions
     {
         public static void AutoFill(this object obj)

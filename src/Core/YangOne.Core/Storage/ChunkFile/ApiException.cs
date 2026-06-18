@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace YangOne.Storage
 {
+    /// <summary>
+    /// Base exception for API errors with an associated HTTP status code.
+    /// </summary>
     public class ApiException : System.Exception
     {
         private int code;
@@ -12,6 +15,9 @@ namespace YangOne.Storage
             this.code = code;
         }
     }
+    /// <summary>
+    /// Exception representing a bad request (HTTP 400).
+    /// </summary>
     public class BadRequestException : ApiException
     {
         private int code;
@@ -26,6 +32,9 @@ namespace YangOne.Storage
             this.code = code;
         }
     }
+    /// <summary>
+    /// Exception representing an invalid operation (HTTP 401).
+    /// </summary>
     public class InvalidOperationException : ApiException
     {
         public InvalidOperationException(string msg) : base(401, msg)
@@ -33,12 +42,18 @@ namespace YangOne.Storage
 
         }
     }
+    /// <summary>
+    /// Exception representing a resource not found (HTTP 404).
+    /// </summary>
     public class NotFoundException : ApiException
     {
         public NotFoundException(string msg) : base(404, msg)
         {
         }
     }
+    /// <summary>
+    /// Maps exceptions to appropriate HTTP status code JSON responses.
+    /// </summary>
     public class SampleExceptionMapper
     {
         public JsonResult Map(System.Exception exception)
@@ -67,6 +82,9 @@ namespace YangOne.Storage
             return result;
         }
     }
+    /// <summary>
+    /// Exception thrown when attempting to create a session that already exists (HTTP 202).
+    /// </summary>
     public class SessionAlreadyBeingCreatedException : ApiException
     {
         public SessionAlreadyBeingCreatedException(string msg) : base(202, msg)

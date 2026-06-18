@@ -9,6 +9,9 @@ using Newtonsoft.Json;
 namespace YangOne.Web.Grid
 {
 
+    /// <summary>
+    /// Defines a command action for a grid row.
+    /// </summary>
     public interface IYOGridCommand
     {
         string Name { get; set; }
@@ -21,15 +24,24 @@ namespace YangOne.Web.Grid
         string Action { get; set; }
         IHtmlContent ValueFor(IYOGridRow<Object> row);
     }
+    /// <summary>
+    /// Defines a typed grid command bound to a model expression.
+    /// </summary>
     public interface IYOGridCommand<T> : IYOGridCommand
     {
         IYOGrid<T> Grid { get; }
         LambdaExpression Expression { get; }
         Func<T, Object> RenderValue { get; set; }
     }
+    /// <summary>
+    /// Defines a collection of grid commands.
+    /// </summary>
     public interface IYOGridCommands<out T> : IEnumerable<T> where T : IYOGridCommand
     {
     }
+    /// <summary>
+    /// Defines operations for adding typed grid commands.
+    /// </summary>
     public interface IYOGridCommandsOf<T> : IYOGridCommands<IYOGridCommand<T>>
     {
         IYOGrid<T> Grid { get; set; }
@@ -42,6 +54,9 @@ namespace YangOne.Web.Grid
     }
 
 
+    /// <summary>
+    /// Base class for grid command implementations.
+    /// </summary>
     public abstract class BaseYOGridCommand<T, TValue> : IYOGridCommand<T>
     {
         public string Name { get; set; }
@@ -62,6 +77,9 @@ namespace YangOne.Web.Grid
     }
 
 
+    /// <summary>
+    /// Default implementation of a grid command with value rendering.
+    /// </summary>
     public class YOGridCommand<T, TValue> : BaseYOGridCommand<T, TValue> where T : class
     {
 
@@ -146,6 +164,9 @@ namespace YangOne.Web.Grid
 
     }
 
+    /// <summary>
+    /// Default collection of typed grid commands.
+    /// </summary>
     public class YOGridCommands<T> : List<IYOGridCommand<T>>, IYOGridCommandsOf<T> where T : class
     {
         public IYOGrid<T> Grid { get; set; }

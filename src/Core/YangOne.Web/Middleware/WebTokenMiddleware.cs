@@ -7,6 +7,9 @@ using YangOne.Caching;
 
 namespace YangOne.Web.Middleware
 {
+    /// <summary>
+    /// Middleware for generating and attaching web tokens to requests.
+    /// </summary>
     public class WebTokenMiddleware
     {
         private readonly RequestDelegate _next;

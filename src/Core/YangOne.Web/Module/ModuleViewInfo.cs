@@ -7,6 +7,9 @@ using YangOne.Extensions;
 
 namespace YangOne.Web.Module
 {
+    /// <summary>
+    /// Provides file info for embedded module views with caching.
+    /// </summary>
     public class ModuleViewInfo : IFileInfo
     {
         private readonly string _viewPath;

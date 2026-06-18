@@ -3,6 +3,9 @@
 
 namespace YangOne.Web.API
 {
+    /// <summary>
+    /// Defines standard API response code constants.
+    /// </summary>
     public class ApiResponseCodes
     {
         public enum Codes

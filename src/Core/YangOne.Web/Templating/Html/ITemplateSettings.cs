@@ -3,6 +3,9 @@
 namespace YangOne.Web.Templating
 
 {
+    /// <summary>
+    /// Defines configurable settings for a template.
+    /// </summary>
     public interface ITemplateSettings
     {
         IEnumerable<TemplateSetting> Settings { get; set; }

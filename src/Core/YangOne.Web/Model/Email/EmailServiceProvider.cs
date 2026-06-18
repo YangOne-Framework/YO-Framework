@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 
 namespace YangOne.Web.Model;
     [Table("EmailServiceProvider")]
+    /// <summary>
+    /// Represents an email service provider configuration.
+    /// </summary>
     public class EmailServiceProvider
     {
         [Key]

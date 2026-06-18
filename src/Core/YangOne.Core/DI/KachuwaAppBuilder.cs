@@ -7,6 +7,9 @@ using Microsoft.Extensions.DependencyModel;
 
 namespace YangOne.DI
 {
+    /// <summary>
+    /// Discovers and configures all IAppBuilderRegistrar implementations in the application pipeline.
+    /// </summary>
     public class YOAppBuilder
     {
         private readonly IApplicationBuilder _app;

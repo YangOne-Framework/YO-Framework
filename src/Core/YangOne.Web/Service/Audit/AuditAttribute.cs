@@ -14,6 +14,9 @@ using YangOne.Log;
 namespace YangOne.Web
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true, Inherited = true)]
+    /// <summary>
+    /// Represents an audit attribute that logs action execution details for auditing purposes.
+    /// </summary>
     public class AuditAttribute : Attribute, IAsyncActionFilter
     {
 

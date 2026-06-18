@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 //using Microsoft.IdentityModel.Tokens;
 //using System.Collections.Immutable;
@@ -128,6 +128,9 @@ namespace YangOne.IdentityServer.Model;
 //}
 
 
+/// <summary>
+/// Represents a class OpenIddictApplication.
+/// </summary>
 public sealed class OpenIddictApplication
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("D");
@@ -149,6 +152,9 @@ public sealed class OpenIddictApplication
     public string? Requirements { get; set; }            // string[] JSON
     public string? Settings { get; set; }                // { string: string } JSON
 }
+/// <summary>
+/// Represents a class OpenIddictAuthorization.
+/// </summary>
 public sealed class OpenIddictAuthorization
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("D");
@@ -166,6 +172,9 @@ public sealed class OpenIddictAuthorization
 }
 
 // Matches [dbo].[OpenIddictScopes]
+/// <summary>
+/// Represents a class OpenIddictScope.
+/// </summary>
 public sealed class OpenIddictScope
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("D");
@@ -182,6 +191,9 @@ public sealed class OpenIddictScope
 }
 
 // Matches [dbo].[OpenIddictTokens]
+/// <summary>
+/// Represents a class OpenIddictToken.
+/// </summary>
 public sealed class OpenIddictToken
 {
     public string Id { get; set; } = Guid.NewGuid().ToString("D");

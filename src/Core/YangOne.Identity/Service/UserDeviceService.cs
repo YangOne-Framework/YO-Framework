@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using Dapper;
 using YangOne.Identity.Model;
@@ -9,6 +9,9 @@ using YangOne.Identity.Dto;
 
 namespace YangOne.Identity.Service
 {
+    /// <summary>
+    /// Provides services for managing user devices and verification.
+    /// </summary>
     public class UserDeviceService : IUserDeviceService
     {
         public CrudService<UserDevice> DeviceService { get; set; } = new CrudService<UserDevice>();

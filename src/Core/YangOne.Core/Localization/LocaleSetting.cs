@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Localization
 {
+    /// <summary>
+    /// Configuration settings for localization resource sources.
+    /// </summary>
     public class LocaleSetting
     {
         public string JsonResourceFileFormat = "locale-{0}.locale";//0=>culture

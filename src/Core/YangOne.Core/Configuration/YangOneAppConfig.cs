@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Configuration
 {
+    /// <summary>
+    /// Represents the YO framework application configuration settings.
+    /// </summary>
     public class YangOneAppConfig
     {
         public string AppName { get; set; }

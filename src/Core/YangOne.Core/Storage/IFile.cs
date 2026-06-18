@@ -4,6 +4,9 @@ using System.IO;
 
 namespace YangOne.Storage
 {
+    /// <summary>
+    /// Defines a file with its content type and data stream.
+    /// </summary>
     public interface IFile
     {
         string ContentType { get; set; }

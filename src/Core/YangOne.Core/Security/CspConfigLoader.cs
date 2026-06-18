@@ -4,6 +4,9 @@ using System.Text.Json;
 
 namespace YangOne.Security;
 
+/// <summary>
+/// Loads Content Security Policy configuration from a JSON file.
+/// </summary>
 public static class CspConfigLoader
 {
     public static CspConfig Load(string filePath)

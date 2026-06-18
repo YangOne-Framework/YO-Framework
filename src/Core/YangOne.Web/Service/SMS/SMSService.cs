@@ -13,15 +13,24 @@ using YangOne.Web.Services;
 namespace YangOne.Web.Service
 {
 
+    /// <summary>
+    /// Defines the contract for SMS log operations.
+    /// </summary>
     public interface ISMSLogService
     {
         CrudService<SMSLog> LogCrudService { get; set; }
     }
 
+    /// <summary>
+    /// Provides SMS log management functionality.
+    /// </summary>
     public class SMSLogService : ISMSLogService
     {
         public CrudService<SMSLog> LogCrudService { get; set; } = new CrudService<SMSLog>();
     }
+    /// <summary>
+    /// Manages SMS gateways, providers, and their settings.
+    /// </summary>
     public class SMSService : ISMSService
     {
         private readonly ILogger _logger;

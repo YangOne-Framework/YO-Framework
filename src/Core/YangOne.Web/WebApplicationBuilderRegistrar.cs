@@ -7,6 +7,9 @@ using YangOne.DI;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Configures the application pipeline for web requests.
+    /// </summary>
     public class WebApplicationBuilderRegistrar : IAppBuilderRegistrar
     {
         public void Configure(IApplicationBuilder app, IServiceProvider serviceProvider, IWebHostEnvironment env)

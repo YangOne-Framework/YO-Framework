@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Templating
 {
+    /// <summary>
+    /// Defines a data source for template rendering.
+    /// </summary>
     public interface ITemplateDataSource
     {
         TemplateTypes Type { get; }

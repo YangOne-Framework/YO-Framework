@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 
 using System.Text;
@@ -10,6 +10,9 @@ using Google.Apis.Auth.OAuth2;
 
 namespace YangOne.FCM
 {
+    /// <summary>
+    /// Represents a class Data.
+    /// </summary>
     public class Data
     {
 
@@ -45,6 +48,9 @@ namespace YangOne.FCM
 
     }
 
+    /// <summary>
+    /// Represents a class Message.
+    /// </summary>
     public class Message
     {
 
@@ -68,6 +74,9 @@ namespace YangOne.FCM
 
     }
 
+    /// <summary>
+    /// Represents a class Notification.
+    /// </summary>
     public class Notification
     {
         //public string icon { get; set; }
@@ -87,6 +96,9 @@ namespace YangOne.FCM
 
     }
 
+    /// <summary>
+    /// Represents a class Root.
+    /// </summary>
     public class Root
     {
 
@@ -98,6 +110,9 @@ namespace YangOne.FCM
 
     }
 
+    /// <summary>
+    /// Represents a class FCMService.
+    /// </summary>
     public class FCMService : IFCMService
     {
         private readonly FCMSetting _settings;

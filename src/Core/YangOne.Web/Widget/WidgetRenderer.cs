@@ -9,6 +9,9 @@ using Microsoft.AspNetCore.Mvc.ViewComponents;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Renders widgets using view component invocations.
+    /// </summary>
     public class WidgetRenderer : IWidgetRenderer, IHtmlContent
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

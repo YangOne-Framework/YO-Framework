@@ -5,6 +5,9 @@ using System.Text;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Generates Twitter Card (twitter:) meta tags.
+    /// </summary>
     public class TwitterMetaTag : IMetaTag
     {
         public ConcurrentDictionary<string, string> MetaKeyValues { get; set; }

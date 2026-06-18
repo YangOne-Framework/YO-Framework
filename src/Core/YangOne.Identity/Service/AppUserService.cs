@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Data.Common;
 using System.IdentityModel.Tokens.Jwt;
@@ -17,6 +17,9 @@ using YangOne.Identity.Dto;
 
 namespace YangOne.Identity.Service
 {
+    /// <summary>
+    /// Implements application user services.
+    /// </summary>
     public class AppUserService : IAppUserService
     {
         private readonly UserManager<IdentityUser> _userManager;

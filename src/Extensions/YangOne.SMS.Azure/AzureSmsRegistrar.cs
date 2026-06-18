@@ -10,6 +10,9 @@ using WholisticMinds.Web.Service;
 
 namespace Azure.SMSSender
 {
+    /// <summary>
+    /// Registers Azure SMS sender services into the dependency injection container
+    /// </summary>
     public class AzureSmsRegistrar : IServiceRegistrar
     {
         private bool _isInstalled = false;

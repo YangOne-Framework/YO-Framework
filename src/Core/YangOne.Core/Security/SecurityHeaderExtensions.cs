@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Builder;
 
 namespace YangOne.Security
 {
+    /// <summary>
+    /// Extension methods for registering the security headers middleware.
+    /// </summary>
     public static class SecurityHeaderExtensions
     {
         public static IApplicationBuilder UseSecurityHeadersMiddleware(this IApplicationBuilder app, Action<SecurityHeadersBuilder> builder)

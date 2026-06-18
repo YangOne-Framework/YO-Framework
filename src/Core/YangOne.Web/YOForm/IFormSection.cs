@@ -116,6 +116,9 @@ using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
+/// <summary>
+/// Custom HTML content that renders a partial view.
+/// </summary>
 public class MyContent : IHtmlContent
 {
     public IHtmlHelper Html { get; set; }
@@ -131,6 +134,9 @@ public class MyContent : IHtmlContent
    
 }
 
+/// <summary>
+/// Provides extension methods for rendering my content.
+/// </summary>
 public static class tt
 {
     public static MyContent RenderMyContent(this IHtmlHelper html)

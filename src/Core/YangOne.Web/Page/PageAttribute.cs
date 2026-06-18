@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace YangOne.Web
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+    /// <summary>
+    /// Action filter attribute that captures the page URL from route data and adds it to the HTTP context items.
+    /// </summary>
     public class YOPageAttribute : ActionFilterAttribute
     {
         public YOPageAttribute()

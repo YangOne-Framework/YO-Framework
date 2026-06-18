@@ -5,6 +5,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.Model;
     [Table("SMSLog")]
+    /// <summary>
+    /// Represents a log entry for an SMS message sent through the system.
+    /// </summary>
     public class SMSLog
     {
 

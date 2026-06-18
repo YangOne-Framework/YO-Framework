@@ -7,6 +7,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace YangOne.Web.Theme
 {
+    /// <summary>
+    /// Extension methods for registering theme services.
+    /// </summary>
     public static class ThemeExtensions
     {
         public static void UseThemes(IApplicationBuilder builder, Action<IThemeConfig> configuration)

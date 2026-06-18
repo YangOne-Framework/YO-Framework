@@ -13,6 +13,9 @@ using YangOne.Configuration;
 namespace YangOne.Web
 {
     [LogError]
+    /// <summary>
+    /// Base controller for MVC pages providing user context, authentication check, and installer redirection.
+    /// </summary>
     public class BaseController : Microsoft.AspNetCore.Mvc.Controller
     {
         public readonly ModelService ModelService = new ModelService();

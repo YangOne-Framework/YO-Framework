@@ -3,6 +3,9 @@
 namespace YangOne.Web.Module
 {
    
+    /// <summary>
+    /// Base class for view components that belong to a module.
+    /// </summary>
     public abstract class YangOneModuleViewComponent<T> : YangOneViewComponent where T : IModule, new()
     {
         public readonly IModuleManager ModuleManager;

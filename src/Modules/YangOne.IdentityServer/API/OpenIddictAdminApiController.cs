@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
@@ -10,6 +10,9 @@ namespace YangOne.IdentityServer.Api;
 
 
 [Route("api/v1/openiddict")]
+/// <summary>
+/// Represents a class OpenIddictAdminApiController.
+/// </summary>
 public class OpenIddictAdminApiController : BaseApiController
 {
     private readonly ILogger _logger;
@@ -1043,6 +1046,9 @@ public class OpenIddictAdminApiController : BaseApiController
 
     #region Shared paging + utilities
 
+    /// <summary>
+    /// Represents a class AppRow.
+    /// </summary>
     private class AppRow
     {
         public string Id { get; set; } = default!;

@@ -7,6 +7,9 @@ using Microsoft.Extensions.DependencyModel;
 
 namespace YangOne.DI
 {
+    /// <summary>
+    /// Discovers and registers all IServiceRegistrar implementations from assemblies.
+    /// </summary>
     public class Bootstrapper : IBootstrapper
     {
         private readonly IServiceCollection _serviceCollection;

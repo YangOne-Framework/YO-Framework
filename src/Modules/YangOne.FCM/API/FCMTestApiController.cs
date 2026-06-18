@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -9,6 +9,9 @@ namespace YangOne.FCM.API
 {
     [Route("api/v1/fcm")]
     [AllowAnonymous]
+    /// <summary>
+    /// Represents a class FCMTestApiController.
+    /// </summary>
     public  class FCMTestApiController:BaseApiController
     {
         private readonly IFCMService _fcmService;

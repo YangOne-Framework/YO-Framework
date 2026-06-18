@@ -4,6 +4,9 @@ using System.Xml.Serialization;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Specifies the purchase option for a video in the sitemap.
+    /// </summary>
     public enum VideoPurchaseOption
     {
         None,

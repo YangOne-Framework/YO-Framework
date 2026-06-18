@@ -7,6 +7,9 @@ using System.Reflection;
 
 namespace YangOne.Extensions
 {
+    /// <summary>
+    /// Provides extension methods for type reflection and metadata inspection.
+    /// </summary>
     public static class ReflectionExtensions
     {
         public static IEnumerable<string> GetPublicPropertiesNames(this Type type, Func<PropertyInfo, bool> filterBy = null)

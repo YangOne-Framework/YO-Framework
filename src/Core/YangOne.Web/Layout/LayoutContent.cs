@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Layout
 {
+    /// <summary>
+    /// Represents the complete layout content for a page.
+    /// </summary>
     public class LayoutContent
     {    public int PageId { get; set; }
         public string Name { get; set; } = "";

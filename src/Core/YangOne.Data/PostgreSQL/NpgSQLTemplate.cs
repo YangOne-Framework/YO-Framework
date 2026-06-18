@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Data
 {
+    /// <summary>
+    /// PostgreSQL-specific SQL template implementation.
+    /// </summary>
     public class NpgSQLTemplate : ISQLTemplate
     {
 

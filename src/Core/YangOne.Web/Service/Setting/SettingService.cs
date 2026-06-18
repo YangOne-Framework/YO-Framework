@@ -8,6 +8,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Service
 {
+    /// <summary>
+    /// Manages application settings with caching support.
+    /// </summary>
     public class SettingService : ISettingService
     {
         private readonly ICacheService _cacheService;

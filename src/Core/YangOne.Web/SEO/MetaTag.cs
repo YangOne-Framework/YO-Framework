@@ -5,6 +5,9 @@ using System.Text;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Generates standard HTML meta tags from key-value pairs.
+    /// </summary>
     public class MetaTag : IMetaTag
     {
         public ConcurrentDictionary<string, string> MetaKeyValues { get; set; }

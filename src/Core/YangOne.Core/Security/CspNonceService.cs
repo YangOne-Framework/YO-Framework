@@ -4,6 +4,9 @@ using System.Security.Cryptography;
 
 namespace YangOne.Security
 {
+    /// <summary>
+    /// Generates and manages cryptographically random nonces for Content Security Policy.
+    /// </summary>
     public class CspNonceService : ICspNonceService
     {
         private static readonly RandomNumberGenerator _rng = RandomNumberGenerator.Create();

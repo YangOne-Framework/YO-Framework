@@ -5,6 +5,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.Model;
     [Table("MasterRolePermission")]
+    /// <summary>
+    /// Represents permission settings assigned to roles for controller actions.
+    /// </summary>
     public class MasterRolePermission
     {
         [Key]
@@ -51,6 +54,9 @@ namespace YangOne.Web.Model;
 
     }
 
+    /// <summary>
+    /// View model containing a list of user permissions.
+    /// </summary>
     public sealed class UserPermissionViewModel
     {
         public List<UserPermission> UserPermission { get; set; }

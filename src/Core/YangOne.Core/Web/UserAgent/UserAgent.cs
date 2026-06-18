@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Parses a user agent string to identify the browser and operating system.
+    /// </summary>
     public class UserAgent
     {
         private string _userAgent;

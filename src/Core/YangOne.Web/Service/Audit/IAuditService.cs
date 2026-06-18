@@ -5,6 +5,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Services
 {
+    /// <summary>
+    /// Defines the contract for audit-related operations.
+    /// </summary>
     public interface IAuditService
     {
         CrudService<Audit> CrudService { get; set; }

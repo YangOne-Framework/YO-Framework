@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Utility
 {
+    /// <summary>
+    /// Provides bitwise operations for byte arrays used in IP address calculations.
+    /// </summary>
     public static class Bits
     {
         public static byte[] Not(byte[] bytes)

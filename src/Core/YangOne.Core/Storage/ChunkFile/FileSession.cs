@@ -7,6 +7,9 @@ using Newtonsoft.Json;
 namespace YangOne.Storage
 {
     [Serializable]
+    /// <summary>
+    /// Represents a chunked file upload session with progress tracking and timeout.
+    /// </summary>
     public class FileSession
     {
         public string Id { get;  set; }

@@ -54,6 +54,9 @@ namespace YangOne.Utility
     [Serializable]
     public class IPAddressRange : ISerializable, IEnumerable<IPAddress>, IReadOnlyDictionary<string, string>
 #else
+    /// <summary>
+    /// Represents a range of IP addresses and provides CIDR parsing.
+    /// </summary>
     public class IPAddressRange : IEnumerable<IPAddress>, IReadOnlyDictionary<string, string>
 #endif
     {

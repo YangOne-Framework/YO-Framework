@@ -6,6 +6,9 @@ using Microsoft.Extensions.Localization;
 
 namespace YangOne.Localization
 {
+    /// <summary>
+    /// Provides localized strings for data annotation validation attributes.
+    /// </summary>
     public class DataAnnotationLocalizer : IStringLocalizer
     {
         private readonly ILocaleResourceProvider _localeResourceProvider;

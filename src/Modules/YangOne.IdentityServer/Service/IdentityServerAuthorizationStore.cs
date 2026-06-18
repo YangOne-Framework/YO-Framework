@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using Dapper;
 using OpenIddict.Abstractions;
@@ -10,6 +10,9 @@ using YangOne.Data;
 using YangOne.IdentityServer.Model;
 
 namespace YangOne.IdentityServer.Service;
+/// <summary>
+/// Represents a class IdentityServerAuthorizationStore.
+/// </summary>
 public sealed class IdentityServerAuthorizationStore : IOpenIddictAuthorizationStore<OpenIddictAuthorization>
 {
     private static async ValueTask<DbConnection> OpenAsync(CancellationToken ct)

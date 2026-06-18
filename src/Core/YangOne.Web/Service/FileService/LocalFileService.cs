@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace YangOne.Web.Services
 {
+    /// <summary>
+    /// Provides local file system storage and management operations.
+    /// </summary>
     public class LocalFileService: IFileService
     {
         private readonly IWebHostEnvironment _environment;

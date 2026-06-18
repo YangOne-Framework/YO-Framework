@@ -6,6 +6,9 @@ using YangOne.Caching;
 
 namespace YangOne.Web.Caching.Redis
 {
+    /// <summary>
+    /// Redis-based cache service implementation.
+    /// </summary>
     public class RedisCacheService : ICacheService
     {
         private readonly Lazy<ConnectionMultiplexer> _lazyConnection;

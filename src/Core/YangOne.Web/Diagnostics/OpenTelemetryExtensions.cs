@@ -12,6 +12,9 @@ using YangOne.Diagnostics;
 
 namespace YangOne.Web.Diagnostics
 {
+    /// <summary>
+    /// Configuration options for YO OpenTelemetry integration.
+    /// </summary>
     public class YOOpenTelemetryOptions
     {
         public bool Enabled { get; set; } = true;
@@ -23,6 +26,9 @@ namespace YangOne.Web.Diagnostics
         public bool EnableLogExport { get; set; } = false;
     }
 
+    /// <summary>
+    /// Extension methods for configuring OpenTelemetry tracing, metrics and logging.
+    /// </summary>
     public static class YOOpenTelemetryExtensions
     {
         public static IServiceCollection AddYOOpenTelemetry(

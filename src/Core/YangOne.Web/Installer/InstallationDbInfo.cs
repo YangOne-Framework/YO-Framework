@@ -5,6 +5,9 @@ using YangOne.Data.Crud;
 
 namespace YangOne.Installer
 {
+    /// <summary>
+    /// Contains database connection information for installation.
+    /// </summary>
     public class InstallationDbInfo
     {
         public string DatabaseServer { get; set; }

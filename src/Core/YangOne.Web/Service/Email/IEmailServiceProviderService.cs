@@ -5,6 +5,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Services
 {
+    /// <summary>
+    /// Defines the contract for email service provider management.
+    /// </summary>
     public interface IEmailServiceProviderService
     {
 

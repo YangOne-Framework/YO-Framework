@@ -10,6 +10,9 @@ using YangOne.Log;
 
 namespace YangOne.Web.TagHelpers
 {
+    /// <summary>
+    /// Injects SEO meta tags into the page head.
+    /// </summary>
     public class SEOMetaTagHelperComponent : TagHelperComponent
     {
         private readonly ISeoService _seoService;

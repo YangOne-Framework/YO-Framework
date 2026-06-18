@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace YangOne.Caching
 {
+    /// <summary>
+    /// Provides caching service operations for the YO framework.
+    /// </summary>
     public interface ICacheService : IDisposable
     {
         T Get<T>(string key);

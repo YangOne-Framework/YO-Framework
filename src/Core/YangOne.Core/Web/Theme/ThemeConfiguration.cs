@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Theme
 {
+    /// <summary>
+    /// Default implementation of theme configuration options.
+    /// </summary>
     public class ThemeConfiguration : IThemeConfig
     {
         public ThemeConfiguration()

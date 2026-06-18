@@ -4,6 +4,9 @@ using System.Text;
 
 namespace YangOne.Web.Security.API;
 
+/// <summary>
+/// Provides payload obfuscation using Base64 encoding with a prefix.
+/// </summary>
 public class ObfuscationService
 {
     private readonly string _prefix;

@@ -3,6 +3,9 @@
 namespace YangOne.Plugin
 {
     
+    /// <summary>
+    /// Defines the contract for a plugin.
+    /// </summary>
     public interface IPlugin
     {
         string SystemName { get; }

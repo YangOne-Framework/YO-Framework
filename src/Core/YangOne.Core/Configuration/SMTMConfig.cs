@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Configuration;
 
+/// <summary>
+/// Represents the SMTP configuration settings for email delivery.
+/// </summary>
 public class SMTMConfig
 {
     public string Host { get; set; }

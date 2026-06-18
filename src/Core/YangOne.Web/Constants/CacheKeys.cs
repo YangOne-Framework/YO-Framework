@@ -3,6 +3,9 @@
 
 namespace YangOne.Core
 {
+    /// <summary>
+    /// Defines constants for cache key names used throughout the application.
+    /// </summary>
     public class CacheKeys
     {
         public const string PagePemissions= "YO.Page.Permissions";

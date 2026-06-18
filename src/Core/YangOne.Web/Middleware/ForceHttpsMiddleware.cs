@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace YangOne.Web.Middleware
 {
+    /// <summary>
+    /// Redirects HTTP requests to HTTPS when configured.
+    /// </summary>
     public class ForceHttpsMiddleware
     {
         private readonly RequestDelegate _next;

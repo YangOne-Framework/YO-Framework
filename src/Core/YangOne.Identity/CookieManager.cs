@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Linq;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace YangOne.Identity
 {
+    /// <summary>
+    /// Manages cookie operations with subdomain-aware cookie domain handling.
+    /// </summary>
     public class CookieManager : ICookieManager
     {
         #region Private Members

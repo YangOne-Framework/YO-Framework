@@ -5,6 +5,9 @@ using YangOne.Data;
 
 namespace YangOne.OTP.Service
 {
+    /// <summary>
+    /// Defines the contract for OTP generation and verification operations
+    /// </summary>
     public interface IOTPService
     {
 

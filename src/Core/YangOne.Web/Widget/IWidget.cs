@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Defines a widget with metadata and settings.
+    /// </summary>
     public interface IWidget
     {
         string SystemName { get; }

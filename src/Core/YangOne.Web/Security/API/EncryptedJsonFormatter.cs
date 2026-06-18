@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 
 namespace YangOne.Web.Security.API;
 
+/// <summary>
+/// Output formatter that encrypts JSON responses.
+/// </summary>
 public class EncryptedJsonFormatter : TextOutputFormatter
 {
     private readonly EncryptionService _encryptionService;

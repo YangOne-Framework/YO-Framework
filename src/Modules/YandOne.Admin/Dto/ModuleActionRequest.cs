@@ -1,38 +1,56 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Http;
 using YandOne.Admin.ViewModel;
 
 namespace YangOne.Admin.Dto;
+/// <summary>
+/// Represents a class CheckSeoUrlRequest.
+/// </summary>
 public class CheckSeoUrlRequest
 {
     public string Url { get; set; }
     public string Type { get; set; }
 }
 
+/// <summary>
+/// Represents a class ModuleActionRequest.
+/// </summary>
 public class ModuleActionRequest
 {
     public string ModuleName { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Represents a class LocalizationImportRequest.
+/// </summary>
 public class LocalizationImportRequest
 {
     public IFormFile? ImportFile { get; set; }
 }
 
+/// <summary>
+/// Represents a class SetDefaultLocaleRequest.
+/// </summary>
 public class SetDefaultLocaleRequest
 {
     public int LocaleRegionId { get; set; }
     public string Culture { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Represents a class SetLanguageRequest.
+/// </summary>
 public class SetLanguageRequest
 {
     public string Culture { get; set; } = string.Empty;
 }
 
 
+/// <summary>
+/// Represents a class RenameFileRequest.
+/// </summary>
 public class RenameFileRequest
 {
     public string OldFileName { get; set; } = string.Empty;
@@ -40,22 +58,34 @@ public class RenameFileRequest
     public string? Dir { get; set; }
 }
 
+/// <summary>
+/// Represents a class UploadFileRequest.
+/// </summary>
 public class UploadFileRequest
 {
     public IFormFile? File { get; set; }
     public string? Dir { get; set; }
 }
 
+/// <summary>
+/// Represents a class FileTransferRequest.
+/// </summary>
 public class FileTransferRequest
 {
     public List<MediaLibraryItem> Files { get; set; } = new();
     public string DestinationDir { get; set; } = string.Empty;
 }
 
+/// <summary>
+/// Represents a class DeleteFilesRequest.
+/// </summary>
 public class DeleteFilesRequest
 {
     public List<MediaLibraryItem> Files { get; set; } = new();
 }
+/// <summary>
+/// Represents a class ProfilePictureUpdateRequest.
+/// </summary>
 public class ProfilePictureUpdateRequest
 {
    
@@ -63,6 +93,9 @@ public class ProfilePictureUpdateRequest
     public IFormFile? ImageFile { get; set; }
 
 }
+/// <summary>
+/// Represents a class ChangePasswordRequest.
+/// </summary>
 public class ChangePasswordRequest
 {
     [Required]
@@ -85,6 +118,9 @@ public class ChangePasswordRequest
 
     public string EmailOrUserName { get; set; }
 }
+/// <summary>
+/// Represents a class OtpPasswordResetRequest.
+/// </summary>
 public class OtpPasswordResetRequest
 {
     public string Email { get; set; }
@@ -98,12 +134,18 @@ public class OtpPasswordResetRequest
 
     public bool IsOtpVerified { get; set; } = false;
 }
+/// <summary>
+/// Represents a class VerifyOtpRequest.
+/// </summary>
 public class VerifyOtpRequest
 {
     public string Email { get; set; }
     public string OtpCode { get; set; }
 
 }
+/// <summary>
+/// Represents a class RestPasswordRequest.
+/// </summary>
 public class RestPasswordRequest
 {
     public string Email { get; set; }
@@ -111,17 +153,26 @@ public class RestPasswordRequest
     public string NewPassword { get; set; }
     public string ConfirmPassword { get; set; }
 }
+/// <summary>
+/// Represents a class SetDefaultProviderRequest.
+/// </summary>
 public class SetDefaultProviderRequest
 {
     public int Id { get; set; }
 }
 
+/// <summary>
+/// Represents a class SaveUserTimeZoneRequest.
+/// </summary>
 public class SaveUserTimeZoneRequest
 {
     public long UserId { get; set; }
     public int TimeZoneId { get; set; }
 }
 
+/// <summary>
+/// Represents a class ChangePasswordByAdminRequest.
+/// </summary>
 public class ChangePasswordByAdminRequest
 {
     [Required]

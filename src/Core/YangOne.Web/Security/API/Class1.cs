@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace YangOne.Web.Security.API
 {
+    /// <summary>
+    /// Internal placeholder class for API security configuration samples.
+    /// </summary>
     internal class Class1
     {
         //builder.Services.AddSingleton<ObfuscationService>(new ObfuscationService());
@@ -23,6 +26,9 @@ namespace YangOne.Web.Security.API
         ////app.UseMiddleware<ObfuscationMiddleware>();
     }
 
+    /// <summary>
+    /// Configuration for API security (encryption/obfuscation).
+    /// </summary>
     public class ApiConfig
     {
         public bool UseEncryption { get; set; }
@@ -31,6 +37,9 @@ namespace YangOne.Web.Security.API
         public string EncryptionKey { get; set; }
         public string EncryptionIV { get; set; }    
     }
+    /// <summary>
+    /// Service for managing API security configuration.
+    /// </summary>
     public interface IApiConfigService
     {
         Task<ApiConfig> GetConfigAsync();

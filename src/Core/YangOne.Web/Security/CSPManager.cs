@@ -12,12 +12,18 @@ using YangOne.Security;
 
 namespace YangOne.Web.Security
 {
+    /// <summary>
+    /// Manages Content Security Policy configuration.
+    /// </summary>
     public interface ICSPManager
     {
         string[] KnownDirectives { get; set; }
         Task<CspConfig> GetConfigAsync();
         Task SaveConfigAsync(CspConfig config);
     }
+    /// <summary>
+    /// Manages CSP configuration stored in App_Data.
+    /// </summary>
     public  class CSPManager: ICSPManager
     {
         private readonly string _configPath;

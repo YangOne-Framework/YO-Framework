@@ -9,6 +9,9 @@ namespace YangOne.RTC.Hubs
 
     //[Authorize(JwtBearerDefaults.AuthenticationScheme)]
     //[Authorize]
+    /// <summary>
+    /// Base SignalR hub that handles connection lifecycle and user tracking
+    /// </summary>
     public class BaseHub : Hub
     {
         public readonly IRTCConnectionManager ConnectionManager;

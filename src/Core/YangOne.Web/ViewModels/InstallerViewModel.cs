@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.ViewModels
 {
    
+    /// <summary>
+    /// View model for the initial installer user account setup.
+    /// </summary>
     public class InstallerUserViewModel
     {
         [Required]
@@ -19,6 +22,9 @@ namespace YangOne.Web.ViewModels
         [Required]
         public int TimeZoneId { get; set; }
     }
+    /// <summary>
+    /// View model for the application installer, containing database connection settings.
+    /// </summary>
     public class InstallerViewModel
     {
         public string DatabaseServer { get; set; }

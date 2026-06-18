@@ -5,6 +5,9 @@ using System;
 namespace YangOne.Data.Crud.Attribute
 {
     [AttributeUsage(AttributeTargets.Property)]
+    /// <summary>
+    /// Specifies auto-fill behavior for a property during object initialization.
+    /// </summary>
     public class AutoFillAttribute : System.Attribute
     {
         public object DefaultValue;
@@ -23,6 +26,9 @@ namespace YangOne.Data.Crud.Attribute
         }
     }
 
+    /// <summary>
+    /// Defines the source of auto-fill values for <see cref="AutoFillAttribute"/>.
+    /// </summary>
     public enum AutoFillProperty
     {
         CurrentDate, CurrentUser,

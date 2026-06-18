@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace YangOne.Identity.Model
 {
+    /// <summary>
+    /// Represents the base class for identity roles with a generic key type.
+    /// </summary>
     public class YangOneIdentityRole : YangOneIdentityRole<int>
     {
         public YangOneIdentityRole() { }
@@ -15,6 +18,9 @@ namespace YangOne.Identity.Model
         }
     }
 
+    /// <summary>
+    /// Represents the base class for identity roles with a generic key type.
+    /// </summary>
     public class YangOneIdentityRole<TKey> : YangOneIdentityRole<TKey, YangOneIdentityUserRole<TKey>, YangOneIdentityRoleClaim<TKey>>
         where TKey : IEquatable<TKey>
     {
@@ -25,6 +31,9 @@ namespace YangOne.Identity.Model
         }
     }
 
+    /// <summary>
+    /// Represents the base class for identity roles with a generic key type.
+    /// </summary>
     public class YangOneIdentityRole<TKey, TUserRole, TRoleClaim>
         where TKey : IEquatable<TKey>
         where TUserRole : YangOneIdentityUserRole<TKey>

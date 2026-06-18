@@ -3,6 +3,9 @@
 namespace YangOne.Storage
 {
     [Serializable]
+    /// <summary>
+    /// Response model containing the status of a chunked file upload session.
+    /// </summary>
     public class UploadStatusResponse
     {
         public static UploadStatusResponse fromSession(FileSession session)

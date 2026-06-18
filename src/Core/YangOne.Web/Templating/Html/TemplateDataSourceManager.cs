@@ -5,6 +5,9 @@ using Microsoft.Extensions.DependencyModel;
 
 namespace YangOne.Web.Templating
 {
+    /// <summary>
+    /// Discovers and manages template data sources from runtime assemblies.
+    /// </summary>
     public class TemplateDataSourceManager : ITemplateDataSourceManager
     {
         public IEnumerable<ITemplateDataSource> TemplateDataSources { get; set; }=new List<ITemplateDataSource>();

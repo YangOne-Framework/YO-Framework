@@ -6,6 +6,9 @@ using YangOne.Data;
 
 namespace YangOne.Web.Module
 {
+    /// <summary>
+    /// Performs database CRUD operations for modules.
+    /// </summary>
     public class ModuleService : IModuleService
     {
         public CrudService<ModuleInfo> Service { get; set; } = new CrudService<ModuleInfo>();

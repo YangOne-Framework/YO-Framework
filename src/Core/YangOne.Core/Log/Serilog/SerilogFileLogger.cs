@@ -8,6 +8,9 @@ using Serilog.Formatting.Compact;
 
 namespace YangOne.Log.Serilog
 {
+    /// <summary>
+    /// Logs messages to rolling files using Serilog with JSON formatting.
+    /// </summary>
     public class SerilogFileLogger : ILogger, IDisposable
     {
         private readonly ILoggerSetting _loggerSetting;

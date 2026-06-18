@@ -5,6 +5,9 @@ using YangOne.Web.Localization;
 
 namespace YangOne.Localization
 {
+    /// <summary>
+    /// Provides localization services for regions and resources.
+    /// </summary>
     public interface ILocaleService
     {
         CrudService<LocaleRegion> RegionCrudService { get; set; }

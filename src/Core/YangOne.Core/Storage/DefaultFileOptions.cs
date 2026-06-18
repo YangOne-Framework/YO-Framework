@@ -27,6 +27,9 @@ namespace YangOne.Storage
 
     //    };
     //}
+    /// <summary>
+    /// Default implementation of file storage options configured from application settings.
+    /// </summary>
     public class DefaultFileOptions : IFileOptions
     {
         public string Path { get; set; } = "Uploads";

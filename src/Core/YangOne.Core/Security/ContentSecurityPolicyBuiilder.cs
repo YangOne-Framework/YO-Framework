@@ -4,6 +4,9 @@ using System.Collections.Concurrent;
 
 namespace YangOne.Security
 {
+    /// <summary>
+    /// Builds Content Security Policy header directives.
+    /// </summary>
     public class ContentSecurityPolicyBuiilder
     {
         private IDictionary<string,string> CspPolicies=new ConcurrentDictionary<string, string>();

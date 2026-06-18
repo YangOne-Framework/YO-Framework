@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Layout
 {
+    /// <summary>
+    /// Defines a grid system for layout rendering.
+    /// </summary>
     public interface ILayoutGridSystem
     {
         string FluidContainer { get; set; }

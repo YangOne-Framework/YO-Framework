@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Localization
 {
+    /// <summary>
+    /// Defines operations for retrieving localized string resources.
+    /// </summary>
     public interface ILocaleResourceProvider
     {
         void LookUpGroupAt(string groupName);

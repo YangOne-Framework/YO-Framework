@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Printing
 {
+    /// <summary>
+    /// Provides content to be printed from available printers.
+    /// </summary>
     public class PrinterContentProvider : IPrinterContentProvider
     {
         private readonly IEnumerable<IPrinter> _printers;

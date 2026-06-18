@@ -6,6 +6,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace YangOne.Web.Model
 {
     [Table("SeoSetting")]
+    /// <summary>
+    /// Represents global SEO settings stored in the database.
+    /// </summary>
     public class SEOSetting
     {
         [Key]

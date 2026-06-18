@@ -5,6 +5,9 @@ using System;
 namespace YangOne.Data.Crud.Attribute
 {
     [AttributeUsage(AttributeTargets.Property)]
+    /// <summary>
+    /// Specifies a dependent relationship to another model for querying related data.
+    /// </summary>
     public class DependentAttribute : System.Attribute
     {
         public string Get { get; set; }

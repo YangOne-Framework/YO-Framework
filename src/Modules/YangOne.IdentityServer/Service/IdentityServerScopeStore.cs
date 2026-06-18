@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Collections.Immutable;
 using System.Data.Common;
@@ -11,6 +11,9 @@ using YangOne.Data;
 using YangOne.IdentityServer.Model;
 
 namespace YangOne.IdentityServer.Service;
+/// <summary>
+/// Represents a class IdentityServerScopeStore.
+/// </summary>
 public sealed class IdentityServerScopeStore : IOpenIddictScopeStore<OpenIddictScope>
 {
     private static async ValueTask<DbConnection> OpenAsync(CancellationToken ct)

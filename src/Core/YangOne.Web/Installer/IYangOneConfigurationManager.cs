@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Installer
 {
+    /// <summary>
+    /// Manages installation, uninstallation, and backup of the application.
+    /// </summary>
     public interface IYangOneConfigurationManager
     {
         Task<bool> Install(string connectionString);

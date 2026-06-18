@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Security.Claims;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,6 +16,9 @@ using YangOne.DI;
 
 namespace YangOne.Identity
 {
+    /// <summary>
+    /// Registers identity services and configuration for the application.
+    /// </summary>
     public class ServiceRegistrar : IServiceRegistrar
     {
         public void Register(IServiceCollection serviceCollection, IConfiguration configuration)

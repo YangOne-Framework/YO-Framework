@@ -14,6 +14,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Service
 {
+    /// <summary>
+    /// Manages application permissions, including controller actions, roles, and user permissions.
+    /// </summary>
     public class PermissionService : IPermissionService
     {
         private string _cacheKey = "YO.PagePermissionExtended";

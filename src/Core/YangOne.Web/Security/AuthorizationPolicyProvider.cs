@@ -6,6 +6,9 @@ using Microsoft.Extensions.Options;
 
 namespace YangOne.Web.Security
 {
+    /// <summary>
+    /// Custom authorization policy provider supporting dynamic policies.
+    /// </summary>
     public class AuthorizationPolicyProvider : DefaultAuthorizationPolicyProvider
     {
         private readonly IConfiguration _configuration;

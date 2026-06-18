@@ -10,6 +10,9 @@ using System.Reflection;
 
 namespace YangOne.Data.Crud
 {
+    /// <summary>
+    /// Resolves a type's table name using <see cref="TableAttribute"/> or the type name.
+    /// </summary>
     public sealed class TableNameResolver : ITableNameResolver
     {
         private ISQLTemplate SqlTemplate { get; set; }

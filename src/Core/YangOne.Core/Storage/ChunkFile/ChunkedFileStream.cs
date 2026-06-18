@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Storage;
 
+/// <summary>
+/// A read-only stream that reads data from chunked file storage.
+/// </summary>
 public class ChunkedFileStream : Stream
 {
     private readonly IStorageProvider _storageProvider;

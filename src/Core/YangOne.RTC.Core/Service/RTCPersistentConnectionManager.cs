@@ -7,6 +7,9 @@ using YangOne.Log;
 
 namespace YangOne.RTC
 {
+    /// <summary>
+    /// Manages persistent RTC connections using a database-backed user store
+    /// </summary>
     public class RTCPersistentConnectionManager : IRTCUserService
     {
         private readonly ILogger _logger;

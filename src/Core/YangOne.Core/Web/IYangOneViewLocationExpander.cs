@@ -4,4 +4,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace YangOne.Web;
 
+/// <summary>
+/// Marker interface for YangOne view location expanders.
+/// </summary>
 public interface  IYangOneViewLocationExpander: IViewLocationExpander { }

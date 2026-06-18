@@ -1,4 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Description>YO Framework Real-Time Communication core with SignalR hubs, connection management, and presence tracking.</Description>
+	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.11" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="10.0.9" />

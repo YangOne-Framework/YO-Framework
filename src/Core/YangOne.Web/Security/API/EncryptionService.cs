@@ -5,6 +5,9 @@ using System.Text;
 
 namespace YangOne.Web.Security.API;
 
+/// <summary>
+/// Provides AES encryption and decryption for API payloads.
+/// </summary>
 public class EncryptionService
 {
     private readonly byte[] _key;

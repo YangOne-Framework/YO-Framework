@@ -4,6 +4,9 @@ using System;
 using System.Diagnostics;
 namespace YangOne.Messaging
 {
+    /// <summary>
+    /// Represents a subscription with throttling support for message handling.
+    /// </summary>
     internal sealed class Subscription
     {
         private const long TicksMultiplier = 1000 * TimeSpan.TicksPerMillisecond;

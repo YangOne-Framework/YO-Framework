@@ -11,6 +11,9 @@ using YangOne.OTP.Service;
 
 namespace YangOne.OTP.Services
 {
+    /// <summary>
+    /// Provides OTP generation and verification services
+    /// </summary>
     public class OTPService : IOTPService
     {
         private readonly ICacheService _cacheService;

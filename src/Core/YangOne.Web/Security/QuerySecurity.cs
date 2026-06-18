@@ -6,6 +6,9 @@ using System.Text;
 
 namespace YangOne.Web.Security;
 
+/// <summary>
+/// Provides encryption and decryption utilities for query strings and emails.
+/// </summary>
 public class QuerySecurity
 {
     private static string key = "iloveyangoneframework";

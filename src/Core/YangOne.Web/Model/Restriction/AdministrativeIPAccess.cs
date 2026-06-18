@@ -6,6 +6,9 @@ using YangOne.Data.Crud.Attribute;
 
 namespace YangOne.Web.Model;
     [Table("AdministrativeIPAccess")]
+    /// <summary>
+    /// Represents IP access restrictions for administrative roles.
+    /// </summary>
     public class AdministrativeIPAccess
     {
         [Key]

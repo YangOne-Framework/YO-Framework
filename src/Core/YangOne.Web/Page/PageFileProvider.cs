@@ -10,6 +10,9 @@ using YangOne.Plugin;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Custom file provider that serves page views from the database to the Razor view engine.
+    /// </summary>
     public class PageFileProvider : IFileProvider
     {
         // private string _connection;

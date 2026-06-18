@@ -4,6 +4,9 @@ using YangOne.Data.Crud;
 
 namespace YangOne.Web.Module
 {
+    /// <summary>
+    /// Defines a service for running database scripts.
+    /// </summary>
     public interface IScriptRunner
     {
         Task<bool> Run(string[] scripts);

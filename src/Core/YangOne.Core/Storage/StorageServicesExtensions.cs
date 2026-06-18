@@ -5,6 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace YangOne.Storage
 {
+    /// <summary>
+    /// Extension methods for registering YangOne storage services.
+    /// </summary>
     public static class StorageServicesExtensions
     {
        

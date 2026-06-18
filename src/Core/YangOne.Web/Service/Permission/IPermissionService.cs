@@ -5,6 +5,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Service
 {
+    /// <summary>
+    /// Defines the contract for permission management operations.
+    /// </summary>
     public interface IPermissionService
     {
        

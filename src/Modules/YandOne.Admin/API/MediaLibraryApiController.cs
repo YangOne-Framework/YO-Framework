@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +12,9 @@ using YangOne.Web.API;
 namespace YandOne.Admin.API;
 
 [Route("api/v1/media-library")]
+/// <summary>
+/// Represents a class MediaLibraryApiController.
+/// </summary>
 public class MediaLibraryApiController : BaseApiController
 {
     private readonly ILogger _logger;

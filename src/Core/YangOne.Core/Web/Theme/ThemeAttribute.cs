@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace YangOne.Web.Theme
 {
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+    /// <summary>
+    /// Action filter attribute to specify a theme for a controller or action.
+    /// </summary>
     public class ThemeAttribute : ActionFilterAttribute
     {
         public ThemeAttribute(string theme)

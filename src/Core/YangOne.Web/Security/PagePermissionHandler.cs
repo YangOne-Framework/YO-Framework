@@ -11,6 +11,9 @@ using YangOne.Identity;
 namespace YangOne.Web.Security
 {
 
+    /// <summary>
+    /// Handles page permission authorization requirements.
+    /// </summary>
     public class PagePermissionHandler : AuthorizationHandler<PagePermissionRequirement>
     {
         private string _cachingKey = "YO.Routes";

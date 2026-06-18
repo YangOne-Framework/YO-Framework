@@ -1,4 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<Description>YO Framework web layer providing grid, forms, module system, widgets, tag helpers, theming, localization, security middleware, templating, printing, and SEO.</Description>
+	</PropertyGroup>
 	<ItemGroup>
 		<None Remove="Views\Shared\YOGrid\Form.cshtml" />
 		<None Remove="Views\Shared\YOGrid\Grid.cshtml" />

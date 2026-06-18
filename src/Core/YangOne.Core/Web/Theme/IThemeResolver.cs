@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace YangOne.Web.Theme
 {
+    /// <summary>
+    /// Resolves the active theme for a given request context.
+    /// </summary>
     public interface IThemeResolver
     {
         string Resolve(ControllerContext controllerContext, string theme);

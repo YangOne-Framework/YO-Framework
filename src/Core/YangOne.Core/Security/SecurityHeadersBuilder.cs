@@ -4,6 +4,9 @@ using System;
 
 namespace YangOne.Security
 {
+    /// <summary>
+    /// Builder for configuring security headers applied to HTTP responses.
+    /// </summary>
     public class SecurityHeadersBuilder
     {
         private readonly SecurityHeadersPolicy _policy = new SecurityHeadersPolicy();

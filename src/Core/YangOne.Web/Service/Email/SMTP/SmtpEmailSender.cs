@@ -10,6 +10,9 @@ using System.Net.Mime;
 
 namespace YangOne.Web.Services
 {
+    /// <summary>
+    /// Sends email messages using the SMTP protocol.
+    /// </summary>
     public class SmtpEmailSender : IEmailSender
     {
         private readonly SmtpEmailSetting _setting;

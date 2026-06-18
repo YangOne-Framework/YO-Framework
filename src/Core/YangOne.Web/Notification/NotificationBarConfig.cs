@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Notification
 {
+    /// <summary>
+    /// Default implementation of <see cref="INotificationBarConfig"/> providing HTML templates for notification types.
+    /// </summary>
     public class NotificationBarConfig : INotificationBarConfig
     {
         public bool AutoClose { get; set; } = false;

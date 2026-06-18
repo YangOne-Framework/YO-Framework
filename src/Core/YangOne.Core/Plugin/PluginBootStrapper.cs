@@ -19,6 +19,9 @@ using Microsoft.Extensions.FileProviders;
 
 namespace YangOne.Plugin
 {
+    /// <summary>
+    /// Bootstraps plugins by discovering and loading plugin assemblies.
+    /// </summary>
     public class PluginBootStrapper : IBootstrapper
     {
         private readonly IWebHostEnvironment _hostingEnvironment;
@@ -106,6 +109,9 @@ opts.FileProviders.Add(pluginFileProvider)
 
 
     }
+    /// <summary>
+    /// Provides access to discovered plugins and their assemblies.
+    /// </summary>
     public interface IPluginProvider
     {
         Dictionary<string, Assembly> GetPlugins();
@@ -115,6 +121,9 @@ opts.FileProviders.Add(pluginFileProvider)
         IEnumerable<IPlugin> GetPlugins(PluginType type);
 
     }
+    /// <summary>
+    /// Default implementation of the plugin provider.
+    /// </summary>
     public class PluginProvider : IPluginProvider
     {
         public PluginProvider(IEnumerable<IPlugin> plugins, Dictionary<string, Assembly> pluginAssembly)

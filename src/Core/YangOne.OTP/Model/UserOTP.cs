@@ -6,6 +6,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace YangOne.OTP.Model;
 
 [Table("UserOTP")]
+/// <summary>
+/// Represents an OTP code record associated with a user
+/// </summary>
 public class UserOTP
 {
     [Key]

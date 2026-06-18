@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 
 namespace YangOne.Web.TagHelpers
 {
+    /// <summary>
+    /// Renders a placeholder for a module component.
+    /// </summary>
     [HtmlTargetElement("module")]
     public class ModuleTagHelper : TagHelper
     {

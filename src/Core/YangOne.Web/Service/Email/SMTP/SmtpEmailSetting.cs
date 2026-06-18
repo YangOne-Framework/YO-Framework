@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Represents the configuration settings for an SMTP email server.
+    /// </summary>
     public class SmtpEmailSetting
     {
         public string Host { get; set; }

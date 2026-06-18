@@ -13,6 +13,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace YangOne.Plugin
 {
+    /// <summary>
+    /// Default implementation of <see cref="IPluginService"/> handling plugin installation, updates, and file management.
+    /// </summary>
     public class PluginService : IPluginService
     {
         private readonly IKeyGenerator _keyGenerator;

@@ -6,6 +6,9 @@ using System.Reflection;
 
 namespace YangOne.Extensions
 {
+    /// <summary>
+    /// Provides extension methods for reading embedded assembly resources and SQL scripts.
+    /// </summary>
     public static class AssemblyExensions
     {
         public static string GetDbInstallScript(this Assembly assembly)

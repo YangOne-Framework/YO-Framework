@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Printing
 {
+    /// <summary>
+    /// Defines a printer that can print lines of text to a network printer.
+    /// </summary>
     public interface IPrinter
     {
         string Name { get; set; }

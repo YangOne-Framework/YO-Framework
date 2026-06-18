@@ -1,4 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>YO Framework ASP.NET Core Identity integration with Dapper-based user/role stores, services, and extended identity models.</Description>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Remove="ViewModel\**" />
     <EmbeddedResource Remove="ViewModel\**" />

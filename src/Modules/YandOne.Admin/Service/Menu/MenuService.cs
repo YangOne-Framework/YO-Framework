@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Data;
 using System.Data.Common;
@@ -13,6 +13,9 @@ using YangOne.Data.Extension;
 namespace YangOne.Admin.Service
 {
 
+    /// <summary>
+    /// Represents a class MenuService.
+    /// </summary>
     public class MenuService : IMenuService
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

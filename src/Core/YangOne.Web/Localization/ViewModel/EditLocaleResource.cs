@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Localization
 {
+    /// <summary>
+    /// View model for editing a single locale resource entry.
+    /// </summary>
     public class EditLocaleResource
     {
         public int LocaleResourceId { get; set; }

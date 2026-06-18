@@ -6,6 +6,9 @@ using Newtonsoft.Json.Linq;
 
 namespace YangOne.Configuration
 {
+    /// <summary>
+    /// Saves YO configuration and connection string data to JSON files.
+    /// </summary>
     public class ConfigToJson : IConfigToJson
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

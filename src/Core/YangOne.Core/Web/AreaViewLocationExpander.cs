@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Expands Razor view locations to include area-specific paths.
+    /// </summary>
     public class AreaViewLocationExpander : IYangOneViewLocationExpander
     {
         public void PopulateValues(ViewLocationExpanderContext context)

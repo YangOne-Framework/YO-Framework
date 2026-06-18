@@ -4,6 +4,9 @@ using YangOne.Data;
 
 namespace YangOne.Web.Module
 {
+    /// <summary>
+    /// Defines data operations for module persistence.
+    /// </summary>
     public interface IModuleService
     {
         CrudService<ModuleInfo> Service { get; set; }

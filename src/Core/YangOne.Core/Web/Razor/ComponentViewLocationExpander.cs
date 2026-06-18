@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Expands Razor view locations to support component views.
+    /// </summary>
     public class ComponentViewLocationExpander : IYangOneViewLocationExpander
     {
         private const string _componentKey = "component";

@@ -15,6 +15,9 @@ using Microsoft.Extensions.Options;
 
 namespace YangOne.Web.Razor
 {
+    /// <summary>
+    /// Renders Razor views to strings for email and template generation.
+    /// </summary>
     public class ViewRenderService : IViewRenderService
     {
         private readonly IRazorPageFactoryProvider _pageFactory;

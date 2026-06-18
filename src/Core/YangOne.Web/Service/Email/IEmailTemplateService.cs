@@ -3,6 +3,9 @@
 using YangOne.Data;
 using YangOne.Web.Model;
 
+/// <summary>
+/// Defines the contract for email template operations.
+/// </summary>
 public interface IEmailTemplateService
 {
     CrudService<EmailTemplate> TemplateCRUDService { get; set; }

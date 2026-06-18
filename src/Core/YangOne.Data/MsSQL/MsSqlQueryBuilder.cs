@@ -3,6 +3,9 @@
 using YangOne.Data.Crud;
 namespace YangOne.Data
 {
+    /// <summary>
+    /// SQL Server-specific query builder implementation.
+    /// </summary>
     public sealed class MsSqlQueryBuilder : QueryBuilder
     {       
         public MsSqlQueryBuilder(ISQLTemplate template, ITableNameResolver tblresolver, IColumnNameResolver colresolver) 

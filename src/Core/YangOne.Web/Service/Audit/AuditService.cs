@@ -5,6 +5,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Services
 {
+    /// <summary>
+    /// Provides audit logging functionality by managing audit records.
+    /// </summary>
     public class AuditService : IAuditService
     {
         public CrudService<Audit> CrudService { get; set; }=new CrudService<Audit>();

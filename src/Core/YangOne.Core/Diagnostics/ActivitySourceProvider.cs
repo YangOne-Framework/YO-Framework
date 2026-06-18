@@ -5,6 +5,9 @@ using System.Diagnostics.Metrics;
 
 namespace YangOne.Diagnostics
 {
+    /// <summary>
+    /// Provides ActivitySource and Meter instances for OpenTelemetry.
+    /// </summary>
     public class ActivitySourceProvider : IDisposable
     {
         public ActivitySource ActivitySource { get; }

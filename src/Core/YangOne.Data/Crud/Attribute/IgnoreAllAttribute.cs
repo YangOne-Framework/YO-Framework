@@ -5,6 +5,9 @@ using System;
 namespace YangOne.Data.Crud.Attribute
 {
     [AttributeUsage(AttributeTargets.Property)]
+    /// <summary>
+    /// Specifies that a property should be ignored by all CRUD operations (insert, update, select).
+    /// </summary>
     public class IgnoreAllAttribute : System.Attribute
     {
     }

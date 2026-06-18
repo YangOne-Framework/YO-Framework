@@ -6,8 +6,14 @@ using Microsoft.AspNetCore.Mvc.Filters;
 namespace YangOne.Web.Security.API;
 
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method)]
+/// <summary>
+/// Attribute to exclude a controller or action from payload protection.
+/// </summary>
 public class ExcludeFromPayloadProtectionAttribute : Attribute { }
 
+/// <summary>
+/// Filter that wraps API responses with encryption or obfuscation protection.
+/// </summary>
 public class ProtectPayloadFilter : IAsyncResultFilter, IAlwaysRunResultFilter
 {
     private readonly IApiPayloadSecurityService _securityService;

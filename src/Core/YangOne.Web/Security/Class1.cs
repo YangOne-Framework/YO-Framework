@@ -10,20 +10,32 @@ using System.Threading.Tasks;
 
 namespace YangOne.Web.Security
 {
+    /// <summary>
+    /// Internal placeholder class.
+    /// </summary>
     internal class Class1
     {
     }
+    /// <summary>
+    /// Configuration for allowed file types by module.
+    /// </summary>
     public class FileConfig
     {
         public Dictionary<string, List<string>> AllowFileTypes { get; set; } = new();
     }
 
+    /// <summary>
+    /// Service for managing file type configuration.
+    /// </summary>
     public interface IFileConfigService
     {
         Task<FileConfig> GetConfigAsync();
         Task SaveConfigAsync(FileConfig config);
     }
 
+    /// <summary>
+    /// Manages file type allowlist configuration stored in App_Data.
+    /// </summary>
     public class FileConfigService : IFileConfigService
     {
         private readonly string _configPath;
@@ -130,6 +142,9 @@ namespace YangOne.Web.Security
         }
     }
 
+    /// <summary>
+    /// Represents basic application security settings.
+    /// </summary>
     public class AppBasicSecurity
     {
         public bool RequireOTP { get; set; }
@@ -146,12 +161,18 @@ namespace YangOne.Web.Security
         public bool RequireUppercase { get; set; }
     }
 
+    /// <summary>
+    /// Service for managing basic application security configuration.
+    /// </summary>
     public interface IAppBasicSecurityService
     {
         Task<AppBasicSecurity> GetConfigAsync();
         Task SaveConfigAsync(AppBasicSecurity config);
     }
 
+    /// <summary>
+    /// Manages basic application security settings stored in App_Data.
+    /// </summary>
     public class AppBasicSecurityService : IAppBasicSecurityService
     {
         private readonly string _configPath;

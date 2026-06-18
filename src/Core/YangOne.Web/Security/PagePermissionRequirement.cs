@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace YangOne.Web.Security
 {
+    /// <summary>
+    /// Authorization requirement for page-level permissions.
+    /// </summary>
     public class PagePermissionRequirement : IAuthorizationRequirement
     {
         public string PageName { get; }

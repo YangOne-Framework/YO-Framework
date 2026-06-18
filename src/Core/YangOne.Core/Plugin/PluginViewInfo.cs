@@ -5,6 +5,9 @@ using Microsoft.Extensions.FileProviders;
 
 namespace YangOne.Plugin
 {
+    /// <summary>
+    /// Represents a view file embedded in a plugin assembly.
+    /// </summary>
     public class PluginViewInfo : IFileInfo
     {
         private readonly string _viewPath;

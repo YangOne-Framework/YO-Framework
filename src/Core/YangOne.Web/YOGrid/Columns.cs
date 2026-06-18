@@ -18,6 +18,9 @@ using YangOne.Web.Form;
 
 namespace YangOne.Web.Grid
 {
+    /// <summary>
+    /// Defines a single column in the grid.
+    /// </summary>
     public interface IYOGridColumn
     {
         string Name { get; set; }
@@ -35,15 +38,24 @@ namespace YangOne.Web.Grid
         string SelectedValue { get; set; }
 
     }
+    /// <summary>
+    /// Defines a typed grid column bound to a model expression.
+    /// </summary>
     public interface IYOGridColumn<T> : IYOGridColumn
     {
         IYOGrid<T> Grid { get; }
         LambdaExpression Expression { get; }
         Func<T, Object> RenderValue { get; set; }
     }
+    /// <summary>
+    /// Defines a collection of grid columns.
+    /// </summary>
     public interface IYOGridColumns<out T> : IEnumerable<T> where T : IYOGridColumn
     {
     }
+    /// <summary>
+    /// Defines operations for adding and inserting typed grid columns.
+    /// </summary>
     public interface IYOGridColumnsOf<T> : IYOGridColumns<IYOGridColumn<T>>
     {
         IYOGrid<T> Grid { get; set; }
@@ -57,6 +69,9 @@ namespace YangOne.Web.Grid
     }
 
 
+    /// <summary>
+    /// Base class for grid column implementations.
+    /// </summary>
     public abstract class BaseKachuwaGridColumn<T, TValue> : IYOGridColumn<T>
     {
         public string Name { get; set; }
@@ -82,6 +97,9 @@ namespace YangOne.Web.Grid
     }
 
 
+    /// <summary>
+    /// Default implementation of a grid column with value rendering and validation.
+    /// </summary>
     public class YOGridColumn<T, TValue> : BaseKachuwaGridColumn<T, TValue> where T : class
     {
         // private readonly Object _obj;
@@ -381,6 +399,9 @@ namespace YangOne.Web.Grid
         }
     }
 
+    /// <summary>
+    /// Default collection of typed grid columns.
+    /// </summary>
     public class YOGridColumns<T> : List<IYOGridColumn<T>>, IYOGridColumnsOf<T> where T : class
     {
         public IYOGrid<T> Grid { get; set; }

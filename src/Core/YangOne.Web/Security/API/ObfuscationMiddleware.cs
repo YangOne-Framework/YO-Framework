@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace YangOne.Web.Security.API;
 
+/// <summary>
+/// Middleware that obfuscates JSON response bodies.
+/// </summary>
 public class ObfuscationMiddleware
 {
     private readonly RequestDelegate _next;

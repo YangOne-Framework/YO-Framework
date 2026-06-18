@@ -5,6 +5,9 @@ using YangOne.Web.Layout;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Provides methods to manage pages, including CRUD operations, layout, and permissions.
+    /// </summary>
     public interface IPageService
     {
         CrudService<Page> CrudService { get; set; }

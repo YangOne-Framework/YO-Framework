@@ -6,11 +6,17 @@ using Newtonsoft.Json;
 
 namespace YangOne.Data
 {
+    /// <summary>
+    /// Default logger settings with logging disabled by default.
+    /// </summary>
     public class DefaultDbLoggerSetting : ILoggerSetting
     {
         public bool AllowLogging { get; set; } = false;
     }
 
+    /// <summary>
+    /// Logs database queries and errors to rolling log files.
+    /// </summary>
     public class DbLogger : ILogger
     {
         private readonly ILoggerSetting _loggerSetting;

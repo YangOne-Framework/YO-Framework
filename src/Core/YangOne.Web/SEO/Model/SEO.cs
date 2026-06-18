@@ -8,6 +8,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.Model
 {
     [Table("Seo")]
+    /// <summary>
+    /// Represents SEO metadata for a page or entity, including meta title, description, and Open Graph data.
+    /// </summary>
     public class SEO
     {
         [Key]

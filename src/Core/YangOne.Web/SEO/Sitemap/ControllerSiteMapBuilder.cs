@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Builds sitemap nodes by discovering controller routes.
+    /// </summary>
     public class ControllerSiteMapBuilder : ISiteMapBuilder
     {
         private string BaseCategoryUrl { get; set; }

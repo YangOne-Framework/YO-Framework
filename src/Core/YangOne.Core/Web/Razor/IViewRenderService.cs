@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Razor
 {
+    /// <summary>
+    /// Defines a service for rendering Razor views to strings.
+    /// </summary>
     public interface IViewRenderService
     {
         Task<string> RenderToStringAsync(string controller, string viewName, object model);

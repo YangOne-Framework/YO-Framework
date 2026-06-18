@@ -3,6 +3,9 @@
 
 namespace YangOne.Web.Printing
 {
+    /// <summary>
+    /// Default printer implementation (not yet implemented).
+    /// </summary>
     public class DefaultPrinter : IPrinter
     {
         public string Name { get; set; }

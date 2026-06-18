@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Logging;
@@ -15,6 +15,9 @@ using ILogger = YangOne.Log.ILogger;
 
 namespace YangOne.Identity.Stores
 {
+    /// <summary>
+    /// A Dapper-based implementation of ASP.NET Core Identity user store.
+    /// </summary>
     public class YOUserStore<TUser, TKey, TUserRole, TRoleClaim, TUserClaim, TUserLogin, TRole> :
         IUserStore<TUser>,
         IUserLoginStore<TUser>,

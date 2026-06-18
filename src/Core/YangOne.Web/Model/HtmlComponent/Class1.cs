@@ -6,6 +6,9 @@ using YangOne.Data.Crud.Attribute;
 
 namespace YangOne.Web.Model;
     [Table("HtmlComponent")]
+    /// <summary>
+    /// Represents an HTML component with template, configuration and runtime options.
+    /// </summary>
     public class HtmlComponent
     {
         [Key]

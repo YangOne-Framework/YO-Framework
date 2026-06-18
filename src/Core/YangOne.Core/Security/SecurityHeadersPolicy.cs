@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Security
 {
+    /// <summary>
+    /// Defines the security headers to set and remove in HTTP responses.
+    /// </summary>
     public class SecurityHeadersPolicy
     {
         public IDictionary<string, string> SetHeaders { get; }

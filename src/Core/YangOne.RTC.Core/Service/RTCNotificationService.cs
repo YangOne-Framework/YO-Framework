@@ -8,6 +8,9 @@ using YangOne.Web.Notification;
 
 namespace YangOne.RTC
 {
+    /// <summary>
+    /// Sends real-time notifications via SignalR to connected users
+    /// </summary>
     public class RTCNotificationService : INotificationService
     {
         private readonly INotificationTempDataWrapper _tempDataWrapper;

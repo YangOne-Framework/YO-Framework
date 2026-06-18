@@ -5,6 +5,9 @@ using YangOne.Extensions;
 
 namespace YangOne.Web.Module
 {
+    /// <summary>
+    /// Manages module installation, uninstallation, and discovery.
+    /// </summary>
     public class ModuleManager : IModuleManager
     {
         private readonly IServiceCollection _services;

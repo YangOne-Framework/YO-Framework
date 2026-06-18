@@ -4,6 +4,9 @@ using System.Collections.Concurrent;
 
 namespace YangOne.Web.Form
 {
+    /// <summary>
+    /// Provides a thread-safe cache for form input data sources.
+    /// </summary>
     public class FormDatasource
     {
         private ConcurrentDictionary<string,IEnumerable<FormInputItem>> _sources

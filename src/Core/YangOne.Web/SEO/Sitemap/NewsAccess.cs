@@ -4,6 +4,9 @@ using System.Xml.Serialization;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Specifies the access level for news articles in the sitemap.
+    /// </summary>
     public enum NewsAccess
     {
         [XmlEnum]

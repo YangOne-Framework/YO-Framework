@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace YangOne.Web.Security.API;
 
+/// <summary>
+/// Manages API security configuration stored in App_Data.
+/// </summary>
 public class ApiConfigService : IApiConfigService
 {
     private readonly string _configPath;

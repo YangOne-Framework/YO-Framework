@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.RTC
 {
     [Table("RTCUser")]
+    /// <summary>
+    /// Represents a connected user in the real-time communication system
+    /// </summary>
     public class RTCUser
     {
         [Key]

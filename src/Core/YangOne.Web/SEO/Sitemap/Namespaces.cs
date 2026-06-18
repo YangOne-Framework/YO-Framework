@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Defines XML namespace constants and prefixes for sitemap extensions (image, news, video, mobile).
+    /// </summary>
     internal static class Namespaces
     {
         public const string Sitemap = "http://www.sitemaps.org/schemas/sitemap/0.9";

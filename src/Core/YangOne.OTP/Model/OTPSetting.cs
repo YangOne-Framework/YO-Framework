@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.OTP.Model;
 
 [Table("OTPSetting")]
+/// <summary>
+/// Represents the OTP configuration settings
+/// </summary>
 public class OTPSetting
 {
     [Key]

@@ -4,6 +4,9 @@ using System.Xml.Serialization;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Specifies the restriction relationship type for video sitemap entries.
+    /// </summary>
     public enum VideoRestrictionRelationship
     {
         [XmlEnum("allow")]

@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace YangOne.DI
 {
+    /// <summary>
+    /// Defines a contract for configuring the application pipeline.
+    /// </summary>
     public interface IAppBuilderRegistrar
     {
         void Configure(IApplicationBuilder app, IServiceProvider serviceProvider, IWebHostEnvironment env);

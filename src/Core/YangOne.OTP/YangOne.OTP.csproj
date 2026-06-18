@@ -1,4 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>YO Framework One-Time Password (HOTP/TOTP) implementation for secure authentication flows.</Description>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\YangOne.Data\YangOne.Data.csproj" />
   </ItemGroup>

@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.Model
 {
     [Table("AuditLog")]
+    /// <summary>
+    /// Represents an audit log entry tracking URL access, user activity and request data.
+    /// </summary>
     public class Audit
     {
         [Key]

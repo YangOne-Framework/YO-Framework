@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -31,6 +31,9 @@ using IdentityUser = YangOne.Identity.Model.IdentityUser;
 namespace YandOne.Admin.API;
 
 [Route("api/v1/user")]
+/// <summary>
+/// Represents a class UserApiController.
+/// </summary>
 public  class UserApiController : BaseApiController
 {
     private readonly UserManager<IdentityUser> _userManager;

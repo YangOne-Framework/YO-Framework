@@ -25,6 +25,9 @@ using ILogger = YangOne.Log.ILogger;
 
 namespace YangOne.Extensions
 {
+    /// <summary>
+    /// Registers core YO framework services and configures the application pipeline.
+    /// </summary>
     public static class YangOneCoreExtensions
     {
         public static IServiceCollection RegisterYOCoreServices(this IServiceCollection services,

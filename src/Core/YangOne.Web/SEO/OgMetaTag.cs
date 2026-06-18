@@ -5,6 +5,9 @@ using System.Text;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Generates Open Graph (og:) meta tags for social media sharing.
+    /// </summary>
     public class OgMetaTag : IMetaTag
     {
         public ConcurrentDictionary<string, string> MetaKeyValues { get; set; }

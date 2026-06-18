@@ -4,6 +4,9 @@ using System;
 
 namespace YangOne.Extensions
 {
+    /// <summary>
+    /// Provides extension methods for DateTime time zone conversion.
+    /// </summary>
     public static class DateTimeExtensions
     {
         public static DateTime ToTimeZoneDate(this DateTime inputTime, string fromOffset, string toZone)

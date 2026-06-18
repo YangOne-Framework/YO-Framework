@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +18,9 @@ using YangOne.Web.Service;
 namespace YandOne.Admin.API;
 
 [Route("api/v1/setting")]
+/// <summary>
+/// Represents a class SettingApiController.
+/// </summary>
 public class SettingApiController : BaseApiController
 {
     private readonly ILogger _logger;

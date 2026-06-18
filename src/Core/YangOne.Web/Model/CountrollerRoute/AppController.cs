@@ -4,7 +4,11 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 namespace YangOne.Web.Model;
 
-    [Table("AppController")]    public class AppController
+    [Table("AppController")]
+    /// <summary>
+    /// Represents an application controller registered in the system.
+    /// </summary>
+    public class AppController
     {
         [Key]
         public int Id { get; set; }

@@ -6,6 +6,9 @@ using YangOne.Web.Service;
 
 namespace YangOne.Web.Services
 {
+    /// <summary>
+    /// Defines the contract for SMS gateway and provider management.
+    /// </summary>
     public interface ISMSService
     {
        

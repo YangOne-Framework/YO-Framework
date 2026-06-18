@@ -11,6 +11,9 @@ namespace YangOne.Extensions
 {
 
 
+    /// <summary>
+    /// Provides extension methods for string manipulation and conversion.
+    /// </summary>
     public static class StringExtensions
     {
         public static string ReplaceLastOccurrence(this string Source, string Find, string Replace)
@@ -168,6 +171,9 @@ namespace YangOne.Extensions
         }
     }
 
+    /// <summary>
+    /// Provides extension methods for converting byte lengths to human-readable file sizes.
+    /// </summary>
     public static class FileSizeExtensions
     {
         public static string ToFileSize(this long byteLength)

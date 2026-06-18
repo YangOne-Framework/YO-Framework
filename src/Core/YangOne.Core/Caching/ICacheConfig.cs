@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 
 namespace YangOne.Caching
 {
+    /// <summary>
+    /// Defines cache lifecycle initialization and termination operations.
+    /// </summary>
     public interface ICacheConfig
     {
         Task Init();

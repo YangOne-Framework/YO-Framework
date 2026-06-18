@@ -3,6 +3,7 @@
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Scalar.AspNetCore;
 using YOApp;
+using YangOne.BackgroundJobRunner;
 using YangOne.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,12 +23,19 @@ config.AddJsonFile("app_data/fileconfig.json", optional: false, reloadOnChange: 
 config.AddJsonFile("app_data/apiconfig.json", optional: false, reloadOnChange: true);
 config.AddJsonFile("app_data/cacheconfig.json", optional: true, reloadOnChange: true);
 
-
-
-
+config.AddEnvironmentVariables();
 
 builder.Services.TryAddSingleton<ConfigChangeEvent, YangOneConfigChangeEvent>();
 Startup.ConfigureServices(builder.Services, config, env);
+
+builder.Services.AddYangOneBackgroundJobs(options =>
+{
+    options.Provider = BackgroundJobProvider.Hangfire;
+    options.HangfireConnectionString = builder.Configuration.GetConnectionString("JobConnection");
+    options.HangfireUseInMemoryStorage = false;
+    options.WorkerCount = Environment.ProcessorCount * 2;
+});
+
 //builder.AddIdentityServer(builder.Configuration);
 var app = builder.Build();
 

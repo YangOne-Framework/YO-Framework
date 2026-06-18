@@ -9,6 +9,9 @@ using YangOne.DI;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Registers web services for the YO Framework application.
+    /// </summary>
     public class WebServiceRegistrar : IServiceRegistrar
     {
         private bool _isInstalled = false;

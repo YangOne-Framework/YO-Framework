@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Data.Common;
 using Dapper;
@@ -7,6 +7,9 @@ using YangOne.Identity.Model;
 
 namespace YangOne.Identity.Service
 {
+    /// <summary>
+    /// Provides services for managing user login history.
+    /// </summary>
     public class LoginHistoryService:ILoginHistoryService {
         public CrudService<UserLoginHistory> HistoryService { get; set; }=new CrudService<UserLoginHistory>();
         public Task<UserLoginHistory> GetLastLoginInfoAsync(long userId)

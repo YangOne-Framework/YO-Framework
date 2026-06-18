@@ -4,6 +4,9 @@ using YangOne.Data.Crud;
 
 namespace YangOne.Data
 {
+    /// <summary>
+    /// PostgreSQL-specific query builder implementation.
+    /// </summary>
     public sealed class NpgSqlQueryBuilder : QueryBuilder
     {
         public NpgSqlQueryBuilder(ISQLTemplate template, ITableNameResolver tblresolver, IColumnNameResolver colresolver)

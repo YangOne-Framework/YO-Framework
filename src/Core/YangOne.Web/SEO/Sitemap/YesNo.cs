@@ -4,6 +4,9 @@ using System.Xml.Serialization;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Represents a ternary Yes/No/None value used in sitemap XML serialization.
+    /// </summary>
     public enum YesNo
     {
         None,

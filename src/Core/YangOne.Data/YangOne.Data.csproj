@@ -1,4 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>YO Framework data access layer with Dapper-based CRUD, SQL query builder, and support for SQL Server and PostgreSQL.</Description>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\YangOne.Core\YangOne.Core.csproj" />
   </ItemGroup>

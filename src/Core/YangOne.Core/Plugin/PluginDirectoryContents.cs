@@ -5,6 +5,9 @@ using Microsoft.Extensions.FileProviders;
 
 namespace YangOne.Plugin
 {
+    /// <summary>
+    /// Represents the contents of a plugin directory for the file provider.
+    /// </summary>
     public class PluginDirectoryContents : IDirectoryContents, IEnumerable<IFileInfo>, IEnumerable
     {
         private readonly IEnumerable<IFileInfo> _entries;

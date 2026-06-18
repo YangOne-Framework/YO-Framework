@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Data;
 using System.Data.Common;
@@ -10,6 +10,9 @@ using IdentityUser = YangOne.Identity.Model.IdentityUser;
 using IdentityRole = YangOne.Identity.Model.IdentityRole;
 namespace YangOne.Identity.Service
 {
+    /// <summary>
+    /// Implements user identity services using Dapper.
+    /// </summary>
     public class IdentityUserService : IIdentityUserService
     {
         private readonly UserManager<IdentityUser> _userManager;

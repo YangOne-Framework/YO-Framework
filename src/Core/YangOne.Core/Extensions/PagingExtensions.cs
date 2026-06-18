@@ -5,6 +5,9 @@ using System.Linq;
 
 namespace YangOne.Extensions
 {
+    /// <summary>
+    /// Provides extension methods for paging IEnumerable and IQueryable sequences.
+    /// </summary>
     public static class PagingExtensions
     {
         public static IEnumerable<T> Page<T>(this IEnumerable<T> en, int pageSize, int page)

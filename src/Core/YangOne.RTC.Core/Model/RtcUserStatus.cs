@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.RTC;
 
+/// <summary>
+/// Represents the current online user status statistics
+/// </summary>
 public class RtcUserStatus
 {
     public int TotalUser { get; set; }

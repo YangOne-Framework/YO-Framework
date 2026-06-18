@@ -5,6 +5,9 @@ using YangOne.Web.Module;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Represents the YOGrid module metadata.
+    /// </summary>
     public class YOGridModule : IModule
     {
         public string Name { get; set; } = "YOGrid";

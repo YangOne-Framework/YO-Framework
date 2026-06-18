@@ -9,9 +9,15 @@ using System.Threading.Tasks;
 
 namespace YangOne.Web.Dto
 {
+    /// <summary>
+    /// Internal placeholder class.
+    /// </summary>
     internal class Class1
     {
     }
+    /// <summary>
+    /// Request model for saving an HTML component.
+    /// </summary>
     public class HtmlComponentSaveRequest
     {
         public int HtmlComponentId { get; set; }
@@ -35,6 +41,9 @@ namespace YangOne.Web.Dto
         public string Version { get; set; }
         public bool IsActive { get; set; }
     }
+    /// <summary>
+    /// Data transfer object for a summary of an HTML component.
+    /// </summary>
     public class HtmlComponentItemDto
     {
         public int HtmlComponentId { get; set; }
@@ -46,6 +55,9 @@ namespace YangOne.Web.Dto
         public bool IsActive { get; set; }
     }
 
+    /// <summary>
+    /// Data transfer object with full details of an HTML component.
+    /// </summary>
     public class HtmlComponentDetailDto : HtmlComponentItemDto
     {
         public string Config { get; set; }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using Microsoft.AspNetCore.Mvc;
 using YangOne.Data.Extension;
@@ -11,6 +11,9 @@ using YangOne.Web.Service;
 namespace YandOne.Admin.API;
 
 [Route("api/v1/restriction")]
+/// <summary>
+/// Represents a class RestrictionApiController.
+/// </summary>
 public class RestrictionApiController : BaseApiController
 {
     private readonly ILogger _logger;

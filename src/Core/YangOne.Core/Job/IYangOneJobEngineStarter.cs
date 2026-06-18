@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-using System.Threading.Tasks;
+using System;
 
 namespace YangOne.Job
 {
-    public interface IYangOneJobEngineStarter
+    /// <summary>
+    /// Legacy marker extending the current IJobEngine.
+    /// </summary>
+    [Obsolete("Use IJobEngine instead. This interface will be removed in a future version.")]
+    public interface IYangOneJobEngineStarter : IJobEngine
     {
-        Task Start();
-        Task Stop();
     }
 }

@@ -8,9 +8,15 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Service
 {
+    /// <summary>
+    /// Represents a placeholder class.
+    /// </summary>
     internal class Class1
     {
     }
+    /// <summary>
+    /// Defines the contract for email unsubscription management.
+    /// </summary>
     public interface IUnSubscriptionService
     {
         CrudService<UnSubscription> CrudService { get; set; }
@@ -18,6 +24,9 @@ namespace YangOne.Web.Service
         Task<bool> CheckUserHasUnsubscribed(string userEmail, string unSubType);
     }
 
+    /// <summary>
+    /// Manages email unsubscription requests and checks.
+    /// </summary>
     public class UnSubscriptionService : IUnSubscriptionService
     {
         public CrudService<UnSubscription> CrudService { get; set; } = new CrudService<UnSubscription>();

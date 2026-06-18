@@ -5,6 +5,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace YangOne.DI
 {
+    /// <summary>
+    /// Defines a contract for registering services into the DI container.
+    /// </summary>
     public interface IServiceRegistrar
     {
        // void Register(IServiceCollection serviceCollection);

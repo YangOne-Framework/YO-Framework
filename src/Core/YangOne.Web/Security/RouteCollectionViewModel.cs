@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Security
 {
+    /// <summary>
+    /// View model for displaying route collection information.
+    /// </summary>
     public class RouteCollectionViewModel
     {
         public string Action { get; set; }

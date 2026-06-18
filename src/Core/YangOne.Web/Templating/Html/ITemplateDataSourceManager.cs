@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Templating
 {
+    /// <summary>
+    /// Manages template data sources and provides lookup by type and key.
+    /// </summary>
     public interface ITemplateDataSourceManager
     {
         void GetAllTemplateDataSource();

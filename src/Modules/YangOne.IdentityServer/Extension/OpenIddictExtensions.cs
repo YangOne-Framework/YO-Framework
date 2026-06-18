@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Collections.Immutable;
 using System.Text.Json;
@@ -13,6 +13,9 @@ using YangOne.IdentityServer.Service;
 
 namespace YangOne.IdentityServer;
 
+/// <summary>
+/// Represents a class OpenIddictExtensions.
+/// </summary>
 public static class OpenIddictExtensions
 {
     public static WebApplicationBuilder AddIdentityServer(this WebApplicationBuilder builder,IConfiguration configuration)
@@ -107,6 +110,9 @@ public static class OpenIddictExtensions
 
 }
 
+/// <summary>
+/// Represents a class AsyncEnumerableExtensions.
+/// </summary>
 public static class AsyncEnumerableExtensions
 {
     public static Task<List<T>> ToListAsync<T>(this IAsyncEnumerable<T> source)
@@ -131,6 +137,9 @@ public static class AsyncEnumerableExtensions
         }
     }
 }
+/// <summary>
+/// Represents a class JsonUtil.
+/// </summary>
 public  static class JsonUtil
 {
     public static ImmutableArray<string> ParseArray(string? json)

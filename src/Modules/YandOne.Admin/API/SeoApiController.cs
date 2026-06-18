@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using Microsoft.AspNetCore.Mvc;
 using YangOne.Admin.Dto;
@@ -13,6 +13,9 @@ using YangOne.Web.Model;
 namespace YandOne.Admin.API;
 
 [Route("api/v1/seo")]
+/// <summary>
+/// Represents a class SeoApiController.
+/// </summary>
 public class SeoApiController : BaseApiController
 {
     private readonly ISeoService _seoService;

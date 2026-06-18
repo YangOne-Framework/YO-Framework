@@ -5,6 +5,9 @@ using YangOne.Web.Notification;
 
 namespace YangOne.RTC.Hubs;
 
+/// <summary>
+/// SignalR hub for user-specific real-time communication and notifications
+/// </summary>
 public class YangOneUserHub : BaseHub
 {
     public YangOneUserHub(IRTCConnectionManager connectionManager) : base(connectionManager)

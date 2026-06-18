@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,6 +7,9 @@ using YandOne.Admin.ViewModel;
 
 namespace YandOne.Admin.Service
 {
+    /// <summary>
+    /// Represents a interface IMediaLibraryService.
+    /// </summary>
     public interface IMediaLibraryService
     {
 

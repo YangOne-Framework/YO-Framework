@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Storage
 {
+    /// <summary>
+    /// Contains metadata about a file being uploaded in chunks.
+    /// </summary>
     public class FileInformation
     {
         public virtual ISet<int> AlreadyPersistedChunks { get; private set; } = new HashSet<int>();

@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Templating
 {
+    /// <summary>
+    /// Builds template components of a specified type.
+    /// </summary>
     public interface ITemplateComponentBuilder<T>
     {
         IEnumerable<T> Templates { get; set; }

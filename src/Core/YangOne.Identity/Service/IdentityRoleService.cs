@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Data;
 using System.Data.Common;
@@ -9,6 +9,9 @@ using YangOne.Identity.Model;
 
 namespace YangOne.Identity.Service
 {
+    /// <summary>
+    /// Implements role identity services using Dapper.
+    /// </summary>
     public class IdentityRoleService : IIdentityRoleService
     {
         public CrudService<IdentityRole> RoleService { get; set; } = new CrudService<IdentityRole>();

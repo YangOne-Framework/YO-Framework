@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.Plugin
 {
     [Table("Plugin")]
+    /// <summary>
+    /// Represents a plugin/module entity stored in the database.
+    /// </summary>
     public class Plugin
     {
         [Key]

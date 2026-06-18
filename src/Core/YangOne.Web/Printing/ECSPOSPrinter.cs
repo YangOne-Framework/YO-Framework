@@ -4,6 +4,9 @@ using System.Net.Sockets;
 
 namespace YangOne.Web.Printing
 {
+    /// <summary>
+    /// Implements ECS/POS thermal printer communication over TCP/IP.
+    /// </summary>
     public class ECSPOSPrinter : IPrinter
     {
         public string Name { get; set; } = "ECS/POS";

@@ -5,6 +5,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace YangOne.DI
 {
+    /// <summary>
+    /// Provides extension methods for manipulating the IServiceCollection.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
         public static IServiceCollection Remove<T>(this IServiceCollection services)

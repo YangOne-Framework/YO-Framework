@@ -5,6 +5,9 @@ using Newtonsoft.Json;
 
 namespace YangOne.Localization
 {
+    /// <summary>
+    /// Builds and caches locale resource data from configured sources.
+    /// </summary>
     public class ResourceBuilder
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

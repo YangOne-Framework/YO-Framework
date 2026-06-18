@@ -12,6 +12,9 @@ using YangOne.Web.Caching.Redis;
 
 namespace YangOne.Web.Extenstions;
 
+/// <summary>
+/// Extension methods for registering YangOne services including caching and virus scanning.
+/// </summary>
 public static class YangOneSetUpServiceExtensions
 {
     public static IServiceCollection UseDefaultMemoryCache(this IServiceCollection services)

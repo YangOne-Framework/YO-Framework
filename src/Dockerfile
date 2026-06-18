@@ -1,30 +1,31 @@
-# See https://aka.ms/customizecontainer to learn how to customize your debug container and how Visual Studio uses this Dockerfile to build your images for faster debugging.
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
 
-# This stage is used when running from VS in fast mode (Default for Debug configuration)
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-USER $APP_UID
+# Copy all files preserving case, then create lowercase symlinks for solution compatibility
+COPY . .
+
+# Create the directory structure expected by the solution file (lowercase paths)
+RUN mkdir -p core modules extensions && \
+    cp -r Core/* core/ 2>/dev/null || true && \
+    cp -r Modules/* modules/ 2>/dev/null || true && \
+    cp -r Extensions/* extensions/ 2>/dev/null || true
+
+RUN dotnet restore "YO-Framework.sln"
+WORKDIR "/src/App/YOApp"
+RUN dotnet publish "YOApp.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# This stage is used to build the service project
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src/apps/webApp
-COPY ["webApp/WebApp.csproj", "webApp/"]
-RUN dotnet restore "./webApp/WebApp.csproj"
-COPY . .
-WORKDIR "/src/apps/webApp"
-RUN dotnet build "./WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/build
+COPY --from=build /app/publish .
 
-# This stage is used to publish the service project to be copied to the final stage
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./WebApp.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+# Create lowercase symlink for case-sensitive Linux file system
+RUN ln -s App_Data app_data
 
-# This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
-ENTRYPOINT ["dotnet", "WebApp.dll"]
+ENTRYPOINT ["dotnet", "YOApp.dll"]

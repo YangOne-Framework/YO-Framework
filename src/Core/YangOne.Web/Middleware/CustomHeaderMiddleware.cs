@@ -8,11 +8,17 @@ using YangOne.Configuration;
 
 namespace YangOne.Web.Middleware
 {
+    /// <summary>
+    /// Constants for custom HTTP header names.
+    /// </summary>
     public class HeaderConstants
     {
         public const string TimeZoneStandardName = "TZSN";
         public const string TimeZoneOffset = "TZO";
     }
+    /// <summary>
+    /// Adds custom headers to HTTP responses.
+    /// </summary>
     public class CustomHeaderMiddleware
     {
         private readonly RequestDelegate _next;

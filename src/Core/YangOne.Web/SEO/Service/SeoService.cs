@@ -28,6 +28,9 @@ using YangOne.Web.Service;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Default implementation of <see cref="ISeoService"/> providing meta tag generation, JSON-LD, and sitemap functionality.
+    /// </summary>
     public class SeoService : ISeoService
     {
         private readonly ILogger _logger;

@@ -6,6 +6,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Service;
 
+/// <summary>
+/// Defines the contract for HTML component operations.
+/// </summary>
 public interface IHtmlComponentService
 {
     CrudService<HtmlComponent> HtmlComponentCrudService { get; set; }

@@ -5,6 +5,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace YangOne.Web.Model;
     [Table("AppControllerUrl")]
+    /// <summary>
+    /// Represents a URL action mapped to an application controller.
+    /// </summary>
     public class AppControllerUrl
     {
         [Key]

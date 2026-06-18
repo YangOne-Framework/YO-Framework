@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using Microsoft.AspNetCore.Mvc;
 using YangOne.Identity.Extensions;
@@ -9,6 +9,9 @@ using YangOne.Web.Optimizer;
 namespace YandOne.Admin.API;
 
 [Route("api/v1/optimization")]
+/// <summary>
+/// Represents a class OptimizationApiController.
+/// </summary>
 public class OptimizationApiController : BaseApiController
 {
     private readonly ILogger _logger;

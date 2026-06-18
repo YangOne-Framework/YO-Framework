@@ -4,6 +4,9 @@ using System.Text;
 
 namespace YangOne.Web.Layout
 {
+    /// <summary>
+    /// Renders layout content into HTML strings using a grid system.
+    /// </summary>
     public class LayoutContentRenderer : ILayoutRenderer
     {
         private LayoutContent _layout;

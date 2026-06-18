@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace YangOne.Plugin
 {
+    /// <summary>
+    /// Provides methods to manage plugins, including installation, status updates, and discovery.
+    /// </summary>
     public interface IPluginService
     {
         CrudService<Plugin> PluginCrudService { get; set; }

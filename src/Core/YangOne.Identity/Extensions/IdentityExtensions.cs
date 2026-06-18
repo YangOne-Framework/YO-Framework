@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.Security.Claims;
 using System.Security.Principal;
@@ -8,6 +8,9 @@ using YangOne.Web;
 namespace YangOne.Identity.Extensions
 {
 
+    /// <summary>
+    /// Provides extension methods for IIdentity to retrieve user claims.
+    /// </summary>
     public static class IdentityExtensions
     {
 

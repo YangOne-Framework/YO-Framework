@@ -1,10 +1,13 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System;
 using System.Security.Claims;
 
 namespace YangOne.Identity.Model
 {
+    /// <summary>
+    /// Represents the base class for user claims with a generic key type.
+    /// </summary>
     public class YangOneIdentityUserClaim<TKey> where TKey : IEquatable<TKey>
     {
         public virtual int Id { get; set; }

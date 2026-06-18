@@ -10,14 +10,23 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Services
 {
+    /// <summary>
+    /// Defines the contract for email log operations.
+    /// </summary>
     public interface IEmailLogService
     {
         CrudService<EmailLog> LogCrudService { get; set; }
     }
+    /// <summary>
+    /// Provides email log management functionality.
+    /// </summary>
     public class EmailLogService : IEmailLogService
     {
         public CrudService<EmailLog> LogCrudService { get; set; } = new CrudService<EmailLog>();
     }
+    /// <summary>
+    /// Manages email service providers, their settings, and default provider selection.
+    /// </summary>
     public class EmailServiceProviderService : IEmailServiceProviderService
     {
         private readonly IEnumerable<IEmailSender> _emailSenders;

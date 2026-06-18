@@ -13,6 +13,9 @@ using YangOne.Web.Services;
 namespace Azure.SMSSender
 {
 
+    /// <summary>
+    /// Sends SMS messages using the Azure Communication Services
+    /// </summary>
     public class AzureSmsSender : ISmsSender
     {
         public AzureSmsSender()

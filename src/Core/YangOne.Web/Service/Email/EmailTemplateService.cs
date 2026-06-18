@@ -3,6 +3,9 @@
 using YangOne.Data;
 using YangOne.Web.Model;
 namespace YangOne.Web.Services;
+/// <summary>
+/// Provides email template management and rendering functionality.
+/// </summary>
 public class EmailTemplateService : IEmailTemplateService
 {
     public CrudService<EmailTemplate> TemplateCRUDService { get; set; } = new CrudService<EmailTemplate>();

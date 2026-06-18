@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Configuration for a dashboard widget's position and appearance.
+    /// </summary>
     public class DashboardWidgetConfig
     {
         public int x { get; set; }
@@ -13,6 +16,9 @@ namespace YangOne.Web
         public IEnumerable<WidgetSetting> Settings { get; set; }
 
     }
+    /// <summary>
+    /// View model for dashboard widget configuration including widget instance.
+    /// </summary>
     public class DashboardWidgetConfigViewModel
     {
         public int x { get; set; }

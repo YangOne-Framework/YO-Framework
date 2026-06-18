@@ -7,6 +7,9 @@ using Smidge.Models;
 
 namespace YangOne.Web.Optimizer
 {
+    /// <summary>
+    /// Implementation of <see cref="IYOBundler"/> using the Smidge library for bundling and minification.
+    /// </summary>
     public class SmidgeBundler : IYOBundler
     {
         private readonly SmidgeHelper _smidgeHelper;

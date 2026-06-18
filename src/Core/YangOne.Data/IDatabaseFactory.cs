@@ -6,6 +6,9 @@ using YangOne.Log;
 
 namespace YangOne.Data
 {
+    /// <summary>
+    /// Defines a factory for creating database connections and providing dialect-specific query building.
+    /// </summary>
     public interface IDatabaseFactory : IDisposable
     {
         IDbConnection Db { get; }

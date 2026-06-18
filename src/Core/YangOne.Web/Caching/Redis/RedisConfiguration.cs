@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Caching.Redis
 {
+    /// <summary>
+    /// Configuration settings for Redis cache connection.
+    /// </summary>
     public class RedisConfiguration
     {
         public List<string> EndPoints { get; set; }

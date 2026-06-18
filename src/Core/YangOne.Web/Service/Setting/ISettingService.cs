@@ -5,6 +5,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Service
 {
+    /// <summary>
+    /// Defines the contract for application setting operations.
+    /// </summary>
     public interface ISettingService
     {
         CrudService<Setting> CrudService { get; set; }

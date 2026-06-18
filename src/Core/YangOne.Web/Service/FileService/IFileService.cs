@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace YangOne.Web.Services
 {
+    /// <summary>
+    /// Defines the contract for file storage and management operations.
+    /// </summary>
     public interface IFileService
     {
         string Save(IFormFile file);

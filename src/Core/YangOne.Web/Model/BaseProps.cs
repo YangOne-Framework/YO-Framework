@@ -8,6 +8,9 @@ using YangOne.Data.Crud.Attribute;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Base properties for entities with audit fields (IsActive, AddedOn, AddedBy, etc.).
+    /// </summary>
     public class BaseProps
     {
         public bool IsActive { get; set; }

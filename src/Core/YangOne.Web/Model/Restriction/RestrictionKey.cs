@@ -5,6 +5,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using YangOne.Data.Crud.Attribute;
 
 
+    /// <summary>
+    /// Represents a restriction key used to categorize restriction rules.
+    /// </summary>
     [Table("RestrictionKey")]
     public class RestrictionKey
     {

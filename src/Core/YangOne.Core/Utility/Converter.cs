@@ -3,6 +3,9 @@
 using Microsoft.AspNetCore.Mvc.Rendering;
 namespace YangOne.Utility
 {
+    /// <summary>
+    /// Provides conversion utility methods.
+    /// </summary>
     public static class Converter
     {
         public static IEnumerable<SelectListItem> EnumSelectListConverter<T>()

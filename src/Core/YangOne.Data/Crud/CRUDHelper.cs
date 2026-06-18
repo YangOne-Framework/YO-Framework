@@ -12,6 +12,9 @@ using YangOne.Log;
 
 namespace YangOne.Data.Crud
 {
+    /// <summary>
+    /// Provides Dapper extension methods for CRUD operations on <see cref="IDbConnection"/>.
+    /// </summary>
     public static class CRUDHelper
     {
 

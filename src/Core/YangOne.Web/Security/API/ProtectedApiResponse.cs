@@ -4,6 +4,9 @@ using System.Text.Json;
 
 namespace YangOne.Web.Security.API;
 
+/// <summary>
+/// Wrapper for protected API responses containing encrypted or obfuscated payloads.
+/// </summary>
 public class ProtectedApiResponse
 {
     public bool ProtectedPayload { get; set; }
@@ -11,11 +14,17 @@ public class ProtectedApiResponse
     public string Payload { get; set; } = "";
 }
 
+/// <summary>
+/// Service for wrapping API payloads with security protection.
+/// </summary>
 public interface IApiPayloadSecurityService
 {
     Task<ProtectedApiResponse> WrapPayload(object apiResponse);
 }
 
+/// <summary>
+/// Wraps API responses with encryption or obfuscation based on configuration.
+/// </summary>
 public class ApiPayloadSecurityService : IApiPayloadSecurityService
 {
     private readonly IApiConfigService _configService;

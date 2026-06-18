@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace YangOne.Web.Module
 {
+    /// <summary>
+    /// Base controller for module-specific pages with installation check.
+    /// </summary>
     public class YangOneModuleController<T> : BaseController where T : IModule, new()
     {
         private readonly IModuleManager _moduleManager;

@@ -1,2 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>YO Framework widget system (placeholder).</Description>
+  </PropertyGroup>
 </Project>

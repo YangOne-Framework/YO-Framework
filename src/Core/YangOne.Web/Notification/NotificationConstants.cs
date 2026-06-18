@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Notification
 {
+    /// <summary>
+    /// Defines constant values used by the notification system.
+    /// </summary>
     public class NotificationConstants
     {
         public const string NotificationKey = "YO.Notification";

@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.API;
 
+/// <summary>
+/// Configuration options for rate limiting policies.
+/// </summary>
 public class RateLimitOptions
 {
     public int TokenLimit { get; set; }

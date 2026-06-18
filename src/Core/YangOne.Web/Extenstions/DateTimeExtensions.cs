@@ -8,6 +8,9 @@ using YangOne.Web.Middleware;
 
 namespace YangOne.Web.Extensions
 {
+    /// <summary>
+    /// Extension methods for converting IHtmlContent to a string.
+    /// </summary>
     public static class HtmlContentExtensions
     {
         public static string GetString(this IHtmlContent content)
@@ -19,6 +22,9 @@ namespace YangOne.Web.Extensions
             }
         }
     }
+    /// <summary>
+    /// Extension methods for DateTime formatting and time zone conversion.
+    /// </summary>
     public static  class DateTimeExtensions
     {
         public static string ToAboutAgo(this DateTime dt)

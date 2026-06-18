@@ -6,6 +6,9 @@ using YangOne.Web;
 
 namespace YangOne.Web.Grid
 {
+    /// <summary>
+    /// Defines the HTML rendering contract for a typed grid.
+    /// </summary>
     public interface IHtmlGrid<T> : IHtmlContent
     {
         IYOGrid<T> Grid { get; }

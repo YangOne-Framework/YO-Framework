@@ -10,8 +10,14 @@ using YangOne.Log;
 
 namespace YangOne.Web.Middleware
 {
+    /// <summary>
+    /// Middleware that resizes images on-the-fly based on query string parameters.
+    /// </summary>
     public class ImageResizerMiddleware
     {
+        /// <summary>
+        /// Parameters for image resizing operations.
+        /// </summary>
         struct ResizeParams
         {
             public bool hasParams ;

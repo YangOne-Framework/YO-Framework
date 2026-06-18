@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.Model;
 
     [Table("EmailLog")]
+    /// <summary>
+    /// Represents a log entry for an email sent through the system.
+    /// </summary>
     public class EmailLog
     {
         [Key]

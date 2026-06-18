@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Razor.TagHelpers;
 namespace YangOne.Web.TagHelpers
 {
 
+    /// <summary>
+    /// Converts Markdown text to HTML.
+    /// </summary>
     [HtmlTargetElement("markdown")]
     public class MarkdownTagHelper : TagHelper
     {

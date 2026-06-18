@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace YangOne.Web.Grid
 {
+    /// <summary>
+    /// Defines the basic grid contract for rendering tabular data.
+    /// </summary>
     public interface IYOGrid
     {
         string Name { get; set; }
@@ -29,6 +32,9 @@ namespace YangOne.Web.Grid
         string FormPostKeyName { get; set; }
     }
 
+    /// <summary>
+    /// Defines a typed grid contract with a queryable data source.
+    /// </summary>
     public interface IYOGrid<T> : IYOGrid
     {
         IQueryable<T> Source { get; set; }
@@ -37,6 +43,9 @@ namespace YangOne.Web.Grid
         new IYOGridCommandsOf<T> Commands { get; }
     }
 
+    /// <summary>
+    /// Default implementation of a grid that holds columns, rows, commands, and paging.
+    /// </summary>
     public class YoGrid<T> : IYOGrid<T> where T : class
     {
        

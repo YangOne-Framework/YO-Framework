@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Extensions
 {
+    /// <summary>
+    /// Provides extension methods for time span parsing and formatting.
+    /// </summary>
     public static class TimeSpanExtensions
     {
         public static long ToTotalSeconds(this string timeFormat)

@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Html;
 
 namespace YangOne.Web.Notification
 {
+    /// <summary>
+    /// View model that holds notification configuration and the list of notifications for rendering.
+    /// </summary>
     public class NotificationViewModel
     {
         public INotificationBarConfig Config { get; set; }

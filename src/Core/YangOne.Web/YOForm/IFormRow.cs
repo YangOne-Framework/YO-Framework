@@ -6,21 +6,33 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace YangOne.Web.Form
 {
+    /// <summary>
+    /// Defines a form row containing columns.
+    /// </summary>
     public interface IFormRow
     {
         string CssClasses { get; set; }
         IFormColumns<IFormColumn> Columns { get; }
         IHtmlContent Template { get; set; }
     }
+    /// <summary>
+    /// Defines a typed form row bound to a model.
+    /// </summary>
     public interface IFormRow<T>: IFormRow
     {
         IForm<T> Form { get; }
         new IFormColumnsOf<T> Columns { get; }
     }
+    /// <summary>
+    /// Defines a collection of form rows.
+    /// </summary>
     public interface IFormRows<out T> : IEnumerable<T> where T : IFormRow
     {
     }
 
+    /// <summary>
+    /// Defines operations for adding typed form rows.
+    /// </summary>
     public interface IFormRowsOf<T> : IFormRows<IFormRow<T>>
     {
         IForm<T> Form { get; }
@@ -31,6 +43,9 @@ namespace YangOne.Web.Form
         IFormRow<T> Add(string name, string classes, Func<dynamic, HelperResult> template,object templateModel);
     }
 
+    /// <summary>
+    /// Base class for form row implementations.
+    /// </summary>
     public abstract class BaseFormRow<T> : IFormRow<T>
     {
         public string CssClasses { get; set; }
@@ -43,6 +58,9 @@ namespace YangOne.Web.Form
         }
         public IHtmlContent Template { get; set; }
     }
+    /// <summary>
+    /// Default implementation of a form row.
+    /// </summary>
     public class FormRow<T> : BaseFormRow<T> where T : class
     {
 
@@ -82,6 +100,9 @@ namespace YangOne.Web.Form
 
         }
     }
+    /// <summary>
+    /// Default collection of typed form rows.
+    /// </summary>
     public class FormRows<T> : List<IFormRow<T>>, IFormRowsOf<T> where T : class 
     {
        

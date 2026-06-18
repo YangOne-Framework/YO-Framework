@@ -12,6 +12,9 @@ using YangOne.Web.Service;
 
 namespace YangOne.Web.Middleware;
 
+/// <summary>
+/// Middleware that restricts admin area access based on IP allowlists.
+/// </summary>
 public class AdminIPAccessMiddleware
 {
     private readonly RequestDelegate _next;
@@ -161,6 +164,9 @@ public class AdminIPAccessMiddleware
         value == "1" || string.Equals(value, "true", StringComparison.OrdinalIgnoreCase);
 }
 
+/// <summary>
+/// Provides IP network range parsing and containment checks.
+/// </summary>
 internal static class IPNetwork
 {
     public static bool TryParse(string value, out (IPAddress Network, int PrefixLength) network)

@@ -13,6 +13,9 @@ using YangOne.Log;
 
 namespace YangOne.Web.API
 {
+    /// <summary>
+    /// Generic API response wrapper with code, message, data and errors.
+    /// </summary>
     public class ApiResponse<T>
     {
         public int Code { get; set; }
@@ -29,6 +32,9 @@ namespace YangOne.Web.API
     [ApiAuthorize]
     [EnableRateLimiting("StrictPolicy")]
     [ApiController]
+    /// <summary>
+    /// Base API controller providing standardized response helpers for success, validation, authorization and error responses.
+    /// </summary>
     public abstract class BaseApiController : ControllerBase
     {
         private string _sessionCode;
@@ -174,6 +180,9 @@ namespace YangOne.Web.API
     [ApiAuthorize]
     [EnableRateLimiting("StrictPolicy")]
     [ApiController]
+    /// <summary>
+    /// Base API v2 controller with typed response helpers for success, validation, authorization and error responses.
+    /// </summary>
     public abstract class BaseApiV2Controller : ControllerBase
     {
         private string _sessionCode;

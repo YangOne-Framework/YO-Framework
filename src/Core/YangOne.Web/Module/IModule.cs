@@ -4,6 +4,9 @@ using System.Reflection;
 
 namespace YangOne.Web.Module
 {
+    /// <summary>
+    /// Defines a module in the YO Framework.
+    /// </summary>
     public interface IModule
     {
         string Name { get; set; }

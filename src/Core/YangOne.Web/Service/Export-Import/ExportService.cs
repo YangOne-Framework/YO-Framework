@@ -11,6 +11,9 @@ using NPOI.XSSF.UserModel;
 
 namespace YangOne.Web.Service
 {
+    /// <summary>
+    /// Provides data export functionality to Excel format.
+    /// </summary>
     public class ExportService : IExportService
     {
         private List<string> _headers = new List<string>();

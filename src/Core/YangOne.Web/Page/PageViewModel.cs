@@ -7,6 +7,9 @@ using YangOne.Web.Model;
 namespace YangOne.Web
 {
     [Table("Page")]
+    /// <summary>
+    /// View model for page creation and editing, extending SEO metadata.
+    /// </summary>
     public class PageViewModel : SEO
     {
         public new long PageId { get; set; }

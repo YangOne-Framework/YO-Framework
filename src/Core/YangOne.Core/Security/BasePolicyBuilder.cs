@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Security
 {
+    /// <summary>
+    /// Base builder for constructing CSP directive source values.
+    /// </summary>
     public abstract class BasePolicyBuilder
     {
         private string Key { get; }

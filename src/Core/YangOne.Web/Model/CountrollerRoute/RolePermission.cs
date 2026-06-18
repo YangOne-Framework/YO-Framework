@@ -4,6 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.Model;
     [Table("RolePermission")]
+    /// <summary>
+    /// Represents permission assigned to a role for a specific controller action.
+    /// </summary>
     public class RolePermission
     {
         public int Id { get; set; }
@@ -24,6 +27,9 @@ namespace YangOne.Web.Model;
         [IgnoreAll]
         public bool AllowAccess { get; set; }
     }
+    /// <summary>
+    /// View model containing a list of role permissions.
+    /// </summary>
     public sealed class RolePermissionViewModel
     {
         public List<RolePermission> RolePermission { get; set; }

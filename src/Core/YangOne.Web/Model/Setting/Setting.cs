@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Http;
 using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.Model;
     [Table("Setting")]
+    /// <summary>
+    /// Represents application settings including website name, contact info, culture and currency.
+    /// </summary>
     public class Setting
     {
         [Key]

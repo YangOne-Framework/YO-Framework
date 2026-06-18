@@ -4,6 +4,9 @@ using System.IO;
 
 namespace YangOne.IO
 {
+    /// <summary>
+    /// Utility methods for recursive file and directory operations.
+    /// </summary>
     public class FileHelper
     {
         public static void CopyFilesRecursively(string source, string target, bool createTarget)

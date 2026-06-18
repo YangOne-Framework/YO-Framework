@@ -1,4 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
+// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 
 namespace YangOne.Identity.Model
 {
+    /// <summary>
+    /// Represents an application user with extended profile data.
+    /// </summary>
     [Table("AppUser")]
     public class AppUser
     {

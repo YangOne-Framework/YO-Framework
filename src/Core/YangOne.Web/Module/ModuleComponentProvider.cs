@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc.ViewComponents;
 
 namespace YangOne.Web.Module
 {
+    /// <summary>
+    /// Describes a module view component.
+    /// </summary>
     public class ModuleComponentDescription : IModuleComponentDescription
     {
         public string DisplayName { get; set; }
@@ -16,6 +19,9 @@ namespace YangOne.Web.Module
         public bool HasSetting { get; set; }
         public string ModuleSettingComponent { get; set; }
     }
+    /// <summary>
+    /// Provides module view components by filtering and organizing them.
+    /// </summary>
     public class ModuleComponentProvider : IModuleComponentProvider
     {
         private readonly IServiceProvider _serviceProvider;

@@ -6,6 +6,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Service;
 
+/// <summary>
+/// Manages application restrictions and administrative IP access with caching support.
+/// </summary>
 public class RestrictionService : IRestrictionService
 {
     private const string AdminIPAccessCacheKey = "YO.AdminIPAccess";

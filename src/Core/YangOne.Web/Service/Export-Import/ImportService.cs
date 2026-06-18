@@ -12,6 +12,9 @@ using NPOI.XSSF.UserModel;
 
 namespace YangOne.Web.Service
 {
+    /// <summary>
+    /// Provides data import functionality from Excel files.
+    /// </summary>
     public class ImportService : IImportService
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

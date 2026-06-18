@@ -4,6 +4,9 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 namespace YangOne.Web.Model;
 [Table("TimeZone")]
+/// <summary>
+/// Represents a time zone with identifier, display name and UTC offset information.
+/// </summary>
 public class Timezone
 {
     [Key]

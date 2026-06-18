@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Layout
 {
+    /// <summary>
+    /// Represents a row in a page layout.
+    /// </summary>
     public class Row
     {
         public int RowId { get; set; }

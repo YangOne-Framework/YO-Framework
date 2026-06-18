@@ -4,6 +4,9 @@ using System;
 
 namespace YangOne.Data
 {
+    /// <summary>
+    /// Provides a static access point for the current <see cref="IDatabaseFactory"/> instance.
+    /// </summary>
     public static class DbFactoryProvider
     {
         private static IDatabaseFactory _currentDatabaseFactory;

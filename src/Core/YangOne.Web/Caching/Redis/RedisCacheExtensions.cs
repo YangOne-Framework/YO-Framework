@@ -7,6 +7,9 @@ using StackExchange.Redis;
 
 namespace YangOne.Web.Caching.Redis
 {
+    /// <summary>
+    /// Extension methods for Redis IDatabase to support typed get/set operations with JSON serialization.
+    /// </summary>
     public static class RedisCacheExtensions
     {
         public static T Get<T>(this IDatabase cache, string key)

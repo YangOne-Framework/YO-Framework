@@ -6,6 +6,9 @@ using System.Linq.Expressions;
 
 namespace YangOne.Data.Extension;
 
+/// <summary>
+/// Provides extension methods for pivot table transformations on collections.
+/// </summary>
 public static class PivotExtensions
 {
     //= data.ToPivotTable(

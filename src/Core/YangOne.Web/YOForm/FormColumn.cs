@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc.Razor;
 
 namespace YangOne.Web.Form
 {
+    /// <summary>
+    /// Defines a form column containing controls.
+    /// </summary>
     public interface IFormColumn
     {
         string Name { get; set; }
@@ -19,6 +22,9 @@ namespace YangOne.Web.Form
         IHtmlContent Template { get; set; }
 
     }
+    /// <summary>
+    /// Defines a typed form column bound to a model.
+    /// </summary>
     public interface IFormColumn<T> : IFormColumn
     {
         IForm<T> Form { get; }
@@ -26,9 +32,15 @@ namespace YangOne.Web.Form
         Func<T, Object> RenderValue { get; set; }
         new IFormInputsOf<T> Controls { get;  }
     }
+    /// <summary>
+    /// Defines a collection of form columns.
+    /// </summary>
     public interface IFormColumns<out T> : IEnumerable<T> where T : IFormColumn
     {
     }
+    /// <summary>
+    /// Defines operations for adding typed form columns.
+    /// </summary>
     public interface IFormColumnsOf<T> : IFormColumns<IFormColumn<T>>
     {
         IForm<T> Form { get; }
@@ -39,6 +51,9 @@ namespace YangOne.Web.Form
         IFormColumn<T> Add(string name, string classes, Func<dynamic, HelperResult> template, object templateModel);
     }
 
+    /// <summary>
+    /// Base class for form column implementations.
+    /// </summary>
     public abstract class BaseFormColumn<T> : IFormColumn<T>
     {
         public string Name { get; set; }
@@ -55,6 +70,9 @@ namespace YangOne.Web.Form
         public IHtmlContent Template { get; set; }
     }
 
+    /// <summary>
+    /// Default implementation of a form column.
+    /// </summary>
     public class FormColumn<T> : BaseFormColumn<T> where T : class
     {
         public FormColumn(IForm<T> form, string name, string classes)
@@ -112,6 +130,9 @@ namespace YangOne.Web.Form
 
 
     }
+    /// <summary>
+    /// Default collection of typed form columns.
+    /// </summary>
     public class FormColumns<T> : List<IFormColumn<T>>, IFormColumnsOf<T> where T : class
     {
         public IForm<T> Form { get; set; }

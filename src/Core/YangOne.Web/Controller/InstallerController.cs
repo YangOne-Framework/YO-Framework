@@ -20,6 +20,9 @@ using IdentityUser = YangOne.Identity.Model.IdentityUser;
 using IdentityRole = YangOne.Identity.Model.IdentityRole;
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Controller for application installation workflow including database setup and admin user creation.
+    /// </summary>
     public class InstallerController : Controller
     {
         private readonly IConfiguration _configuration;

@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 namespace YangOne.Web.Notification
 {
+    /// <summary>
+    /// Provides methods to send and manage notifications to users.
+    /// </summary>
     public interface INotificationService
     {
         bool Notify(string title, string message);

@@ -7,6 +7,9 @@ using YangOne.Data.Crud.Attribute;
 namespace YangOne.Web.Model;
 
 [Table("Unsubscription")]
+/// <summary>
+/// Represents an email unsubscription preference for different email types.
+/// </summary>
 public class UnSubscription
 {
     [Key]

@@ -11,6 +11,9 @@ using YangOne.Web;
 namespace YangOne.Grid.API
 {
     [Route("api/v1/yo/grid")]
+    /// <summary>
+    /// Controller for handling file upload and removal operations via API.
+    /// </summary>
     public class FileUploadApiController : BaseController
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

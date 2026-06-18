@@ -5,6 +5,9 @@ using YangOne.Web.Model;
 
 namespace YangOne.Web.Services
 {
+    /// <summary>
+    /// Provides country-related data operations.
+    /// </summary>
     public class CountryService : ICountryService {
         public CrudService<Country> CountryCrudService { get; set; }=new CrudService<Country>();
     }

@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace YangOne.Plugin;
 
+/// <summary>
+/// Base class for plugin view components.
+/// </summary>
 public abstract class PluginViewComponent : ViewComponent
 {
 

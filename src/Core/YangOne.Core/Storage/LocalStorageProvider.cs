@@ -7,6 +7,9 @@ using Newtonsoft.Json;
 
 namespace YangOne.Storage
 {
+    /// <summary>
+    /// Provides local file system storage operations for file uploads and chunked uploads.
+    /// </summary>
     public class LocalStorageProvider : IStorageProvider
     {
         private readonly string _filePath;

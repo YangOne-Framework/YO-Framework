@@ -10,6 +10,9 @@ using WholisticMinds.Core.DI;
 
 namespace Azure.BlobStorage.Helper
 {
+    /// <summary>
+    /// Registers Azure Blob Storage services into the dependency injection container
+    /// </summary>
     public class ServiceRegistrar : IServiceRegistrar
     {
         public void Update(IServiceCollection serviceCollection)

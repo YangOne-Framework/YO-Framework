@@ -6,6 +6,9 @@ using Microsoft.Extensions.Caching.Memory;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Stores authentication tickets in memory using IMemoryCache.
+    /// </summary>
     public class MemoryCacheTicketStore : ITicketStore
     {
         private const string KeyPrefix = "AuthSessionStore-";

@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyModel;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Discovers and loads widgets from runtime assemblies.
+    /// </summary>
     public class WidgetService : IWidgetService
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

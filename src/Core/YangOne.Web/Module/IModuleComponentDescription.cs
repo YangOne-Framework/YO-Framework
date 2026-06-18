@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc.ViewComponents;
 
 namespace YangOne.Web.Module
 {
+    /// <summary>
+    /// Defines metadata for a module view component.
+    /// </summary>
     public interface IModuleComponentDescription
     {
         ViewComponentDescriptor ComponentDescriptor { get; set; }

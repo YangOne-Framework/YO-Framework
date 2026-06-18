@@ -7,6 +7,9 @@ using Microsoft.Extensions.DependencyModel;
 namespace YangOne.Messaging
 {
   
+    /// <summary>
+    /// Implements the publish-subscribe pattern for message-based communication.
+    /// </summary>
     public sealed class YangOnePubSub : IYangOnePubSub
     {
         private Action<Type, object> _globalHandler;

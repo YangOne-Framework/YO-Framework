@@ -8,6 +8,9 @@ using YangOne.Plugin;
 
 namespace YangOne.Web.Optimizer
 {
+    /// <summary>
+    /// Custom file provider that resolves files from both wwwroot and content root for Smidge bundling.
+    /// </summary>
     public class SmidgeFileProvider : IFileProvider
     {
         private readonly IWebHostEnvironment _hostingEnvironment;

@@ -6,6 +6,9 @@ using System.Text;
 
 namespace YangOne.Caching
 {
+    /// <summary>
+    /// Provides predefined cache duration constants (Short, Medium, Long).
+    /// </summary>
     public static class CacheSetting
     {
         public static int ShortDuration { get; } = 60; //seconds 

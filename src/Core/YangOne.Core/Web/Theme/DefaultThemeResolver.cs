@@ -4,6 +4,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace YangOne.Web.Theme
 {
+    /// <summary>
+    /// Default implementation that resolves the theme from route data or configuration.
+    /// </summary>
     public class DefaultThemeResolver : IThemeResolver
     {
         public string Resolve(ControllerContext controllerContext, string theme)

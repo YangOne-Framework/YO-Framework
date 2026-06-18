@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Hosting;
 
 namespace YangOne.Security
 {
+    /// <summary>
+    /// Middleware that applies security headers and CSP nonce to HTTP responses.
+    /// </summary>
     public class SecurityHeadersMiddleware
     {
         private readonly RequestDelegate _next;

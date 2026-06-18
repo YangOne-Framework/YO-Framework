@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace YangOne.Web
 {
+    /// <summary>
+    /// Extension methods for registering YangOne web core services.
+    /// </summary>
     public static class YangOneCoreWebExtensions
     {
         public static IServiceCollection RegisterYangOneWebCore(this IServiceCollection services)
