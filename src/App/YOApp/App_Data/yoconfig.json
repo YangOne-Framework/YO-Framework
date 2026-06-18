@@ -2,7 +2,7 @@
   "YangOneAppConfig": {
     "AppName": "YangOne Framework",
     "SiteUrl": "https://localhost:7189",
-    "IsInstalled": true,
+    "IsInstalled": false,
     "DbProvider": "SQLServer",
     "Framework": "",
     "Version": "1.0.0",
