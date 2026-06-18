@@ -1,11 +1,21 @@
-<Project>
+﻿<Project>
 	<PropertyGroup>
-		<Version>1.0.0</Version>
-		<FileVersion>1.0.0.0</FileVersion>
-		<AssemblyVersion>1.0.0.0</AssemblyVersion>
+		<Version>1.1.0</Version>
+		<FileVersion>1.1.0.0</FileVersion>
+		<AssemblyVersion>1.01.00</AssemblyVersion>
 		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UseSharedCompilation>false</UseSharedCompilation>
+	</PropertyGroup>
+	<PropertyGroup Label="NuGet">
+		<Authors>YO Framework Contributors</Authors>
+		<Company>YangOne</Company>
+		<Copyright>Copyright (c) Yang One Framework. All rights reserved.</Copyright>
+		<PackageProjectUrl>https://github.com/anomalyco/YO-Framework</PackageProjectUrl>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+		<PackageTags>YO;Framework;YangOne;DotNet;Web</PackageTags>
+		<GenerateDocumentationFile>true</GenerateDocumentationFile>
+		<NoWarn>$(NoWarn);CS1591</NoWarn>
 	</PropertyGroup>
 </Project>
