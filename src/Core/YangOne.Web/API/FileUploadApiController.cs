@@ -253,25 +253,7 @@ namespace YangOne.Grid.API
         //        return HttpResponse((int)HttpStatusCode.NotImplemented, "Invalid parameters");
         //    }
 
-        //    string existingfilepath = _hostingEnvironment.WebRootPath + model.imagePath.Replace("/", "\\");
-        //    byte[] imageBytes = System.IO.File.ReadAllBytes(existingfilepath);
-        //    byte[] croppedImage = ImageHelper.CropImage(imageBytes, model.cropPointX.Value, model.cropPointY.Value, model.imageCropWidth.Value, model.imageCropHeight.Value);
-
-        //    string tempFolderName = Path.Combine(_hostingEnvironment.WebRootPath, "banner");
-
-        //    string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(model.imagePath);
-        //    string fileName = Path.GetFileName(existingfilepath).Replace(fileNameWithoutExtension, fileNameWithoutExtension + "_cropped");
-        //    string newfilePath = Path.Combine(tempFolderName, fileName);
-        //    try
-        //    {
-        //        Kachuwa.IO.FileHelper.SaveFile(croppedImage, newfilePath);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        Logger.Log(LogType.Error, () => ex.Message);
-        //        //Log an error     
-        //        return HttpResponse(500, ex.Message);
-        //    }
+        
 
         //    string filepath = newfilePath.Replace(_hostingEnvironment.WebRootPath, "").Replace("\\", "/");
         //    return HttpResponse(200, "", filepath);

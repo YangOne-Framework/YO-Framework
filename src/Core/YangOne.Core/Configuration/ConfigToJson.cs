@@ -13,12 +13,13 @@ namespace YangOne.Configuration
     {
         private readonly IWebHostEnvironment _hostingEnvironment;
         private const string AppSettingFile = "appsettings.json";
-        private const string YOConfigFile = "config\\yoconfig.json";
+        private readonly string YOConfigFile="";
         private static readonly object RatesFileLock = new object();
 
         public ConfigToJson(IWebHostEnvironment hostingEnvironment)
         {
             _hostingEnvironment = hostingEnvironment;
+            YOConfigFile = Path.Combine(hostingEnvironment.ContentRootPath, "app_data", "yoconfig.json");
         }
 
         public bool SaveConnectionString(YangOneConnectionStrings connectionString)

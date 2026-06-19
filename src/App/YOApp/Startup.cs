@@ -416,12 +416,7 @@ namespace YOApp
             app.UseYOCore(env, serviceProvider);
             app.UseYOWeb(env, false);
             app.UseRateLimiter();
-            app.UseHangfireDashboard("/hangfire", new DashboardOptions
-            {
-                DashboardTitle = "YO Framework - Background Jobs",
-                AppPath = "/",
-                Authorization = new[] { new HangfireAuthorizationFilter() }
-            });
+           
             app.UseEndpoints(endpoints =>
             {
 

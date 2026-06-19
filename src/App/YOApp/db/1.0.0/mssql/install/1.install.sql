@@ -393,3 +393,472 @@ CREATE NONCLUSTERED INDEX [Index_ExpiresAtTime] ON [dbo].[Sessions]
     [ExpiresAtTime] ASC  
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
 
+CREATE TABLE dbo.SMSGateway
+( 
+	SMSGatewayId										int primary key identity(1,1) not null,
+	Name												nvarchar(256) not null,
+	Description											nvarchar(1000),
+	Image												nvarchar(256),
+	IsDefault											bit default(0) not null,
+    IsActive											bit NOT NULL Default(1),
+	IsDeleted											bit NOT NULL Default(0),
+	AddedOn												datetime NOT NULL Default(getDATE()),
+	AddedBy												bigint not null default(0),
+	DeletedBy											bigint not null default(0),
+	DeletedOn											datetime,
+	UpdatedOn											datetime ,
+	UpdatedBy											bigint not null default(0)
+
+);
+CREATE TABLE dbo.SMSGatewaySetting
+( 
+   SMSGatewaySettingId								int primary key identity(1,1) not null,
+   SMSGatewayId										int not null,
+   GatewayKey										nvarchar(256) not null,
+   GatewayValue										nvarchar(256) not null
+
+);
+Create Table dbo.SMSLog
+(
+	SMSLogId										bigint primary key identity(1,1) not null,
+	[From]											nvarchar(256),
+	[To]											nvarchar(256),	
+	[Body]											nvarchar(max),	
+	IsSent											bit default(0),
+	IsDelivered										bit default(0),
+	SentDate										datetime default(getutcdate()),
+	DeliveredDate									datetime not null,
+	GatewayResponse									nvarchar(1000),
+	AddedOn											datetime default(getutcdate()),
+	AddedBy											nvarchar(256) not null
+);
+
+CREATE TABLE dbo.EmailServiceProvider
+( 
+	EmailServiceProviderId						int primary key identity(1,1) not null,
+	Name										nvarchar(256) not null,
+	Description									nvarchar(1000),
+	Image										nvarchar(256),
+	IsDefault									bit default(0) not null,
+	IsActive									bit NOT NULL Default(1),
+	IsDeleted									bit NOT NULL Default(0),
+	AddedOn										datetime NOT NULL Default(getDATE()),
+	AddedBy										bigint not null default(0),
+	DeletedBy									bigint not null default(0),
+	DeletedOn									datetime,
+	UpdatedOn									datetime ,
+	UpdatedBy									bigint not null default(0)
+
+);
+CREATE TABLE dbo.EmailServiceProviderSetting
+( 
+   EmailServiceProviderSettingId						int primary key identity(1,1) not null,
+   EmailServiceProviderId								int not null,
+   ProviderKey											nvarchar(256) not null,
+   ProviderValue										nvarchar(256) not null
+
+);
+Create Table dbo.EmailLog
+(
+	EmailLogId										bigint primary key identity(1,1) not null,
+	[From]											nvarchar(256),
+	[To]											nvarchar(256),
+	[Subject]										nvarchar(500),
+	[Body]											nvarchar(max),
+	[CC]											nvarchar(2000),
+	[BCC]											nvarchar(2000),
+	IsSent											bit default(0),
+	IsDelivered										bit default(0),
+	SentDate										datetime default(getutcdate()),
+	DeliveredDate									datetime not null,
+	GatewayResponse									nvarchar(1000),
+	AddedOn											datetime default(getutcdate()) not null,
+	AddedBy											nvarchar(256) not null
+);
+--ipv4 ipv6 domain email creditcard customer
+Create Table dbo.RestrictionKey
+(
+	RestrictionKeyId						int primary key identity(1,1) not null,	 
+	Name									nvarchar(256) not null,
+	IsSystem								bit default(0) not null,
+	IsActive                                bit NOT NULL Default(1),
+	IsDeleted                               bit NOT NULL Default(0),
+	AddedOn                                 datetime NOT NULL Default(getDATE()),
+	AddedBy                                 bigint not null default(0),
+	DeletedBy								bigint not null default(0),
+	DeletedOn                               datetime,
+	UpdatedOn                               datetime ,
+	UpdatedBy                               bigint not null default(0)
+	 
+);
+Create table dbo.Restriction
+(
+	RestrictionId							int primary key identity(1,1) not null,
+	RestrictionKeyId						int references dbo.RestrictionKey,
+	Value									nvarchar(256) not null,
+	Reason									nvarchar(500) not null,
+	Narration								nvarchar(500),
+	IsActive                                bit NOT NULL Default(1),
+	IsDeleted                               bit NOT NULL Default(0),
+	AddedOn                                 datetime NOT NULL Default(getDATE()),
+	AddedBy                                 bigint not null default(0),
+	DeletedBy								bigint not null default(0),
+	DeletedOn                               datetime,
+	UpdatedOn                               datetime ,
+	UpdatedBy                               bigint not null default(0)
+);
+create table dbo.AdministrativeIPAccess
+(
+	AdministrativeIPAccessId						int primary key identity(1,1) not null,
+	RoleId											bigint not null,
+	AllowIPV4										nvarchar(256) not null,--*
+	AllowIPV6										nvarchar(500) not null, --*
+	ActivateIPV6									bit default(0) not null,--if true check only ipv6 if not ipv4
+	IsRange											bit default(0) not null,
+	IPV4Range										nvarchar(500),--192.168.0.1-192.168.0.254
+	IPV6Range										nvarchar(1000),--FE80:0:0:0:202:B3FF:FE1E:8329-FE80:0:0:0:202:B3FF:FE1E:8329	
+	IsActive										bit NOT NULL Default(1),
+	IsDeleted										bit NOT NULL Default(0),
+	AddedOn											datetime NOT NULL Default(getDATE()),
+	AddedBy											bigint not null default(0),
+	DeletedBy										bigint not null default(0),
+	DeletedOn										datetime,
+	UpdatedOn										datetime ,
+	UpdatedBy										bigint not null default(0)
+);
+
+CREATE TABLE dbo.UserSecretKey
+(
+	UserSecretKeyId												bigint not null primary key identity(1,1),
+	UserId														bigint not null default(0),
+	SecretKey													nvarchar(500) not null,
+	IsActive													bit NOT NULL Default(1),
+	IsDeleted													bit NOT NULL Default(0),
+	AddedOn														datetime NOT NULL Default(getDATE()),
+	AddedBy														bigint not null default(0),
+	DeletedBy													bigint not null default(0),
+	DeletedOn													datetime,
+	UpdatedOn													datetime ,
+	UpdatedBy													bigint not null default(0)
+);
+
+CREATE TABLE dbo.OTPSetting
+(
+	OTPSettingId									bigint not null primary key identity(1,1),
+	ExpiryTime										int not null default(60),--in seconds
+	SendFromSms										bit default(1) not null,
+	SendFromEmail									bit default(1) not null,
+	IsActive										bit NOT NULL Default(1),
+	IsDeleted										bit NOT NULL Default(0),
+	AddedOn											datetime NOT NULL Default(getDATE()),
+	AddedBy											bigint not null default(0),
+	DeletedBy										bigint not null default(0),
+	DeletedOn										datetime,
+	UpdatedOn										datetime ,
+	UpdatedBy										bigint not null default(0)
+
+);
+
+CREATE TABLE dbo.UserOTP
+(
+	UserOTPId					bigint not null primary key identity(1,1),
+	UserId						bigint not null default(0),
+	OTPCode						nvarchar(500) not null,
+	IsExpired					bit default(0) not null
+);
+CREATE TABLE dbo.UnSubscription 
+(
+	UnSubscriptionId								int not null primary key identity(1,1),
+	Email											nvarchar(256) not null,
+	Newsletter										bit NOT NULL DEFAULT (0),
+	Promotional										bit NOT NULL DEFAULT (0),
+	Informative										bit NOT NULL DEFAULT (0),
+	Transactional									bit NOT NULL DEFAULT (0),
+	AllEmail										bit NOT NULL DEFAULT (0),
+	IsActive										bit NOT NULL Default(1),
+	IsDeleted										bit NOT NULL Default(0),
+	AddedOn											datetime NOT NULL Default(getDATE()),
+	AddedBy											bigint not null default(0),
+	DeletedBy										bigint not null default(0),
+	DeletedOn										datetime,
+	UpdatedOn										datetime ,
+	UpdatedBy										bigint not null default(0)
+ 
+);
+
+
+CREATE TABLE dbo.EmailTemplate
+(
+	TemplateId										int primary key IDENTITY(1,1),
+	TemplateName									nvarchar(100),
+	TemplateType									varchar(100),
+	Template										ntext,
+	EmailSubject									nvarchar(1000),
+	HeaderTemplate 									ntext,
+	FooterTemplate 									ntext,
+	IsActive										bit NOT NULL Default(1),
+	IsDeleted										bit NOT NULL Default(0),
+	AddedOn											datetime NOT NULL Default(getDATE()),
+	AddedBy											bigint not null default(0),
+	DeletedBy										bigint not null default(0),
+	DeletedOn										datetime,
+	UpdatedOn										datetime ,
+	UpdatedBy										bigint not null default(0)
+
+);
+CREATE TABLE dbo.UserDevice
+(
+	UserDeviceId 												bigint not null primary key identity(1,1),
+	UserId														bigint not null,
+	DeviceId													nvarchar(500) not null,
+	IsWeb														bit default(0),
+	IsMobile    												bit default(0),	
+	Browser	        											nvarchar(256),
+	BrowserVersion												nvarchar(50),
+	OS															nvarchar(256),
+	Version														nvarchar(50),
+	IsVerified													bit default(0),
+	IsActive													bit NOT NULL Default(1),
+	IsDeleted													bit NOT NULL Default(0),
+	AddedOn														datetime NOT NULL Default(getDATE()),
+	AddedBy														bigint not null default(0),
+	DeletedBy													bigint not null default(0),
+	DeletedOn													datetime,
+	UpdatedOn													datetime ,
+	UpdatedBy													bigint not null default(0)
+
+);
+CREATE TABLE dbo.UserFCMDevice
+(
+	UserFCMDeviceId 											bigint not null primary key identity(1,1),
+	UserId														bigint not null,
+	DeviceId													nvarchar(500) not null,	
+	GroupName													nvarchar(256),
+	OS															nvarchar(256),
+	Version														nvarchar(50),	
+	IsActive													bit NOT NULL Default(1),
+	IsDeleted													bit NOT NULL Default(0),
+	AddedOn														datetime NOT NULL Default(getDATE()),
+	AddedBy														bigint not null default(0),
+	DeletedBy													bigint not null default(0),
+	DeletedOn													datetime,
+	UpdatedOn													datetime ,
+	UpdatedBy													bigint not null default(0)
+
+);
+CREATE TABLE [dbo].[UserLoginHistory]
+(
+	[UserLoginHistoryId]  										bigint not null primary key identity(1,1),
+	[UserId] 													bigint NOT NULL,
+	[IpAddress] 												nvarchar(256) NULL,
+	[LastLogin] 												datetime NULL,
+	[IsFromWeb] 												bit NULL,
+	[IsFromMobile] 												bit NULL,
+	[UserDevice] 												nvarchar(2000) NULL,
+	[Browser] 													nvarchar(256) NULL,
+	[Device] 													nvarchar(256) NULL,
+	IsActive													bit NOT NULL Default(1),
+	IsDeleted													bit NOT NULL Default(0),
+	AddedOn														datetime NOT NULL Default(getDATE()),
+	AddedBy														bigint not null default(0),
+	DeletedBy													bigint not null default(0),
+	DeletedOn													datetime,
+	UpdatedOn													datetime ,
+	UpdatedBy													bigint not null default(0)
+);
+
+
+
+CREATE TABLE dbo.ApplicationController
+(
+	ApplicationControllerId										int not null primary key identity(1,1),
+	Name														nvarchar(500) not null
+
+);
+CREATE TABLE dbo.ApplicationControllerAction
+(
+	ApplicationControllerActionId								int not null primary key identity(1,1),
+	ApplicationControllerId										int not null default(0),
+	ActionUrl													nvarchar(500),
+	RouteUrl													nvarchar(500),
+	FriendlyName												nvarchar(500)
+
+);
+create TABLE dbo.MasterRolePermission
+(
+	MasterRolePermissionId										bigint primary key identity(1,1) not null,
+	ApplicationControllerActionId								int not null default(0),
+	ApplicationControllerId										int not null default(0),
+	RoleId														bigint not null,	
+	AllowAccess													bit default(0) not null,										
+	IsActive                                					bit NOT NULL Default(1),
+	IsDeleted                               					bit NOT NULL Default(0),
+	AddedOn                                 					datetime NOT NULL Default(getDATE()),
+	AddedBy                                 					bigint not null default(0),
+	DeletedBy													bigint not null default(0),
+	DeletedOn                               					datetime,
+	UpdatedOn                               					datetime ,
+	UpdatedBy                               					bigint not null default(0)
+);
+
+create table dbo.UserPermission
+(
+	UserPermissionId											bigint primary key identity(1,1) not null,
+	ApplicationControllerActionId								int not null default(0),
+	ApplicationControllerId										int not null default(0),	
+	AllowAccess													bit default(0) not null,		
+	UserId														bigint not null,								
+	IsActive                                					bit NOT NULL Default(1),
+	IsDeleted                               					bit NOT NULL Default(0),
+	AddedOn                                 					datetime NOT NULL Default(getDATE()),
+	AddedBy                                 					bigint not null default(0),
+	DeletedBy													bigint not null default(0),
+	DeletedOn                               					datetime,
+	UpdatedOn                               					datetime ,
+	UpdatedBy                               					bigint not null default(0)
+);
+create table dbo.OpenIddictApplications
+(
+    Id                                                  nvarchar(450) primary key not null,
+    ApplicationType                                     nvarchar(50) null,
+    ClientId                                            nvarchar(100) null,
+    ClientSecret                                        nvarchar(max) null,
+    ClientType                                          nvarchar(50) null,
+    ConcurrencyToken                                    nvarchar(50) null,
+    ConsentType                                         nvarchar(50) null,
+    DisplayName                                         nvarchar(max) null,
+    DisplayNames                                        nvarchar(max) null,
+    JsonWebKeySet                                       nvarchar(max) null,
+    Permissions                                         nvarchar(max) null,
+    PostLogoutRedirectUris                              nvarchar(max) null,
+    Properties                                          nvarchar(max) null,
+    RedirectUris                                        nvarchar(max) null,
+    Requirements                                        nvarchar(max) null,
+    Settings                                            nvarchar(max) null
+);
+
+create table dbo.OpenIddictAuthorizations
+(
+    Id                                                  nvarchar(450) primary key not null,
+    ApplicationId                                       nvarchar(450) null references dbo.OpenIddictApplications(Id),
+    ConcurrencyToken                                    nvarchar(50) null,
+    CreationDate                                        datetime2(7) null,
+    Properties                                          nvarchar(max) null,
+    Scopes                                              nvarchar(max) null,
+    Status                                              nvarchar(50) null,
+    Subject                                             nvarchar(400) null,
+    Type                                                nvarchar(50) null
+);
+
+create table dbo.OpenIddictScopes
+(
+    Id                                                  nvarchar(450) primary key not null,
+    ConcurrencyToken                                    nvarchar(50) null,
+    Description                                         nvarchar(max) null,
+    Descriptions                                        nvarchar(max) null,
+    DisplayName                                         nvarchar(max) null,
+    DisplayNames                                        nvarchar(max) null,
+    Name                                                nvarchar(200) null,
+    Properties                                          nvarchar(max) null,
+    Resources                                           nvarchar(max) null
+);
+
+create table dbo.OpenIddictTokens
+(
+    Id                                                  nvarchar(450) primary key not null,
+    ApplicationId                                       nvarchar(450) null references dbo.OpenIddictApplications(Id),
+    AuthorizationId                                     nvarchar(450) null references dbo.OpenIddictAuthorizations(Id),
+    ConcurrencyToken                                    nvarchar(50) null,
+    CreationDate                                        datetime2(7) null,
+    ExpirationDate                                      datetime2(7) null,
+    Payload                                             nvarchar(max) null,
+    Properties                                          nvarchar(max) null,
+    RedemptionDate                                      datetime2(7) null,
+    ReferenceId                                         nvarchar(100) null,
+    Status                                              nvarchar(50) null,
+    Subject                                             nvarchar(400) null,
+    Type                                                nvarchar(500) null
+);
+
+create TABLE dbo.HtmlComponent
+(
+	HtmlComponentId								        int primary key identity(1,1) not null,
+	[Name]									            nvarchar(256) not null,
+  	DisplayName                             			nvarchar(256) not null,
+  	ShortDescription                        			nvarchar(500),
+  	Icon                                    			nvarchar(50),
+  	PreviewImage                            			nvarchar(500),
+  	Config                                  			nvarchar(max),
+  	ContentStructure                        			nvarchar(max),
+  	HtmlTemplate                            			nvarchar(max),		
+	StateSchema 										NVARCHAR(MAX) NULL,
+    ApiBindings 										NVARCHAR(MAX) NULL,
+    EventBindings 										NVARCHAR(MAX) NULL,
+    RuntimeOptions 										NVARCHAR(MAX) NULL,
+    Version 											NVARCHAR(50) NULL,					
+	IsActive                                			bit NOT NULL Default(1),
+	IsDeleted                               			bit NOT NULL Default(0),
+	AddedOn                                 			datetime NOT NULL Default(getDATE()),
+	AddedBy                                 			bigint not null default(0),
+	DeletedBy								            bigint not null default(0),
+	DeletedOn                               			datetime,
+	UpdatedOn                               			datetime ,
+	UpdatedBy                               			bigint not null default(0)
+);
+create table dbo.Timezone
+(
+    Id                                                  int identity(1,1) primary key not null,
+    Identifier                                          nvarchar(100) null,
+    StandardName                                        nvarchar(100) null,
+    DisplayName                                         nvarchar(100) null,
+    DaylightName                                        nvarchar(100) null,
+    SupportsDaylightSavingTime                          bit null,
+    BaseUtcOffsetSec                                    int null,
+    UTC                                                 nvarchar(15) null
+);
+
+CREATE TABLE [dbo].[TimezoneAdjustmentRule](
+	[Id] [int] NOT NULL,
+	[TimezoneId] [int] NULL,
+	[RuleNo] [int] NULL,
+	[DateStart] [datetime2](7) NULL,
+	[DateEnd] [datetime2](7) NULL,
+	[DaylightTransitionStartIsFixedDateRule] [bit] NULL,
+	[DaylightTransitionStartMonth] [int] NULL,
+	[DaylightTransitionStartDay] [int] NULL,
+	[DaylightTransitionStartWeek] [int] NULL,
+	[DaylightTransitionStartDayOfWeek] [int] NULL,
+	[DaylightTransitionStartTimeOfDay] [time](7) NULL,
+	[DaylightTransitionEndIsFixedDateRule] [bit] NULL,
+	[DaylightTransitionEndMonth] [int] NULL,
+	[DaylightTransitionEndDay] [int] NULL,
+	[DaylightTransitionEndWeek] [int] NULL,
+	[DaylightTransitionEndDayOfWeek] [int] NULL,
+	[DaylightTransitionEndTimeOfDay] [time](7) NULL,
+	[DaylightDeltaSec] [int] NULL,
+ CONSTRAINT [PK_TimezoneAdjustmentRule] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)
+)
+
+
+CREATE UNIQUE NONCLUSTERED INDEX [UX_Timezone_Identifier] ON [dbo].[Timezone]
+(
+	[Identifier] ASC
+)
+
+
+CREATE UNIQUE NONCLUSTERED INDEX [UX_TimezoneAdjustmentRule_TimezoneId_DateStart_DateEnd] ON [dbo].[TimezoneAdjustmentRule]
+(
+	[TimezoneId] ASC,
+	[DateStart] ASC,
+	[DateEnd] ASC
+)
+
+
+ALTER TABLE [dbo].[TimezoneAdjustmentRule]  WITH CHECK ADD  CONSTRAINT [FK_TimezoneAdjustmentRule_Timezone] FOREIGN KEY([TimezoneId])
+REFERENCES [dbo].[Timezone] ([Id])
+
+
+ALTER TABLE [dbo].[TimezoneAdjustmentRule] CHECK CONSTRAINT [FK_TimezoneAdjustmentRule_Timezone]

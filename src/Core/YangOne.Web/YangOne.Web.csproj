@@ -3,6 +3,11 @@
 		<Description>YO Framework web layer providing grid, forms, module system, widgets, tag helpers, theming, localization, security middleware, templating, printing, and SEO.</Description>
 	</PropertyGroup>
 	<ItemGroup>
+	  <Compile Remove="resources\**" />
+	  <EmbeddedResource Remove="resources\**" />
+	  <None Remove="resources\**" />
+	</ItemGroup>
+	<ItemGroup>
 		<None Remove="Views\Shared\YOGrid\Form.cshtml" />
 		<None Remove="Views\Shared\YOGrid\Grid.cshtml" />
 		<None Remove="Views\Shared\_Installer.cshtml" />
@@ -42,6 +47,6 @@
 		<PackageReference Include="System.Xml.XmlSerializer" Version="4.3.0" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Folder Include="resources\" />
+	  <Folder Include="Properties\" />
 	</ItemGroup>
 </Project>

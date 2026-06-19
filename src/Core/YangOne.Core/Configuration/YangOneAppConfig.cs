@@ -30,6 +30,9 @@ namespace YangOne.Configuration
         public string TokenAuthority { get; set; }
         public SMTMConfig SMTMConfig { get; set; }
         public string JobConnection { get; set; }
+        public string Audience { get; set; } = "AUD";
+
+
     }
 }
 

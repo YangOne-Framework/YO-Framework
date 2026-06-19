@@ -1,14 +1,18 @@
 ﻿// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 using YangOne.Data.Crud;
 
-namespace YangOne.Installer
+namespace YangOne.Web.Dto
 {
     /// <summary>
-    /// Contains database connection information for installation.
+    /// View model for the application installer, containing database connection settings.
     /// </summary>
-    public class InstallationDbInfo
+    public class InstallationInfo
     {
         public string DatabaseServer { get; set; }
         public string DatabaseName { get; set; }
@@ -17,16 +21,12 @@ namespace YangOne.Installer
 
         public string DatabaseProvider { get; set; } = "SQLServer";
         public string ConnectionStrings { get; set; }
-        public int Port { get; set; }
-       
+        public int Port { get; set; } = 1433;
+
 
         public override string ToString()
         {
-            //Server=127.0.0.1;Port=3306;Database=k4;User Id=root;Password=thisisme@sushil;persistsecurityinfo=True;SslMode=none;"
-            //Server=127.0.0.1;Database=a;Persist Security Info=False;User ID=sa;Password=admin12345;;MultipleActiveResultSets=true;Connection Timeout=30;
-            //Server=127.0.0.1;Port=5432;Database=yo;User Id=postgres;Password=binod;CommandTimeout=30;
-            string msSqlConnectionString = $"Server={this.DatabaseServer};Database={this.DatabaseName};Persist Security Info=False;User ID={this.DatabaseUser};Password={this.DatabasePassword};;MultipleActiveResultSets=true;Connection Timeout=30";
-            string mySqlConnectionString = $"Server={this.DatabaseServer};Port={this.Port};Database={this.DatabaseName};User Id={this.DatabaseUser};Password={this.DatabasePassword};persistsecurityinfo=True;SslMode=none;";
+            string msSqlConnectionString = $"Server={this.DatabaseServer},{this.Port};Database={this.DatabaseName};Persist Security Info=False;User ID={this.DatabaseUser};Password={this.DatabasePassword};MultipleActiveResultSets=true;Connection Timeout=30;Trust Server Certificate=True;";
             string npgSqlConnectionString = $"Server={this.DatabaseServer};Port={this.Port};Database={this.DatabaseName};User Id={this.DatabaseUser};Password={this.DatabasePassword};CommandTimeout=30";
 
             if (!string.IsNullOrEmpty(ConnectionStrings))
@@ -47,7 +47,9 @@ namespace YangOne.Installer
             }
 
         }
+        public string Framework { get; set; }
 
 
     }
 }
+

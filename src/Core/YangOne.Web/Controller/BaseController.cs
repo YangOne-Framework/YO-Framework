@@ -9,6 +9,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using YangOne.Configuration;
+using YangOne.Web.Service;
 
 namespace YangOne.Web
 {
@@ -28,6 +29,16 @@ namespace YangOne.Web
         }
         public override void OnActionExecuting(ActionExecutingContext filterContext)
         {
+          
+            if (!AppConfig.IsInstalled)
+            {
+                filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
+                {
+                    controller = "Installer",
+                    action = "Index"
+                }));
+                return;
+            }
             var _context = HttpContext;
             if (!HttpContext.User.Identity.IsAuthenticated)
             {
@@ -48,14 +59,7 @@ namespace YangOne.Web
             }
             base.OnActionExecuting(filterContext);
 
-            if (!AppConfig.IsInstalled)
-            {
-                filterContext.Result = new RedirectToRouteResult(new RouteValueDictionary(new
-                {
-                    controller = "Installer",
-                    action = "Index"
-                }));
-            }
+          
         }
         public RedirectResult RedirectToAnother(string url)
         {

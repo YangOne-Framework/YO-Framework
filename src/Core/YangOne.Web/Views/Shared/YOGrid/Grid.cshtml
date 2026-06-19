@@ -22,7 +22,7 @@
 <link href="/lib/bootstrap-select/css/bootstrap-select.min.css" rel="stylesheet" />
 
 
-<div id="@Model.Name" class="row kachuwa-grid">
+<div id="@Model.Name" class="row yo-grid">
     <div class="col-xl-12">
         @if (!Model.Rows.Any() && Model.NoDataTemplate != null)
         {
@@ -86,7 +86,7 @@
                                             {
 
                                                 <th class=" @column.CssClasses" data-name="@column.Name">
-                                                    <strong><span class="kachuwa-grid-header">@column.Title</span></strong>
+                                                    <strong><span class="yo-grid-header">@column.Title</span></strong>
                                                 </th>
 
                                             }
@@ -110,7 +110,7 @@
                                                     @if (!Model.DisableRowSelection)
                                                     {
                                                         <td>
-                                                            <input type="checkbox" value="@row.GetPriamaryKey()" class="kachuwa-grid-item" />
+                                                            <input type="checkbox" value="@row.GetPriamaryKey()" class="yo-grid-item" />
                                                         </td>
                                                     }
                                                     <td>@((Model.Pager.CurrentPage - 1) * Model.Pager.PageSize + sn) </td>
@@ -278,7 +278,7 @@
                                                                         <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
                                                                         break;
                                                                     case FormInputControl.Tag:
-                                                                        <input name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") type="text" class="kachuwa-tags @column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
+                                                                        <input name=@($"{Model.FormPostKeyName}[{counter}].{column.Name}") type="text" class="yo-tags @column.FormClasses" @Html.Raw(column.RenderAttributes(this.ViewContext))
                                                                                value="@column.ValueFor(row)" />
                                                                         <span class="field-validation-valid" data-valmsg-for="@column.Name" data-valmsg-replace="true"></span>
 
@@ -382,7 +382,7 @@
                                                 @{
                                                     var totalCols = Model.Columns.Count() + 1;
                                                 }
-                                                <td class="kachuwa-grid-emptyrow" colspan="@totalCols">
+                                                <td class="yo-grid-emptyrow" colspan="@totalCols">
                                                     @Model.NoDataText
                                                 </td>
                                             </tr>
@@ -466,4 +466,4 @@
 </div>
 
 <script src="/lib/bootstrap-select/dist/js/bootstrap-select.min.js"></script>
-<script src="/module/kachuwagrid/resources/js/kachuwagrid.js"></script>
+<script src="/module/yogrid/resources/js/yogrid.js"></script>

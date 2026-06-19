@@ -54,12 +54,6 @@ namespace YangOne.Web.Form
         public string Name { get; set; }
         public string CssClasses { get; set; }
         public IForm<T> Form { get; set; }
-       // public Func<T, Object> RenderValue { get; set; }
-        //  public Func<T, TValue> ExpressionValue { get; set; }
-        // LambdaExpression IKachuwaGridCommand<T>.Expression => Expression;
-        // public Expression<Func<T, TValue>> Expression { get; set; }
-       // public abstract IHtmlContent ValueFor(IFormRow<Object> row);
-      //  public IFormRows<IFormRow> Rows { get; set; }
        
         public IFormRowsOf<T> Rows { get; set; }
 

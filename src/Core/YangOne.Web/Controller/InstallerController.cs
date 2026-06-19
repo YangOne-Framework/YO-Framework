@@ -1,23 +1,24 @@
 ﻿// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-using System;
-using System.Collections;
-using YangOne.Web.Service;
-using YangOne.Web.ViewModels;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using System;
+using System.Collections;
 using YangOne.Configuration;
 using YangOne.Extensions;
 using YangOne.Identity;
 using YangOne.Identity.Dto;
 using YangOne.Identity.Service;
 using YangOne.Installer;
+using YangOne.Web.Dto;
+using YangOne.Web.Service;
 using YangOne.Web.Services;
-using IdentityUser = YangOne.Identity.Model.IdentityUser;
+using YangOne.Web.ViewModels;
 using IdentityRole = YangOne.Identity.Model.IdentityRole;
+using IdentityUser = YangOne.Identity.Model.IdentityUser;
 namespace YangOne.Web
 {
     /// <summary>
@@ -61,7 +62,7 @@ namespace YangOne.Web
             {
                 return Redirect("/");
             }
-            var model = new InstallerViewModel();
+            var model = new InstallationInfo();
             return PartialView("_Installer", model);
         }
         [Route("install/ping")]
@@ -72,7 +73,7 @@ namespace YangOne.Web
 
         [Route("install")]
         [HttpPost]        
-        public async Task<JsonResult> Install(InstallerViewModel model)
+        public async Task<JsonResult> Install(InstallationInfo model)
         {
             if (_appConfig.IsInstalled==true)
             {
@@ -82,7 +83,7 @@ namespace YangOne.Web
             {
 
                 var connectionString = model.ToString();
-                if (await _yoManager.Install(connectionString, model.DatabaseProvider))
+                if (await _yoManager.Install(connectionString, model.DatabaseProvider,model.Framework))
                 {
                     return Json(new { Code = 200, Data = model, Message = "Installed Successfully." });
                 }
@@ -103,7 +104,7 @@ namespace YangOne.Web
 
         [Route("install/checkconnection")]
         [HttpPost]
-        public async Task<JsonResult> CheckConnection(InstallerViewModel model)
+        public async Task<JsonResult> CheckConnection(InstallationInfo model)
         {
             if (_appConfig.IsInstalled == true)
             {
@@ -144,9 +145,9 @@ namespace YangOne.Web
                     var user = new IdentityUser { UserName = model.Email, Email = model.Email };
                     var userVm = user.To<NewUser>();
                     userVm.Password = model.Password;
-                    userVm.FirstName = "First Name";
-                    userVm.LastName = "Last Name";
-                    userVm.AddedBy = 1;//model.Email;
+                    userVm.FirstName = "Super";
+                    userVm.LastName = "Admin";
+                    userVm.AddedBy = 1;
                     userVm.IsActive = true;
                     userVm.UserRoles = new List<UserRolesSelected>
                     {

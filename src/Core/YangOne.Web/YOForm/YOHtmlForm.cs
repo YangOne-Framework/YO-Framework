@@ -209,59 +209,7 @@ namespace YangOne.Web.Form
 
             return this;
         }
-        //public virtual IHtmlGrid<T> ProcessWith(IKachuwaGridProcessor<T> processor)
-        //{
-        //    Grid.Processors.Add(processor);
-
-        //    return this;
-        //}
-
-
-
-        //public virtual IHtmlGrid<T> RowCss(string cssClasses)
-        //{
-        //    Form.CssClasses = cssClasses;
-
-        //    return this;
-        //}
-        //public virtual IForm<T> Css(string cssClasses)
-        //{
-        //    Grid.CssClasses = cssClasses;
-
-        //    return this;
-        //}
-        //public virtual IHtmlGrid<T> Empty(string text)
-        //{
-        //    Grid.NoDataText = text;
-
-        //    return this;
-        //}
-        //public virtual IHtmlGrid<T> Named(string name)
-        //{
-        //    Grid.Name = name;
-
-        //    return this;
-        //}
-
-
-        //public virtual IHtmlGrid<T> Pageable(Action<KachuwaPager> builder)
-        //{
-        //    Grid.Pager = new KachuwaPager(100, 1);
-        //    builder(Grid.Pager);
-
-
-        //    return this;
-        //}
-        //public virtual IHtmlGrid<T> Pageable()
-        //{
-        //    return Pageable(builder => { });
-        //}
-        //public virtual IHtmlGrid<T> AddCommands(Action<IYOGridCommandsOf<T>> builder)
-        //{
-        //    builder(Grid.Commands);
-
-        //    return this;
-        //}
+      
         public void WriteTo(TextWriter writer, HtmlEncoder encoder)
         {
             try

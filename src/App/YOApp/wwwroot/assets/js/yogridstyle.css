@@ -1,67 +1,67 @@
 ﻿
 
-.kachuwa-grid .table a.table-link.danger {
+.yo-grid .table a.table-link.danger {
     color: #e74c3c;
 }
 
-.kachuwa-grid .label {
+.yo-grid .label {
     border-radius: 3px;
     font-size: 0.875em;
     font-weight: 600;
 }
 
-.kachuwa-grid tbody td .user-subhead {
+.yo-grid tbody td .user-subhead {
     font-size: 0.875em;
     font-style: italic;
 }
 
-.kachuwa-grid table tbody td .user-link {
+.yo-grid table tbody td .user-link {
     display: block;
     font-size: 1.25em;
     padding-top: 3px;
     margin-left: 60px;
 }
-.kachuwa-grid-header{
+.yo-grid-header{
     word-break:break-all;
 }
 
-.kachuwa-grid a {
+.yo-grid a {
     color: #3498db;
     outline: none !important;
 }
 
-.kachuwa-grid table tbody td > img {
+.yo-grid table tbody td > img {
     position: relative;
     max-width: 50px;
     float: left;
     margin-right: 15px;
 }
 
-.kachuwa-grid .table thead tr th {
+.yo-grid .table thead tr th {
     font-size: 0.9em;
     font-weight: 500;
     color: #a5a5a5;
 }
 
-.kachuwa-grid .table thead tr th {
+.yo-grid .table thead tr th {
     border-bottom: 2px solid #e7ebee;
 }
 
-.kachuwa-grid .table tbody tr td:first-child {
+.yo-grid .table tbody tr td:first-child {
     font-size: 1.125em;
     font-weight: 300;
 }
 
-.kachuwa-grid .table tbody tr td {
+.yo-grid .table tbody tr td {
     font-size: 1em;
     vertical-align: middle;
     border-top: 1px solid #e7ebee;
     padding: 12px 8px;
 }
-.kachuwa-filters {
+.yo-filters {
     justify-content: flex-end;
 }
-    .kachuwa-filters .navbar-form {
+    .yo-filters .navbar-form {
         padding:0;
     }
 /* The switch - the box around the slider */

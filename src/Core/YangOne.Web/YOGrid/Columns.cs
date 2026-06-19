@@ -72,7 +72,7 @@ namespace YangOne.Web.Grid
     /// <summary>
     /// Base class for grid column implementations.
     /// </summary>
-    public abstract class BaseKachuwaGridColumn<T, TValue> : IYOGridColumn<T>
+    public abstract class BaseYOGridColumn<T, TValue> : IYOGridColumn<T>
     {
         public string Name { get; set; }
         public string Format { get; set; }
@@ -100,7 +100,7 @@ namespace YangOne.Web.Grid
     /// <summary>
     /// Default implementation of a grid column with value rendering and validation.
     /// </summary>
-    public class YOGridColumn<T, TValue> : BaseKachuwaGridColumn<T, TValue> where T : class
+    public class YOGridColumn<T, TValue> : BaseYOGridColumn<T, TValue> where T : class
     {
         // private readonly Object _obj;
         private IModelMetadataProvider _metadataProvider;
@@ -432,14 +432,6 @@ namespace YangOne.Web.Grid
 
             return column;
         }
-        //public virtual Object Add(Object obj)
-        //{
-        //    IYOGridColumn<T> column = new KachuwaGridColumn<T, object>(Grid, obj);
-        //    //Grid.Processors.Add(column);
-        //    Add(column);
-
-        //    return column;
-        //}
 
 
         public virtual IYOGridColumn<T> Insert(Int32 index)

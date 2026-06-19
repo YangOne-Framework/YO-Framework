@@ -8,8 +8,6 @@ namespace YangOne.Data.Crud
     public enum Dialect
     {
         SQLServer,
-        PostgreSQL,
-        SQLite,
-        MySQL,
+        PostgreSQL
     }
 }

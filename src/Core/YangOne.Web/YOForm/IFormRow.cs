@@ -155,38 +155,7 @@ namespace YangOne.Web.Form
         }
 
 
-        //public virtual IFormRow<T> GetEnumerator()
-        //{
-        //    if (CurrentRows == null)
-        //    {
-        //        var items = Form.Model;
-        //        //CurrentRows = items
-        //        //  .ToList()
-        //        //  .Select(model => new KGrid.KachuwaGridRow<T>(model)
-        //        //  {
-        //        //      CssClasses = CssClasses?.Invoke(model)
-        //        //  });
-        //        //IQueryable<T> items = Grid.Source;
-        //        //foreach (IGridProcessor<T> processor in Grid.Processors.Where(proc => proc.ProcessorType == GridProcessorType.Pre))
-        //        //    items = processor.Process(items);
-
-        //        //foreach (IGridProcessor<T> processor in Grid.Processors.Where(proc => proc.ProcessorType == GridProcessorType.Post))
-        //        //    items = processor.Process(items);
-
-        //        //CurrentRows = items
-        //        //    .ToList()
-        //        //    .Select(model => new GridRow<T>(model)
-        //        //    {
-        //        //        CssClasses = CssClasses?.Invoke(model)
-        //        //    });
-        //    }
-
-        //    return CurrentRows.GetEnumerator();
-        //}
-        //IEnumerator IEnumerable.GetEnumerator()
-        //{
-        //    return GetEnumerator();
-        //}
+        
     }
 
 

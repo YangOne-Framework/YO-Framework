@@ -1,0 +1,18 @@
+CREATE OR ALTER FUNCTION [dbo].[UDF_GetEndOfDay]
+(
+    @ReferenceDate DATETIME2
+)
+RETURNS DATETIME2
+AS
+BEGIN
+	DECLARE
+        @Result DATETIME2 = NULL
+    ;  
+
+    SELECT @Result =
+        CONVERT(DATETIME2, CONVERT(NVARCHAR, CONVERT(DATE, @ReferenceDate), 121) + ' 23:59:59.9999999')
+    ;
+
+	RETURN @Result;
+
+END

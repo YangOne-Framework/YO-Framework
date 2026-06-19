@@ -68,7 +68,7 @@ namespace YangOne.Web.TagHelpers
                         LocaleRegion = new { localization?.Culture, localization?.Flag, localization?.CountryId }
                     });
                     string variables = @"<script type='text/javascript'>
-                        __YOSettings=" + json + "</script><script type='text/javascript' src='/assets/js/locale/kachuwalocale.js'></script> ";
+                        __YOSettings=" + json + "</script><script type='text/javascript' src='/assets/js/locale/yolocale.js'></script> ";
 
                     output.PostContent.AppendHtmlLine(variables);
                 }
