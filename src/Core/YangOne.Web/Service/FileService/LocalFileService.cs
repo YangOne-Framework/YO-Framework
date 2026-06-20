@@ -52,7 +52,7 @@ namespace YangOne.Web.Services
                 }
                 catch (Exception ex)
                 {
-                    throw ex;
+                    throw;
                 }
                 //}
             }
@@ -92,7 +92,7 @@ namespace YangOne.Web.Services
                 }
                 catch (Exception ex)
                 {
-                    throw ex;
+                    throw;
                 }
                 //}
             }

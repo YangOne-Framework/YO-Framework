@@ -31,7 +31,7 @@ namespace YangOne.Admin.Service
             _storageProvider = storageProvider;
             mediaLibraryRootPath = Path.Combine(_webHostEnvironment.WebRootPath, MediaLibConst.MediaLibRootPath);
         }
-        public async Task<MediaLibraryStatus> SaveDirecory(DirectoryViewModel model)
+        public async Task<MediaLibraryStatus> SaveDirectory(DirectoryViewModel model)
         {
             if (!string.IsNullOrEmpty(model.DirPath))
             {
@@ -70,7 +70,7 @@ namespace YangOne.Admin.Service
             }; ;
         }
 
-        public async Task<MediaLibraryStatus> MoveFileToDirecory(string filePath, string toDirectory)
+        public async Task<MediaLibraryStatus> MoveFileToDirectory(string filePath, string toDirectory)
         {
             var phy_filePath = Path.Combine(mediaLibraryRootPath, filePath);
             string newDirectory = Path.Combine(mediaLibraryRootPath, toDirectory);

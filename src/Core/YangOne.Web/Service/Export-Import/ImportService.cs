@@ -250,7 +250,7 @@ namespace YangOne.Web.Service
             catch (Exception ex)
             {
 
-                throw ex;
+                throw;
             }
         }
 

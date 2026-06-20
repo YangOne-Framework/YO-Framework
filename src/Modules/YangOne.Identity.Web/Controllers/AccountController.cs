@@ -464,7 +464,7 @@ public class AccountController : Controller
             var objtemplate =
                 await _emailTemplateService.TemplateCRUDService.GetAsync("Where TemplateName=@templateName",
                     new { templateName = "otptemplate" });
-            await _emailSender.SendEmailTemplateAsync(objtemplate.EmailSubject, objtemplate.Template, new
+            await _emailSender.SendTemplatedEmailAsync(objtemplate.EmailSubject, objtemplate.Template, new
             {
                 OTPCode = otp,
                 FirstName = $"{user.FirstName}",
@@ -733,7 +733,7 @@ public class AccountController : Controller
                 var webSetting = await _settingService.GetSetting();
 
                 var objtemplate = await _emailTemplateService.TemplateCRUDService.GetAsync("Where TemplateName=@templateName", new { templateName = "welcome" });
-                await _emailSender.SendEmailTemplateAsync(objtemplate.EmailSubject, objtemplate.Template, new
+                await _emailSender.SendTemplatedEmailAsync(objtemplate.EmailSubject, objtemplate.Template, new
                 {
                     FirstName = $"{newAppUser.FirstName}",
                     LastName = newAppUser.LastName,
@@ -766,7 +766,7 @@ public class AccountController : Controller
 
                 objtemplate = await _emailTemplateService.TemplateCRUDService.GetAsync("Where TemplateName=@templateName", new { templateName = "emailconfirmation" });
 
-                await _emailSender.SendEmailTemplateAsync(objtemplate.EmailSubject,
+                await _emailSender.SendTemplatedEmailAsync(objtemplate.EmailSubject,
                    objtemplate.Template, new
                    {
                        VerificationUrl = callbackUrl,
@@ -863,7 +863,7 @@ public class AccountController : Controller
                 if (!isUnsubscribed)
                 {
                     var objtemplate = await _emailTemplateService.TemplateCRUDService.GetAsync("Where TemplateName=@templateName", new { templateName = "resetpassword" });
-                    await _emailSender.SendEmailTemplateAsync(objtemplate.EmailSubject, objtemplate.Template,
+                    await _emailSender.SendTemplatedEmailAsync(objtemplate.EmailSubject, objtemplate.Template,
                         new
                         {
                             FullName = $"{appuser.FirstName} {appuser.LastName}",

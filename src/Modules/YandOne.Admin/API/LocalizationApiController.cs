@@ -53,7 +53,7 @@ public class LocalizationApiController : BaseApiController
     }
 
     [HttpGet("region/all")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<IEnumerable<LocaleRegionViewModel>>>> GetRegions(
         [FromQuery] int pageNo = 1,
         [FromQuery] int rowsPerPage = 10,
@@ -88,7 +88,7 @@ public class LocalizationApiController : BaseApiController
 
 
     [HttpGet("country/all")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<IEnumerable<Country>>>> GetCountries()
     {
         try
@@ -104,7 +104,7 @@ public class LocalizationApiController : BaseApiController
     }
 
     [HttpPost("import")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> Import([FromForm] LocalizationImportRequest request)
     {
         try
@@ -133,7 +133,7 @@ public class LocalizationApiController : BaseApiController
 
   
     [HttpPost("region/new")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<LocaleRegion>>> CreateRegion([FromBody] LocaleRegion model)
     {
         if (!ModelState.IsValid)
@@ -172,7 +172,7 @@ public class LocalizationApiController : BaseApiController
 
 
     [HttpPost("region/update")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> UpdateRegion([FromBody] LocaleRegionEditViewModel model)
     {
         if (!ModelState.IsValid)
@@ -212,7 +212,7 @@ public class LocalizationApiController : BaseApiController
 
    
     [HttpGet("region/{localRegionId:int}/resource/all")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<LocaleRegionEditViewModel>>> GetResources(
         [FromRoute] int localRegionId,
         [FromQuery] int pageNo = 1,
@@ -237,7 +237,7 @@ public class LocalizationApiController : BaseApiController
 
    
     [HttpGet("export/{localRegionId:int}")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<IActionResult> Export([FromRoute] int localRegionId)
     {
         try
@@ -267,7 +267,7 @@ public class LocalizationApiController : BaseApiController
 
    
     [HttpPost("set-default")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> SetDefault([FromBody] SetDefaultLocaleRequest request)
     {
         if (!ModelState.IsValid)
@@ -340,7 +340,7 @@ public class LocalizationApiController : BaseApiController
 
 
     [HttpPost("resource/save")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> UpdateLocaleValue([FromBody] LocaleResource model)
     {
         if (!ModelState.IsValid)
@@ -366,7 +366,7 @@ public class LocalizationApiController : BaseApiController
 
    
     [HttpDelete("region/{id:int}")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> DeleteRegion([FromRoute] int id)
     {
         try
@@ -393,7 +393,7 @@ public class LocalizationApiController : BaseApiController
 
 
     [HttpPost("language")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public ActionResult<ApiResponse<bool>> SetLanguage([FromBody] SetLanguageRequest request)
     {
         try

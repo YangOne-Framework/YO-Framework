@@ -61,7 +61,7 @@ namespace YangOne.Identity.Extensions
             catch (Exception ex)
             {
 
-                throw ex;
+                throw;
             }
 
         }

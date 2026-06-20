@@ -1,237 +1,391 @@
 ﻿// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
-using YangOne.Web.Service;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using System.Linq.Expressions;
+using System.Net;
 using System.Net.Mail;
-using YangOne.Configuration;
 using System.Net.Mime;
+using System.Text;
+using YangOne.Configuration;
+using YangOne.Data.Extension;
+using YangOne.Job;
+using YangOne.Web.Model;
+using YangOne.Web.Service;
 
 namespace YangOne.Web.Services
 {
     /// <summary>
-    /// Sends email messages using the SMTP protocol.
+    /// Sends email messages using the SMTP protocol via background job runner.
     /// </summary>
-    public class SmtpEmailSender : IEmailSender
-    {
-        private readonly SmtpEmailSetting _setting;
-        private readonly IWebHostEnvironment _hostingEnvironment;
-        private readonly ITemplateEngine _templateEngine;
 
-        private readonly YangOneAppConfig _yoAppConfig;
-        public string Name { get; } = "SMTPSENDER";
-        public SmtpEmailSender(IOptionsSnapshot<YangOneAppConfig> configOption,
-            IWebHostEnvironment hostingEnvironment, ITemplateEngine templateEngine)
+    public sealed class SmtpEmailSender : IEmailSender
+    {
+        private const string DefaultSenderEmail = "info@yoframework.com";
+        private const string DefaultSenderName = "YO";
+
+        private readonly SmtpEmailSetting _smtpSetting;
+        private readonly ITemplateEngine _templateEngine;
+        private readonly ISettingService _settingService;
+        private readonly IJobRunner _jobRunner;
+        private readonly IEmailLogService _emailLogService;
+
+        public string Name => "SMTPSENDER";
+
+        public SmtpEmailSender(
+            IOptionsSnapshot<YangOneAppConfig> configurationOptions,
+            ITemplateEngine templateEngine,
+            ISettingService settingService,
+            IJobRunner jobRunner,IEmailLogService emailLogService)
         {
-            
-            _hostingEnvironment = hostingEnvironment;
+            ArgumentNullException.ThrowIfNull(configurationOptions);
+            ArgumentNullException.ThrowIfNull(templateEngine);
+            ArgumentNullException.ThrowIfNull(settingService);
+            ArgumentNullException.ThrowIfNull(jobRunner);
+
+            var applicationConfiguration = configurationOptions.Value
+                                           ?? throw new InvalidOperationException(
+                                               $"{nameof(YangOneAppConfig)} configuration is missing.");
+
+            var smtpConfiguration = applicationConfiguration.SMTMConfig
+                                    ?? throw new InvalidOperationException(
+                                        "SMTP configuration is missing.");
+
             _templateEngine = templateEngine;
-            _yoAppConfig = configOption.Value;
-            _setting = new SmtpEmailSetting
+            _settingService = settingService;
+            _jobRunner = jobRunner;
+            _emailLogService = emailLogService;
+
+            _smtpSetting = new SmtpEmailSetting
             {
-                Host = _yoAppConfig.SMTMConfig.Host,
-                Password = _yoAppConfig.SMTMConfig.Password,
-                Port = _yoAppConfig.SMTMConfig.Port,
-                UseSSL = _yoAppConfig.SMTMConfig.UseSSL,
-                UserName = _yoAppConfig.SMTMConfig.UserName
+                Host = smtpConfiguration.Host,
+                Port = smtpConfiguration.Port,
+                UserName = smtpConfiguration.UserName,
+                Password = smtpConfiguration.Password,
+                UseSSL = smtpConfiguration.UseSSL
+            };
+
+            ValidateSmtpConfiguration(_smtpSetting);
+        }
+
+        public Task SendEmailAsync(
+            string subject,
+            string message,
+            params EmailAddress[] recipients)
+        {
+            ValidateEmailRequest(subject, recipients);
+
+            return Enqueue(() =>
+                SendMessageAsync(
+                    subject,
+                    message,
+                    false,
+                    null,
+                    recipients));
+        }
+
+        public Task SendEmailWithAttachmentAsync(
+            string subject,
+            string message,
+            string[] attachmentFiles,
+            params EmailAddress[] recipients)
+        {
+            ValidateEmailRequest(subject, recipients);
+            ValidateAttachmentFiles(attachmentFiles);
+
+            return Enqueue(() =>
+                SendMessageAsync(
+                    subject,
+                    message,
+                    false,
+                    attachmentFiles,
+                    recipients));
+        }
+
+        public Task SendTemplatedEmailAsync<TContext>(
+            string subject,
+            string templateKey,
+            TContext context,
+            params EmailAddress[] recipients)
+        {
+            ValidateEmailRequest(subject, recipients);
+
+            ArgumentException.ThrowIfNullOrWhiteSpace(templateKey);
+            ArgumentNullException.ThrowIfNull(context);
+
+            return Enqueue(() =>
+                SendTemplateMessageAsync(
+                    subject,
+                    templateKey,
+                    context,
+                    null,
+                    recipients));
+        }
+
+        public Task SendTemplatedEmailWithAttachmentAsync<TContext>(
+            string subject,
+            string templateKey,
+            TContext context,
+            string[] attachmentFiles,
+            params EmailAddress[] recipients)
+        {
+            ValidateEmailRequest(subject, recipients);
+
+            ArgumentException.ThrowIfNullOrWhiteSpace(templateKey);
+            ArgumentNullException.ThrowIfNull(context);
+
+            ValidateAttachmentFiles(attachmentFiles);
+
+            return Enqueue(() =>
+                SendTemplateMessageAsync(
+                    subject,
+                    templateKey,
+                    context,
+                    attachmentFiles,
+                    recipients));
+        }
+
+        private Task Enqueue(Expression<Action> emailAction)
+        {
+            ArgumentNullException.ThrowIfNull(emailAction);
+
+            return _jobRunner.EnqueueAsync(emailAction);
+        }
+
+        private async Task SendTemplateMessageAsync<TContext>(
+            string subject,
+            string templateKey,
+            TContext context,
+            string[]? attachmentFiles,
+            EmailAddress[] recipients)
+        {
+            var renderedHtml = _templateEngine.RenderFromFile(
+                templateKey,
+                context,
+                true);
+
+            await SendMessageAsync(
+                subject,
+                renderedHtml,
+                true,
+                attachmentFiles,
+                recipients);
+        }
+
+        private async Task SendMessageAsync(
+            string subject,
+            string body,
+            bool isHtmlBody,
+            string[]? attachmentFiles,
+            EmailAddress[] recipients)
+        {
+            var emailLog = new EmailLog()
+            {
+                From =DefaultSenderEmail,
+                To = string.Join(",", recipients.Select(x => x.Email)),
+                Body = body,
+                Subject = subject,
+                SentDate = DateTime.Now,
+                DeliveredDate = DateTime.Now,
+                IsSent = true,
+                IsDelivered = false
+            };
+            emailLog.AutoFill();
+            emailLog.EmailLogId = await _emailLogService.LogCrudService.InsertAsync<long>(emailLog);
+            var sender = await GetSenderAddressAsync();
+
+            try
+            {
+                using var mailMessage = CreateMailMessage(
+                    sender,
+                    recipients,
+                    subject,
+                    body,
+                    isHtmlBody,
+                    attachmentFiles);
+
+                using var smtpClient = CreateSmtpClient();
+
+                await smtpClient.SendMailAsync(mailMessage);
+
+                emailLog.IsSent = true;
+                emailLog.IsDelivered = true;
+                emailLog.DeliveredDate = DateTime.UtcNow;
+
+                await _emailLogService.LogCrudService.UpdateAsync(emailLog);
+            }
+            catch
+            {
+                emailLog.IsSent = false;
+                emailLog.IsDelivered = false;
+
+                await _emailLogService.LogCrudService.UpdateAsync(emailLog);
+
+                throw;
+            }
+
+        }
+
+        private async Task<EmailAddress> GetSenderAddressAsync()
+        {
+            var websiteSetting = await _settingService.GetSetting();
+
+            return new EmailAddress
+            {
+                Email = string.IsNullOrWhiteSpace(websiteSetting?.DefaultEmail)
+                    ? DefaultSenderEmail
+                    : websiteSetting.DefaultEmail,
+
+                DisplayName = string.IsNullOrWhiteSpace(websiteSetting?.WebsiteName)
+                    ? DefaultSenderName
+                    : websiteSetting.WebsiteName
             };
         }
-        private async Task _sendEmailAsync(
-            EmailAddress from,
+
+        private static MailMessage CreateMailMessage(
+            EmailAddress sender,
             IEnumerable<EmailAddress> recipients,
             string subject,
-            string text,
-            string html)
+            string body,
+            bool isHtmlBody,
+            IEnumerable<string>? attachmentFiles)
         {
-            try
-
+            var mailMessage = new MailMessage
             {
+                From = CreateMailAddress(sender),
+                Subject = subject,
+                SubjectEncoding = Encoding.UTF8,
+                Body = body ?? string.Empty,
+                BodyEncoding = Encoding.UTF8,
+                IsBodyHtml = isHtmlBody
+            };
 
-
-                var message = new MailMessage { From = new MailAddress(@from.Email, @from.DisplayName ?? "") };
-
+            try
+            {
                 foreach (var recipient in recipients)
                 {
-                    message.To.Add(new MailAddress(recipient.Email, recipient.DisplayName ?? ""));
+                    mailMessage.To.Add(CreateMailAddress(recipient));
                 }
 
-                message.Subject = subject;
-                message.Body = string.IsNullOrEmpty(text) ? html : text;
-                message.IsBodyHtml = !string.IsNullOrEmpty(html);
-                var email = new Email()
+                if (attachmentFiles is not null)
                 {
-                    From = from,
-                    MessageHtml = html,
-                    MessageText = text,
-                    Subject = subject,
-                    To = recipients.ToArray()
-                };
-                var smtpclient = new SmtpClient
-                {
-                    UseDefaultCredentials = false,
-                    Host = _setting.Host,
-                    Port = _setting.Port,
-                    Credentials = new System.Net.NetworkCredential(_setting.UserName, _setting.Password),
-                    EnableSsl = _setting.UseSSL
-                };
-
-                smtpclient.SendCompleted += Smtpclient_SendCompleted;
-                smtpclient.SendAsync(message, new SendAsyncState(email));
-
-
-            }
-            catch (Exception e)
-            {
-                throw e;
-            }
-        }
-
-        public async Task _sendEmailAsync(
-            EmailAddress from,
-            IEnumerable<EmailAddress> recipients,
-            string subject,
-            string text,
-            string html, string[] files)
-        {
-            try
-
-            {
-
-
-                var message = new MailMessage { From = new MailAddress(@from.Email, @from.DisplayName ?? "") };
-
-                foreach (var recipient in recipients)
-                {
-                    message.To.Add(new MailAddress(recipient.Email, recipient.DisplayName ?? ""));
-                }
-
-                message.Subject = subject;
-                message.Body = string.IsNullOrEmpty(text) ? html : text;
-                message.IsBodyHtml = !string.IsNullOrEmpty(html);
-                var email = new Email()
-                {
-                    From = from,
-                    MessageHtml = html,
-                    MessageText = text,
-                    Subject = subject,
-                    To = recipients.ToArray()
-                };
-                var smtpclient = new SmtpClient
-                {
-                    UseDefaultCredentials = false,
-                    Host = _setting.Host,
-                    Port = _setting.Port,
-                    Credentials = new System.Net.NetworkCredential(_setting.UserName, _setting.Password),
-                    EnableSsl = _setting.UseSSL
-                };
-                foreach (var file in files)
-                {
-                    if (File.Exists(file))
+                    foreach (var attachmentFile in attachmentFiles)
                     {
-                        Attachment attachment = new Attachment(file, MediaTypeNames.Application.Octet);
-                        ContentDisposition disposition = attachment.ContentDisposition;
-                        disposition.CreationDate = File.GetCreationTime(file);
-                        disposition.ModificationDate = File.GetLastWriteTime(file);
-                        disposition.ReadDate = File.GetLastAccessTime(file);
-                        disposition.FileName = Path.GetFileName(file);
-                        disposition.Size = new FileInfo(file).Length;
-                        disposition.DispositionType = DispositionTypeNames.Attachment;
-                        message.Attachments.Add(attachment);
+                        mailMessage.Attachments.Add(
+                            new Attachment(attachmentFile));
                     }
                 }
 
-                smtpclient.SendCompleted += Smtpclient_SendCompleted;
-                smtpclient.SendAsync(message, new SendAsyncState(email));
-
-
+                return mailMessage;
             }
-            catch (Exception e)
+            catch
             {
-                throw e;
+                mailMessage.Dispose();
+                throw;
             }
         }
 
-
-        public async Task SendEmailAsync(string subject, string message, params EmailAddress[] to)
+        private SmtpClient CreateSmtpClient()
         {
-            var settingService = ContextResolver.Context.RequestServices.GetService<ISettingService>();
-            var webSetting = await settingService.GetSetting();
-            string senderEmail = webSetting.DefaultEmail;
-            if (string.IsNullOrEmpty(senderEmail))
+            return new SmtpClient
             {
-                senderEmail = "info@yoframework.com";
-            }
-            _sendEmailAsync(
-              new EmailAddress() { Email = senderEmail, DisplayName = webSetting?.WebsiteName??"YO" }, to, subject,
-              message, "");
-            
-
-
+                Host = _smtpSetting.Host,
+                Port = _smtpSetting.Port,
+                EnableSsl = _smtpSetting.UseSSL,
+                UseDefaultCredentials = false,
+                Credentials = new NetworkCredential(
+                    _smtpSetting.UserName,
+                    _smtpSetting.Password),
+                DeliveryMethod = SmtpDeliveryMethod.Network
+            };
         }
 
-        public Task SendEmailAsync(EmailAddress from, string subject, string message, params EmailAddress[] to)
+        private static MailAddress CreateMailAddress(
+            EmailAddress emailAddress)
         {
-            return _sendEmailAsync(from, to, subject, message, "");
-        }
-        
-        public async Task SendEmailTemplateAsync<T>(string subject, string template, T context, params EmailAddress[] to)
-        {
+            ArgumentNullException.ThrowIfNull(emailAddress);
+            ArgumentException.ThrowIfNullOrWhiteSpace(emailAddress.Email);
 
-            var settingService = ContextResolver.Context.RequestServices.GetService<ISettingService>();
-            var webSetting = await settingService.GetSetting();
-            string senderEmail = webSetting.DefaultEmail;
-            if (string.IsNullOrEmpty(senderEmail))
+            return new MailAddress(
+                emailAddress.Email,
+                emailAddress.DisplayName ?? string.Empty,
+                Encoding.UTF8);
+        }
+
+        private static void ValidateEmailRequest(
+            string subject,
+            EmailAddress[] recipients)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(subject);
+            ArgumentNullException.ThrowIfNull(recipients);
+
+            if (recipients.Length == 0)
             {
-                senderEmail = "info@yoframework.com";
+                throw new ArgumentException(
+                    "At least one email recipient is required.",
+                    nameof(recipients));
             }
-            template = _templateEngine.Render(template, context);
-            await _sendEmailAsync(new EmailAddress() { Email = senderEmail, DisplayName = webSetting?.WebsiteName ?? "YO" }, to, subject, "", template);
-        }
 
-        public async Task SendTemplatedEmailAsync<T>(string subject, string templateKey, T context, params EmailAddress[] to)
-        {
-            var settingService = ContextResolver.Context.RequestServices.GetService<ISettingService>();
-            var webSetting = await settingService.GetSetting();
-            string senderEmail = webSetting.DefaultEmail;
-            if (string.IsNullOrEmpty(senderEmail))
+            if (recipients.Any(recipient =>
+                    recipient is null ||
+                    string.IsNullOrWhiteSpace(recipient.Email)))
             {
-                senderEmail = "info@yoframework.com";
+                throw new ArgumentException(
+                    "Every recipient must contain a valid email address.",
+                    nameof(recipients));
             }
-            string template = _templateEngine.RenderFromFile(templateKey, context, true);
-            await _sendEmailAsync(new EmailAddress() { Email = senderEmail, DisplayName = webSetting?.WebsiteName ?? "YO" }, to, subject, "", template);
         }
 
-        public async Task SendTemplatedEmailWithAttachmentAsync<T>(string subject, string templateKey, T context, string[] files,
-            params EmailAddress[] to)
+        private static void ValidateAttachmentFiles(
+            string[] attachmentFiles)
         {
-            var settingService = ContextResolver.Context.RequestServices.GetService<ISettingService>();
-            var webSetting = await settingService.GetSetting();
-            string senderEmail = webSetting.DefaultEmail;
-            if (string.IsNullOrEmpty(senderEmail))
+            ArgumentNullException.ThrowIfNull(attachmentFiles);
+
+            if (attachmentFiles.Length == 0)
             {
-                senderEmail = "info@yoframework.com";
+                throw new ArgumentException(
+                    "At least one attachment file is required.",
+                    nameof(attachmentFiles));
             }
-            string template = _templateEngine.RenderFromFile(templateKey, context, true);
-            await _sendEmailAsync(new EmailAddress() { Email = senderEmail, DisplayName = webSetting?.WebsiteName ?? "YO" }, to, subject, "", template, files);
+
+            foreach (var attachmentFile in attachmentFiles)
+            {
+                if (string.IsNullOrWhiteSpace(attachmentFile))
+                {
+                    throw new ArgumentException(
+                        "Attachment file paths cannot be empty.",
+                        nameof(attachmentFiles));
+                }
+
+                if (!File.Exists(attachmentFile))
+                {
+                    throw new FileNotFoundException(
+                        $"Email attachment was not found: {attachmentFile}",
+                        attachmentFile);
+                }
+            }
         }
 
-        public async Task SendTemplatedEmailAsync<T>(EmailAddress from, string subject, string templateKey, T context, params EmailAddress[] to)
+        private static void ValidateSmtpConfiguration(
+            SmtpEmailSetting smtpSetting)
         {
-            string template = _templateEngine.RenderFromFile(templateKey, context, true);
-            await _sendEmailAsync(from, to, subject, "", template);
+            if (string.IsNullOrWhiteSpace(smtpSetting.Host))
+            {
+                throw new InvalidOperationException(
+                    "SMTP host is not configured.");
+            }
 
-        }
+            if (smtpSetting.Port <= 0)
+            {
+                throw new InvalidOperationException(
+                    "SMTP port is not configured correctly.");
+            }
 
-        private void Smtpclient_SendCompleted(object sender, System.ComponentModel.AsyncCompletedEventArgs e)
-        {
-            var smtpClient = (SmtpClient)sender;
-            var userAsyncState = (SendAsyncState)e.UserState;
-            if (e.Error != null)
-                Console.WriteLine("Error sending email.");
-            else if (e.Cancelled)
-                Console.WriteLine("Sending of email cancelled.");
-            smtpClient.SendCompleted -= Smtpclient_SendCompleted;
+            if (string.IsNullOrWhiteSpace(smtpSetting.UserName))
+            {
+                throw new InvalidOperationException(
+                    "SMTP username is not configured.");
+            }
         }
     }
 }

@@ -12,7 +12,7 @@ using YangOne.Web.Services;
 
 namespace YandOne.Admin.API;
 
-[Route("api/v1/smsserviceprovider")]
+[Route("api/v1/sms-service-provider")]
 /// <summary>
 /// Represents a class SmsServiceProviderApiController.
 /// </summary>

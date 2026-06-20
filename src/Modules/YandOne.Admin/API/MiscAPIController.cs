@@ -41,23 +41,6 @@ public class MiscAPIController : BaseApiController
             return ErrorResponse<IEnumerable<Country>>(501, e.Message);
         }
     }
-    //[Route("state/all")]
-    //[HttpGet]
-    //public async Task<IActionResult> GetStates(int countryId)
-    //{
-    //    try
-    //    {
-
-    //        var states = await _countryService.State.GetListAsync("Where CountryId=@CountryId", new { CountryId = countryId });
-
-    //        return HttpResponse(200, "success", states);
-    //    }
-    //    catch (Exception e)
-    //    {
-    //        _logger.Log(LogType.Error, () => e.Message, e);
-    //        return ErrorResponse(500, e.Message);
-    //    }
-    //}
 
 
 }

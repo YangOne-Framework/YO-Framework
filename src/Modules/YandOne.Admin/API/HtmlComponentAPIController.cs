@@ -10,7 +10,7 @@ using YangOne.Web.Service;
 
 namespace YandOne.Admin.API;
 
-[Route("api/v1/htmlcomponent")]
+[Route("api/v1/html-component")]
 /// <summary>
 /// Represents a class HtmlComponentAPIController.
 /// </summary>

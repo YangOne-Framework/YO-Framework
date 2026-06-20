@@ -135,7 +135,7 @@ namespace YangOne.Web.API
             response.ContentLength = session.FileInfo.FileSize;
             response.Headers["Content-Disposition"] = "attachment; fileName=" + session.FileInfo.FileName;
 
-            _storageProvider.WriteToStream(targetOutputStream ?? Response.Body, session);
+            await _storageProvider.WriteToStreamAsync(targetOutputStream ?? Response.Body, session);
         }
 
         private byte[] ToByteArray(Stream stream)

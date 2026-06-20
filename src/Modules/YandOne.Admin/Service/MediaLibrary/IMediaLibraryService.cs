@@ -13,8 +13,8 @@ namespace YandOne.Admin.Service
     public interface IMediaLibraryService
     {
 
-        Task<MediaLibraryStatus> SaveDirecory(DirectoryViewModel model);
-        Task<MediaLibraryStatus> MoveFileToDirecory(string filePath,string toDirectory);
+        Task<MediaLibraryStatus> SaveDirectory(DirectoryViewModel model);
+        Task<MediaLibraryStatus> MoveFileToDirectory(string filePath,string toDirectory);
         Task<MediaLibraryStatus> RenameFileName(string oldFileName, string newFileName, string dir="");
         Task<IEnumerable<MediaLibraryItem>> GetItemsByDirectory(string currentDir);
         Task<MediaLibraryStatus> SaveFile(IFormFile file,string dir);

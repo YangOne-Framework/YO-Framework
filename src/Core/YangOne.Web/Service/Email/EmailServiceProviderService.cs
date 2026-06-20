@@ -184,7 +184,7 @@ namespace YangOne.Web.Services
             catch (Exception ex)
             {
 
-                throw ex;
+                throw;
             }
         }
         public T GetSettings<T>(string name) where T : class
@@ -221,7 +221,7 @@ namespace YangOne.Web.Services
             catch (Exception ex)
             {
 
-                throw ex;
+                throw;
             }
         }
         public async Task<bool> SaveSetting<T>(T setting, int emailServiceProviderId)
@@ -256,7 +256,7 @@ namespace YangOne.Web.Services
                     catch (Exception ex)
                     {
                         await tran.RollbackAsync();
-                        throw ex;
+                        throw;
                     }
                 }
             }

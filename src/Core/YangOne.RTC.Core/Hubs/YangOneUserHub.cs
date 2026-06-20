@@ -19,7 +19,7 @@ public class YangOneUserHub : BaseHub
         return Clients.All.SendAsync("OnBroadcastRecieve", notification);
         // return Clients.All.BroadcastMessage(notification);
     }
-    public async Task NotityMe(long userId, Notification notification)
+    public async Task NotifyMeAsync(long userId, Notification notification)
     {
         var selfConnection = Context.ConnectionId;
         var connectionIds = await ConnectionManager.GetUserConnectionIds(userId);
@@ -27,7 +27,7 @@ public class YangOneUserHub : BaseHub
         //return Clients.User(userId).BroadcastMessage(notification);
 
     }
-    public async Task NotityUser(long userId, Notification notification)
+    public async Task NotifyUserAsync(long userId, Notification notification)
     {
 
         var connectionIds = await ConnectionManager.GetUserConnectionIds(userId);
@@ -42,7 +42,7 @@ public class YangOneUserHub : BaseHub
         //return Clients.User(userId).BroadcastMessage(notification);
 
     }
-    public async Task NofifyToRole(string roleName, Notification notification)
+    public async Task NotifyToRoleAsync(string roleName, Notification notification)
     {
         var connectionIds = await ConnectionManager.GetUserConnectionIdsByRoles(roleName);
         await Clients.Users((IReadOnlyList<string>)connectionIds).SendAsync("OnNotificationRecieved", notification);

@@ -418,11 +418,6 @@ public  class UserApiController : BaseApiController
 
             //}
 
-            //if (user.Email.Contains("LMS.com"))
-            //{
-            //    return HttpResponse(490, "please update/change email address.");
-            //}
-
             //sending new email verification
             if (!string.IsNullOrEmpty(newEmail))
             {
@@ -724,7 +719,7 @@ return HttpResponse<string>(200, "success", otp);
                     // var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                     string otp = await _otpService.Generate(user.Id);
                     var callbackUrl =
-                        $"https://auth.LMS.com/account/ConfirmEmail?code={otp}&userName={appuser.UserName}"; //Url.ResetPasswordCallbackLink(user.UserName.ToString(), code, Request.Scheme);
+                        $"https://your-domain.com/account/ConfirmEmail?code={otp}&userName={appuser.UserName}"; //Url.ResetPasswordCallbackLink(user.UserName.ToString(), code, Request.Scheme);
                     // Url.EmailConfirmationLink(user.UserName.ToString(), code, Request.Scheme);
 
                     _logger.Log(LogType.Info, () => callbackUrl);
@@ -810,51 +805,6 @@ return HttpResponse<string>(200, "success", otp);
     }
 
 
-    //[Route("login")]
-    //[HttpPost]
-
-    //public async Task<ActionResult<ApiResponse<object>>> Login(string userName, string password, string device)
-    //{
-    //    var user = await _courseService.CourseUserCrudService.GetAsync("Where Email=@Email and IsActive=1 and password=@Password",
-    //        new { Email = userName, Password = password });
-    //    if (user == null)
-    //    {
-    //        return HttpResponse(400, "invalid user");
-    //    }
-    //    if (user != null)
-    //    {
-    //        if (!user.AllowMultipleLogin)
-    //        {
-
-    //            var history =
-    //                await _courseService.LoginHistoryCrudService.GetListAsync("Where CourseUserId=@CourseUserId",
-    //                    new { CourseUserId = user.CourseUserId });
-    //            if (history != null && history.Any())
-    //            {
-    //                if (!history.Any(h => h.Device.ToLower() == device.ToLower().Trim()))
-    //                {
-    //                    return HttpResponse(400, "multiple device login detected.");
-    //                }
-    //            }
-    //        }
-    //    }
-    //    //var tokenResponse = await RequestToken(userName, password);
-    //    //string token = "", rfTorken = "";
-    //    //if (tokenResponse.IsError)
-    //    //{
-    //    //    return ErrorResponse(500, tokenResponse.ErrorDescription);
-    //    //}
-    //    //else
-    //    //{
-    //    //    token = tokenResponse.AccessToken;
-    //    //    rfTorken = tokenResponse.RefreshToken;
-    //    //    user.Token = token;
-    //    //    user.RefreshToken = rfTorken;
-    //    //}
-    //    var userCourse = await _courseService.UserCourseMappingService.GetListAsync("Where CourseUserId=@CourseUserId",
-    //        new { CourseUserId = user.CourseUserId });
-    //    return HttpResponse(200, "success", new { User = user, Course = userCourse });
-    //}
 
     [Route("login/history")]
     /// <summary>
@@ -925,7 +875,7 @@ return HttpResponse<bool>(200, "Your information saved successfully.", true);
         }
     }
 
-    [Route("changepassword")]
+    [Route("change-password")]
     /// <summary>
     /// Changes the password for the logged-in user.
     /// </summary>
@@ -964,7 +914,7 @@ return HttpResponse<bool>(200, "Your information saved successfully.", true);
     }
     [AllowAnonymous]
     [ExcludeFromPayloadProtection]
-    [Route("forgotpassword/otp")]
+    [Route("forgot-password/otp")]
     /// <summary>
     /// Sends a password reset email to the user.
     /// </summary>
@@ -1026,7 +976,7 @@ return HttpResponse<bool>(200, "Your information saved successfully.", true);
             return ErrorResponse<string>(500, ex.Message);
         }
     }
-    [Route("verifyotp")]
+    [Route("verify-otp")]
     [HttpPost]
     [AllowAnonymous]
     [ExcludeFromPayloadProtection]
@@ -1115,7 +1065,7 @@ return HttpResponse<bool>(200, "Your information saved successfully.", true);
                 // var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
                 string otp = await _otpService.Generate(user.Id);
                 var callbackUrl =
-                    $"https://auth.LMS.com/account/ConfirmEmail?code={otp}&userName={appuser.UserName}"; //Url.ResetPasswordCallbackLink(user.UserName.ToString(), code, Request.Scheme);
+                    $"https://your-domain.com/account/ConfirmEmail?code={otp}&userName={appuser.UserName}"; //Url.ResetPasswordCallbackLink(user.UserName.ToString(), code, Request.Scheme);
                 // Url.EmailConfirmationLink(user.UserName.ToString(), code, Request.Scheme);
 
                 _logger.Log(LogType.Info, () => callbackUrl);
@@ -1155,7 +1105,7 @@ return HttpResponse<bool>(200, "Your information saved successfully.", true);
 
 
 
-    [Route("save")]
+    [Route("profile/save")]
     [HttpPost]
     //[NeedIdempotency]
     /// <summary>

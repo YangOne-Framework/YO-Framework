@@ -101,7 +101,7 @@ namespace YangOne.Web.Module
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
 
         }
@@ -226,7 +226,7 @@ namespace YangOne.Web.Module
 
         //                    if (!ex.Message.Contains("There is already an object named"))
         //                    {
-        //                        throw ex;
+        //                        throw;
         //                    }
         //                }
 

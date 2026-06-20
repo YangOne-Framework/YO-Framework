@@ -29,7 +29,7 @@ namespace YangOne.Storage
         List<FileSession> GetAllSessions();
 
         void PersistBlock(String sessionId, long userId, int chunkNumber, byte[] buffer);
-        void WriteToStream(Stream stream, FileSession session);
+        Task WriteToStreamAsync(Stream stream, FileSession session);
 
         Stream GetFileStream(FileSession session);
 
@@ -40,7 +40,7 @@ namespace YangOne.Storage
         /// <param name="chunkNumber"></param>
         /// <param name="buffer"></param>
         void Persist(string id, int chunkNumber, byte[] buffer);
-        byte[] Read(string id, int chunkNumber);
+        Task<byte[]> ReadAsync(string id, int chunkNumber);
         #endregion
 
     }

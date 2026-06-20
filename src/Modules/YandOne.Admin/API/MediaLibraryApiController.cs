@@ -30,7 +30,7 @@ public class MediaLibraryApiController : BaseApiController
 
     
     [HttpPost("directory/save")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> SaveDirectory([FromBody] DirectoryViewModel model)
     {
         if (!ModelState.IsValid)
@@ -42,7 +42,7 @@ public class MediaLibraryApiController : BaseApiController
             if (userId == 0)
                 return NotAuthorizedResponse<bool>();
 
-            var status = await _mediaLibraryService.SaveDirecory(model);
+            var status = await _mediaLibraryService.SaveDirectory(model);
             return SuccessResponse(status.Message ?? "Success", status.Success);
         }
         catch (Exception e)
@@ -54,7 +54,7 @@ public class MediaLibraryApiController : BaseApiController
 
     
     [HttpPost("file/rename")]
-    // [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> RenameFile([FromBody] RenameFileRequest request)
     {
         if (!ModelState.IsValid)
@@ -88,7 +88,7 @@ public class MediaLibraryApiController : BaseApiController
 
     
     [HttpGet("content/all")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<object>>> GetItemsByDirectory([FromQuery] string currentDir = "/")
     {
         try
@@ -109,7 +109,7 @@ public class MediaLibraryApiController : BaseApiController
 
     
     [HttpGet("directory/all")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<object>>> GetDirectoriesOnly([FromQuery] string currentDir = "/")
     {
         try
@@ -130,7 +130,7 @@ public class MediaLibraryApiController : BaseApiController
 
     
     [HttpPost("file/upload")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     [RequestSizeLimit(long.MaxValue)]
     public async Task<ActionResult<ApiResponse<bool>>> UploadFile([FromForm] UploadFileRequest request)
     {
@@ -159,7 +159,7 @@ public class MediaLibraryApiController : BaseApiController
 
     
     [HttpPost("file/copy")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<object>>> CopyFilesOrDirectories([FromBody] FileTransferRequest request)
     {
         if (!ModelState.IsValid)
@@ -189,7 +189,7 @@ public class MediaLibraryApiController : BaseApiController
 
     
     [HttpPost("file/move")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<object>>> MoveFilesOrDirectories([FromBody] FileTransferRequest request)
     {
         if (!ModelState.IsValid)
@@ -219,7 +219,7 @@ public class MediaLibraryApiController : BaseApiController
 
     
     [HttpPost("file/delete")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<object>>> DeleteFilesOrDirectories([FromBody] DeleteFilesRequest request)
     {
         if (!ModelState.IsValid)

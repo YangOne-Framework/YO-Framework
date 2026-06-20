@@ -102,7 +102,7 @@ namespace YangOne.Web.Service
             catch (Exception ex)
             {
 
-                throw ex;
+                throw;
             }
         }
 
@@ -131,7 +131,7 @@ namespace YangOne.Web.Service
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
 
@@ -166,7 +166,7 @@ namespace YangOne.Web.Service
                     catch (Exception ex)
                     {
                         tran.Rollback();
-                        throw ex;
+                        throw;
                     }
                 }
             }

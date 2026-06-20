@@ -8,17 +8,31 @@ namespace YangOne.Web.Services
     public interface IEmailSender
     {
         string Name { get; }
-        Task SendEmailAsync(string subject, string message, params EmailAddress[] to);
 
-        Task SendEmailAsync(EmailAddress from, string subject, string message, params EmailAddress[] to);
+        Task SendEmailAsync(
+            string subject,
+            string message,
+            params EmailAddress[] recipients);
 
-        Task SendTemplatedEmailAsync<T>(string subject, string templateKey, T context, params EmailAddress[] to);
+        Task SendEmailWithAttachmentAsync(
+            string subject,
+            string message,
+            string[] attachmentFiles,
+            params EmailAddress[] recipients);
 
-        Task SendTemplatedEmailWithAttachmentAsync<T>(string subject, string templateKey, T context, string[] files, params EmailAddress[] to);
+        Task SendTemplatedEmailAsync<TContext>(
+            string subject,
+            string templateKey,
+            TContext context,
+            params EmailAddress[] recipients);
 
-        Task SendTemplatedEmailAsync<T>(EmailAddress from, string subject, string templateKey, T context, params EmailAddress[] to);
-        Task SendEmailTemplateAsync<T>(string subject, string template, T context, params EmailAddress[] to);
+        Task SendTemplatedEmailWithAttachmentAsync<TContext>(
+            string subject,
+            string templateKey,
+            TContext context,
+            string[] attachmentFiles,
+            params EmailAddress[] recipients);
     }
 
-   
+
 }

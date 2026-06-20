@@ -73,7 +73,7 @@ public class MenuAPIController : BaseApiController
     }
 
     [HttpGet("group")]
-   // [Authorize(Roles = "Admin,SuperAdmin")]
+   [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<IEnumerable<Menu>>>> GetMenuByGroup([FromQuery] int groupId = 0,
         [FromQuery] int offset = 01,
         [FromQuery] int limit = 50,

@@ -11,7 +11,7 @@ using YangOne.Web.Services;
 
 namespace YandOne.Admin.API;
 
-[Route("api/v1/emailserviceprovider")]
+[Route("api/v1/email-service-provider")]
 /// <summary>
 /// Represents a class EmailServiceProviderApiController.
 /// </summary>

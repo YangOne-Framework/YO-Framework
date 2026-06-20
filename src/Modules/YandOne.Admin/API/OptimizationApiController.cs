@@ -131,37 +131,5 @@ public class OptimizationApiController : BaseApiController
             return ErrorResponse<string>(501, e.Message);
         }
     }
-
-    //[HttpGet("bundles")]
-    //public async Task<IActionResult> GetBundles()
-    //{
-    //    try
-    //    {
-    //        var smidgeDir = Path.Combine(
-    //            ((IWebHostEnvironment)HttpContext.RequestServices.GetService(typeof(IWebHostEnvironment)))
-    //            ?.ContentRootPath ?? "", "smidge");
-    //        var bundles = new List<object>();
-    //        if (Directory.Exists(smidgeDir))
-    //        {
-    //            foreach (var file in Directory.GetFiles(smidgeDir, "*.combined.*"))
-    //            {
-    //                var fi = new FileInfo(file);
-    //                bundles.Add(new
-    //                {
-    //                    Name = Path.GetFileName(file),
-    //                    Size = fi.Length,
-    //                    LastModified = fi.LastWriteTimeUtc,
-    //                    Type = file.EndsWith(".css") ? "CSS" : "JS"
-    //                });
-    //            }
-    //        }
-    //        return SuccessResponse("Success", bundles);
-    //    }
-    //    catch (Exception e)
-    //    {
-    //        _logger.Log(LogType.Error, () => e.Message, e);
-    //        return ErrorResponse(501, e.Message);
-    //    }
-    //}
 }
 

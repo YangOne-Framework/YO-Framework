@@ -234,53 +234,6 @@ public class RestrictionApiController : BaseApiController
         }
     }
 
-    //[HttpGet("check/{keyName}/{value}")]
-    //public async Task<ActionResult<ApiResponse<object>>> CheckRestricted(string keyName, string value)
-    //{
-    //    try
-    //    {
-    //        var key = await _restrictionService.KeyCrudService.GetAsync(
-    //            "Where Name=@Name and IsDeleted=@IsDeleted",
-    //            new { Name = keyName, IsDeleted = false });
-    //        if (key == null)
-    //            return SuccessResponse("Not restricted", new { IsRestricted = false });
-
-    //        var restriction = await _restrictionService.RestrictionCrudService.GetAsync(
-    //            "Where RestrictionKeyId=@KeyId and Value=@Value and IsDeleted=@IsDeleted",
-    //            new { KeyId = key.RestrictionKeyId, Value = value, IsDeleted = false });
-    //        return SuccessResponse("Success", new { IsRestricted = restriction != null });
-    //    }
-    //    catch (Exception e)
-    //    {
-    //        _logger.Log(LogType.Error, () => e.Message, e);
-    //        return ErrorResponse(501, e.Message);
-    //    }
-    //}
-
-    //[HttpGet("grouped")]
-    //public async Task<ActionResult<ApiResponse<object>>> GetAllGroupedByKey()
-    //{
-    //    try
-    //    {
-    //        var keys = await _restrictionService.KeyCrudService.GetListAsync(
-    //            "Where IsDeleted=@IsDeleted", new { IsDeleted = false });
-    //        var result = new List<object>();
-    //        foreach (var key in keys)
-    //        {
-    //            var restrictions = await _restrictionService.RestrictionCrudService.GetListAsync(
-    //                "Where RestrictionKeyId=@KeyId and IsDeleted=@IsDeleted",
-    //                new { KeyId = key.RestrictionKeyId, IsDeleted = false });
-    //            result.Add(new { Key = key, Values = restrictions });
-    //        }
-    //        return SuccessResponse("Success", result);
-    //    }
-    //    catch (Exception e)
-    //    {
-    //        _logger.Log(LogType.Error, () => e.Message, e);
-    //        return ErrorResponse(501, e.Message);
-    //    }
-    //}
-
     [HttpGet("admin-ip/all")]
     public async Task<ActionResult<ApiResponse<IEnumerable<AdministrativeIPAccess>>>> GetAllAdminIps(
         [FromQuery] int offset = 1,

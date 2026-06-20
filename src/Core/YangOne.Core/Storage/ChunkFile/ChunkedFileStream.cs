@@ -70,7 +70,7 @@ public class ChunkedFileStream : Stream
         if (!ChunkCache.ContainsKey(chunkNumber))
         {
             ChunkCache.Clear();
-            ChunkCache.Add(chunkNumber, _storageProvider.Read(Session.Id, (int)chunkNumber));
+            ChunkCache.Add(chunkNumber, _storageProvider.ReadAsync(Session.Id, (int)chunkNumber).GetAwaiter().GetResult());
         }
 
         // get the i-th byte inside that chunk

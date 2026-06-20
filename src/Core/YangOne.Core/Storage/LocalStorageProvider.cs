@@ -131,7 +131,7 @@ namespace YangOne.Storage
                 }
                 catch (Exception ex)
                 {
-                    throw ex;
+                    throw;
                 }
                 //}
             }
@@ -200,7 +200,7 @@ namespace YangOne.Storage
                 }
                 catch (Exception ex)
                 {
-                    throw ex;
+                    throw;
                 }
                 //}
             }
@@ -340,18 +340,18 @@ namespace YangOne.Storage
             }
         }
 
-        public void WriteToStream(Stream stream, FileSession session)
+        public async Task WriteToStreamAsync(Stream stream, FileSession session)
         {
             using (var sw = new BinaryWriter(stream))
             {
                 for (int i = 1; i <= session.FileInfo.TotalNumberOfChunks; i++)
                 {
-                    sw.Write(Read(session.Id, i));
+                    var chunk = await ReadAsync(session.Id, i);
+                    sw.Write(chunk);
                 }
             }
 
-            stream.Flush();
-
+            await stream.FlushAsync();
         }
 
         public Stream GetFileStream(FileSession session)
@@ -374,10 +374,10 @@ namespace YangOne.Storage
             await File.WriteAllBytesAsync(path, buffer);
         }
 
-        public byte[] Read(string id, int chunkNumber)
+        public async Task<byte[]> ReadAsync(string id, int chunkNumber)
         {
             string targetPath = Path.Combine(GetTempChunkedPath(), id, chunkNumber.ToString());
-            return File.ReadAllBytes(targetPath);
+            return await File.ReadAllBytesAsync(targetPath);
         }
 
 

@@ -9,29 +9,27 @@ namespace YangOne.Configuration
     /// </summary>
     public abstract class ConfigChangeEvent
     {
-        readonly List<IConfigChangeListner> _changeListners = new List<IConfigChangeListner>();
+        readonly List<IConfigChangeListener> _changeListeners = new List<IConfigChangeListener>();
 
-        // Constructor
         protected ConfigChangeEvent()
         {
-           
         }
 
-        public void Attach(IConfigChangeListner listner)
+        public void Attach(IConfigChangeListener listener)
         {
-            _changeListners.Add(listner);
+            _changeListeners.Add(listener);
         }
 
-        public void Detach(IConfigChangeListner listner)
+        public void Detach(IConfigChangeListener listener)
         {
-            _changeListners.Remove(listner);
+            _changeListeners.Remove(listener);
         }
 
         public void Notify()
         {
-            foreach (IConfigChangeListner investor in _changeListners)
+            foreach (IConfigChangeListener listener in _changeListeners)
             {
-                investor.Update();
+                listener.Update();
             }
         }
 

@@ -10,7 +10,7 @@ using YangOne.Web.Model;
 
 namespace YandOne.Admin.API;
 
-[Route("api/v1/emailtemplate")]
+[Route("api/v1/email-template")]
 /// <summary>
 /// Represents a class EmailTemplateApiController.
 /// </summary>

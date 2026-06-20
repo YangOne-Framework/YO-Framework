@@ -7,11 +7,11 @@ namespace YangOne.Configuration;
 /// <summary>
 /// Listens for configuration changes and stops the application to reload.
 /// </summary>
-public class YangOneConfigChangeListner : IConfigChangeListner
+public class YangOneConfigChangeListener : IConfigChangeListener
 {
     private readonly IHostApplicationLifetime _applicationLifetime;
 
-    public YangOneConfigChangeListner(IHostApplicationLifetime applicationLifetime)
+    public YangOneConfigChangeListener(IHostApplicationLifetime applicationLifetime)
     {
         _applicationLifetime = applicationLifetime;
     }

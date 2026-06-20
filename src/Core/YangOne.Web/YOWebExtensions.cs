@@ -112,7 +112,6 @@ namespace YangOne.Web
             services.AddSingleton<ISMSLogService, SMSLogService>();
             services.AddSingleton<ISMSService, SMSService>();
             services.AddSingleton<ISMSTemplateService, SMSTemplateService>();
-            services.AddScoped<IEmailSender, SmtpEmailSender>();
             services.AddScoped<IUnSubscriptionService, UnSubscriptionService>();
             services.AddScoped<ICSPManager, CSPManager>();
             services.AddScoped<IApiConfigService, ApiConfigService>();

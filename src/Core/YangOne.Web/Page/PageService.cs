@@ -142,7 +142,7 @@ namespace YangOne.Web
                         catch (Exception ex)
                         {
                             tran.Rollback();
-                            throw ex;
+                            throw;
                         }
                     }
                     return true;
@@ -150,7 +150,7 @@ namespace YangOne.Web
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw;
             }
         }
         public async Task<bool> SavePageLayout(LayoutContent content)

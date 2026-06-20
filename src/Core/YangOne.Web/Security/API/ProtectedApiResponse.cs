@@ -52,7 +52,7 @@ public class ApiPayloadSecurityService : IApiPayloadSecurityService
             };
         }
 
-        if (config.UseObfusication)
+        if (config.UseObfuscation)
         {
             return new ProtectedApiResponse
             {

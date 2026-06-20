@@ -37,7 +37,7 @@ namespace YangOne.Extensions
             var changeEvent = serviceProvider.GetService<ConfigChangeEvent>();
             var applicationLifetime = serviceProvider.GetService<IHostApplicationLifetime>();
             var autoReset = new AutoResetEvent(false);
-            changeEvent.Attach(new YangOneConfigChangeListner(applicationLifetime));
+            changeEvent.Attach(new YangOneConfigChangeListener(applicationLifetime));
             ChangeToken.OnChange(() =>
                     configuration.GetReloadToken(),
                 () =>
@@ -81,7 +81,7 @@ namespace YangOne.Extensions
             services.RegisterYOStorageService();
             //TODO:: allow in start up
 
-             new Bootstrapper(services, serviceProvider);
+            new Bootstrapper(services, serviceProvider);
             services.AddLocalization();
             var policy = new Microsoft.AspNetCore.Cors.Infrastructure.CorsPolicy();
 

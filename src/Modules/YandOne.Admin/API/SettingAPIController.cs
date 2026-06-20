@@ -17,7 +17,7 @@ using YangOne.Web.Service;
 
 namespace YandOne.Admin.API;
 
-[Route("api/v1/setting")]
+[Route("api/v1/settings")]
 /// <summary>
 /// Represents a class SettingApiController.
 /// </summary>
@@ -58,7 +58,7 @@ public class SettingApiController : BaseApiController
     #region Web Settings
 
     [HttpGet("web")]
-    // [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<Setting>>> GetWebSetting()
     {
         try
@@ -74,7 +74,7 @@ public class SettingApiController : BaseApiController
     }
 
     [HttpPost("web/save")]
-    // [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<Setting>>> SaveWebSetting([FromForm] Setting model)
     {
         if (!ModelState.IsValid)
@@ -128,7 +128,7 @@ public class SettingApiController : BaseApiController
     #region CSP
 
     [HttpGet("csp")]
-    // [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<CspConfig>>> GetCspConfig()
     {
         try
@@ -144,7 +144,7 @@ public class SettingApiController : BaseApiController
     }
 
     [HttpPost("csp/save")]
-    // [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> SaveCspConfig([FromBody] CspConfig config)
     {
         if (!ModelState.IsValid)
@@ -167,7 +167,7 @@ public class SettingApiController : BaseApiController
     #region API Config
 
     [HttpGet("api")]
-    // [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<ApiConfig>>> GetApiConfig()
     {
         try
@@ -183,7 +183,7 @@ public class SettingApiController : BaseApiController
     }
 
     [HttpPost("api/save")]
-    // [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> SaveApiConfig([FromBody] ApiConfig model)
     {
         if (!ModelState.IsValid)
@@ -193,10 +193,10 @@ public class SettingApiController : BaseApiController
         {
             // Safety: both encryption and obfuscation cannot be active simultaneously.
             // If both are true, reset both to false.
-            if (model.UseEncryption && model.UseObfusication)
+            if (model.UseEncryption && model.UseObfuscation)
             {
                 model.UseEncryption = false;
-                model.UseObfusication = false;
+                model.UseObfuscation = false;
             }
 
             // Preserve existing keys if not provided in the save payload
@@ -223,7 +223,7 @@ public class SettingApiController : BaseApiController
     #region Optimization
 
     [HttpGet("optimization")]
-    // [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<OptimizationConfig>>> GetOptimizationConfig()
     {
         try
@@ -239,7 +239,7 @@ public class SettingApiController : BaseApiController
     }
 
     [HttpPost("optimization/save")]
-    // [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> SaveOptimizationConfig([FromBody] OptimizationConfig model)
     {
         if (!ModelState.IsValid)
@@ -262,7 +262,7 @@ public class SettingApiController : BaseApiController
     #region File Config
 
     [HttpGet("file")]
-    // [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<FileConfig>>> GetFileConfig()
     {
         try
@@ -278,7 +278,7 @@ public class SettingApiController : BaseApiController
     }
 
     [HttpPost("file/save")]
-    // [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> SaveFileConfig([FromBody] FileConfig config)
     {
         if (!ModelState.IsValid)
@@ -301,7 +301,7 @@ public class SettingApiController : BaseApiController
     #region Basic Security
 
     [HttpGet("basic")]
-    // [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<AppBasicSecurity>>> GetBasicSecurityConfig()
     {
         try
@@ -317,7 +317,7 @@ public class SettingApiController : BaseApiController
     }
 
     [HttpPost("basic/save")]
-    // [Authorize(Roles = "Admin,SuperAdmin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public async Task<ActionResult<ApiResponse<bool>>> SaveBasicSecurityConfig([FromBody] AppBasicSecurity model)
     {
         if (!ModelState.IsValid)

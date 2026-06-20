@@ -36,7 +36,7 @@ public class ApiConfigService : IApiConfigService
             return new ApiConfig
             {
                 UseEncryption = false,
-                UseObfusication = false
+                UseObfuscation = false
             };
         }
 
@@ -55,10 +55,10 @@ public class ApiConfigService : IApiConfigService
                 result.UseEncryption = encProp.GetBoolean();
             }
 
-            if (apiConfigElement.TryGetProperty("UseObfusication", out var obfProp) &&
+            if (apiConfigElement.TryGetProperty("UseObfuscation", out var obfProp) &&
                 (obfProp.ValueKind == JsonValueKind.True || obfProp.ValueKind == JsonValueKind.False))
             {
-                result.UseObfusication = obfProp.GetBoolean();
+                result.UseObfuscation = obfProp.GetBoolean();
             }
 
             if (apiConfigElement.TryGetProperty("ObfuscationKey", out var obfKey) &&
@@ -90,7 +90,7 @@ public class ApiConfigService : IApiConfigService
             ["APIConfig"] = new
             {
                 UseEncryption = config.UseEncryption,
-                UseObfusication = config.UseObfusication,
+                UseObfuscation = config.UseObfuscation,
                 ObfuscationKey = config.ObfuscationKey,
                 EncryptionKey = config.EncryptionKey,
                 EncryptionIV = config.EncryptionIV
