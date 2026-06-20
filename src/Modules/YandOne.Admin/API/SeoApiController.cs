@@ -30,7 +30,7 @@ public class SeoApiController : BaseApiController
     }
     [HttpGet]
     [Route("all")]
-    public async Task<IActionResult> GetAll(
+    public async Task<ActionResult<ApiResponse<IEnumerable<SEO>>>> GetAll(
         [FromQuery] int offset = 1,
         [FromQuery] int limit = 20,
         [FromQuery] string query = "")
@@ -47,22 +47,22 @@ public class SeoApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<SEO>>(501, e.Message);
         }
     }
     // GET: api/v1/seo/by-url?url=/some-page&type=product
     [HttpGet("by-url")]
-    public async Task<IActionResult> GetSeoByUrl(
+    public async Task<ActionResult<ApiResponse<SEO>>> GetSeoByUrl(
         [FromQuery] string url,
         [FromQuery] string type)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(url))
-                return ErrorResponse(400, "Url is required.");
+                return ErrorResponse<SEO>(400, "Url is required.");
 
             if (string.IsNullOrWhiteSpace(type))
-                return ErrorResponse(400, "Type is required.");
+                return ErrorResponse<SEO>(400, "Type is required.");
 
             var model = await _seoService.GetSEODataAsync(url, type);
             return SuccessResponse("Success", model);
@@ -70,23 +70,23 @@ public class SeoApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<SEO>(501, e.Message);
         }
     }
 
     // GET: api/v1/seo/meta?url=/some-page&type=product
     [HttpGet("meta")]
-    public async Task<IActionResult> GetSeoMetaContents(
+    public async Task<ActionResult<ApiResponse<string>>> GetSeoMetaContents(
         [FromQuery] string url,
         [FromQuery] string type)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(url))
-                return ErrorResponse(400, "Url is required.");
+                return ErrorResponse<string>(400, "Url is required.");
 
             if (string.IsNullOrWhiteSpace(type))
-                return ErrorResponse(400, "Type is required.");
+                return ErrorResponse<string>(400, "Type is required.");
 
             var meta = await _seoService.GetSEOMetaContentsAsync(url, type);
             return SuccessResponse("Success", meta);
@@ -94,45 +94,45 @@ public class SeoApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<string>(501, e.Message);
         }
     }
 
     // GET: api/v1/seo/by-id/123
     [HttpGet("by-id/{seoId:int}")]
-    public async Task<IActionResult> GetById([FromRoute] int seoId)
+    public async Task<ActionResult<ApiResponse<SEO>>> GetById([FromRoute] int seoId)
     {
         try
         {
             if (seoId <= 0)
-                return ErrorResponse(400, "Invalid seo id.");
+                return ErrorResponse<SEO>(400, "Invalid seo id.");
 
             var model = await _seoService.Seo.GetAsync(seoId);
             if (model == null)
-                return ErrorResponse(404, "SEO not found.");
+                return ErrorResponse<SEO>(404, "SEO not found.");
 
             return SuccessResponse("Success", model);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<SEO>(501, e.Message);
         }
     }
 
     // GET: api/v1/seo/by-seotype?seoType=product&id=10
     [HttpGet("by-seotype")]
-    public async Task<IActionResult> GetBySeoType(
+    public async Task<ActionResult<ApiResponse<SEO>>> GetBySeoType(
         [FromQuery] string seoType,
         [FromQuery] int id)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(seoType))
-                return ErrorResponse(400, "SeoType is required.");
+                return ErrorResponse<SEO>(400, "SeoType is required.");
 
             if (id <= 0)
-                return ErrorResponse(400, "Id is required.");
+                return ErrorResponse<SEO>(400, "Id is required.");
 
             var model = await _seoService.GetBySeoType(seoType, id);
             return SuccessResponse("Success", model);
@@ -140,23 +140,23 @@ public class SeoApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<SEO>(501, e.Message);
         }
     }
 
     // GET: api/v1/seo/by-product?productId=10&type=product
     [HttpGet("by-product")]
-    public async Task<IActionResult> GetByProductId(
+    public async Task<ActionResult<ApiResponse<SEO>>> GetByProductId(
         [FromQuery] int productId,
         [FromQuery] string type)
     {
         try
         {
             if (productId <= 0)
-                return ErrorResponse(400, "ProductId is required.");
+                return ErrorResponse<SEO>(400, "ProductId is required.");
 
             if (string.IsNullOrWhiteSpace(type))
-                return ErrorResponse(400, "Type is required.");
+                return ErrorResponse<SEO>(400, "Type is required.");
 
             var model = await _seoService.GetByProductId(productId, type);
             return SuccessResponse("Success", model);
@@ -164,25 +164,25 @@ public class SeoApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<SEO>(501, e.Message);
         }
     }
 
     // POST: api/v1/seo/check-url
     // body: { "url": "/abc", "type": "product" }
     [HttpPost("check-url")]
-    public async Task<IActionResult> CheckUrlExist([FromBody] CheckSeoUrlRequest request)
+    public async Task<ActionResult<ApiResponse<bool>>> CheckUrlExist([FromBody] CheckSeoUrlRequest request)
     {
         try
         {
             if (request == null)
-                return ErrorResponse(400, "Invalid request.");
+                return ErrorResponse<bool>(400, "Invalid request.");
 
             if (string.IsNullOrWhiteSpace(request.Url))
-                return ErrorResponse(400, "Url is required.");
+                return ErrorResponse<bool>(400, "Url is required.");
 
             if (string.IsNullOrWhiteSpace(request.Type))
-                return ErrorResponse(400, "Type is required.");
+                return ErrorResponse<bool>(400, "Type is required.");
 
             var exists = await _seoService.CheckUrlExist(request.Url, request.Type);
             return SuccessResponse("Success", exists);
@@ -190,25 +190,25 @@ public class SeoApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     // POST: api/v1/seo/new
     [HttpPost("new")]
-    public async Task<IActionResult> Create([FromForm] SEO model)
+    public async Task<ActionResult<ApiResponse<SEO>>> Create([FromForm] SEO model)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, model);
+            return ErrorResponse<SEO>(ModelState, 600, model);
 
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<SEO>();
 
             if (model.SEOId != 0)
-                return ErrorResponse(400, "SEOId must be 0 for creation.");
+                return ErrorResponse<SEO>(400, "SEOId must be 0 for creation.");
 
             model.AutoFill();
 
@@ -217,7 +217,7 @@ public class SeoApiController : BaseApiController
             {
                 var exists = await _seoService.CheckUrlExist(model.Url, model.SeoType);
                 if (exists)
-                    return ErrorResponse(409, "Url already in use.");
+                    return ErrorResponse<SEO>(409, "Url already in use.");
             }
             if (model.ImageFile != null)
             {
@@ -229,25 +229,25 @@ public class SeoApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<SEO>(501, e.Message);
         }
     }
 
     // POST: api/v1/seo/update
     [HttpPost("update")]
-    public async Task<IActionResult> Update([FromForm] SEO model)
+    public async Task<ActionResult<ApiResponse<bool>>> Update([FromForm] SEO model)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, model);
+            return ErrorResponse<bool>(ModelState, 600, model);
 
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             if (model.SEOId <= 0)
-                return ErrorResponse(400, "Invalid SEOId.");
+                return ErrorResponse<bool>(400, "Invalid SEOId.");
 
             model.AutoFill();
 
@@ -261,26 +261,26 @@ public class SeoApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     // DELETE: api/v1/seo/{seoId}
     [HttpDelete("{seoId:int}")]
-    public async Task<IActionResult> Delete([FromRoute] int seoId)
+    public async Task<ActionResult<ApiResponse<bool>>> Delete([FromRoute] int seoId)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             if (seoId <= 0)
-                return ErrorResponse(400, "Invalid SEOId.");
+                return ErrorResponse<bool>(400, "Invalid SEOId.");
 
             var existing = await _seoService.Seo.GetAsync(seoId);
             if (existing == null)
-                return ErrorResponse(404, "SEO not found.");
+                return ErrorResponse<bool>(404, "SEO not found.");
 
             await _seoService.Seo.UpdateAsDeleted(seoId);
             return SuccessResponse("Deleted successfully", true);
@@ -288,13 +288,13 @@ public class SeoApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     // GET: api/v1/seo/jsonld/website
     [HttpGet("jsonld/website")]
-    public async Task<IActionResult> GenerateJsonLdForWebSite()
+    public async Task<ActionResult<ApiResponse<string>>> GenerateJsonLdForWebSite()
     {
         try
         {
@@ -304,13 +304,13 @@ public class SeoApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<string>(501, e.Message);
         }
     }
 
     // GET: api/v1/seo/jsonld/page
     [HttpGet("jsonld/page")]
-    public async Task<IActionResult> GenerateJsonLdForPage()
+    public async Task<ActionResult<ApiResponse<string>>> GenerateJsonLdForPage()
     {
         try
         {
@@ -320,13 +320,13 @@ public class SeoApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<string>(501, e.Message);
         }
     }
 
     // GET: api/v1/seo/jsonld/page/by-product?page=/p/some-slug&productId=10&type=product
     [HttpGet("jsonld/page/by-product")]
-    public async Task<IActionResult> GenerateJsonLdForPage(
+    public async Task<ActionResult<ApiResponse<string>>> GenerateJsonLdForPage(
         [FromQuery] string page,
         [FromQuery] int productId,
         [FromQuery] string type)
@@ -334,13 +334,13 @@ public class SeoApiController : BaseApiController
         try
         {
             if (string.IsNullOrWhiteSpace(page))
-                return ErrorResponse(400, "Page is required.");
+                return ErrorResponse<string>(400, "Page is required.");
 
             if (productId <= 0)
-                return ErrorResponse(400, "ProductId is required.");
+                return ErrorResponse<string>(400, "ProductId is required.");
 
             if (string.IsNullOrWhiteSpace(type))
-                return ErrorResponse(400, "Type is required.");
+                return ErrorResponse<string>(400, "Type is required.");
 
             var jsonLd = await _seoService.GenerateJsonLdForPage(page, productId, type);
             return SuccessResponse("Success", jsonLd);
@@ -348,13 +348,13 @@ public class SeoApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<string>(501, e.Message);
         }
     }
 
     // GET: api/v1/seo/meta/generate
     [HttpGet("meta/generate")]
-    public async Task<IActionResult> GenerateMetaContents()
+    public async Task<ActionResult<ApiResponse<string>>> GenerateMetaContents()
     {
         try
         {
@@ -364,7 +364,7 @@ public class SeoApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<string>(501, e.Message);
         }
     }
 }

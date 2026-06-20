@@ -16,6 +16,7 @@ using YangOne.Web;
 using YangOne.Web.API;
 using YangOne.Web.Localization;
 using YangOne.Web.Service;
+using YangOne.Web.Model;
 using YangOne.Web.Services;
 using LocaleResource = YangOne.Web.Localization.LocaleResource;
 
@@ -53,7 +54,7 @@ public class LocalizationApiController : BaseApiController
 
     [HttpGet("region/all")]
    // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> GetRegions(
+    public async Task<ActionResult<ApiResponse<IEnumerable<LocaleRegionViewModel>>>> GetRegions(
         [FromQuery] int pageNo = 1,
         [FromQuery] int rowsPerPage = 10,
         [FromQuery] string query = "")
@@ -66,12 +67,12 @@ public class LocalizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<LocaleRegionViewModel>>(501, e.Message);
         }
     }
 
     [HttpGet("region/byid/{regionId}")]
-    public async Task<IActionResult> GetRegionById([FromRoute] int regionId )
+    public async Task<ActionResult<ApiResponse<LocaleRegion>>> GetRegionById([FromRoute] int regionId )
     {
         try
         {
@@ -81,14 +82,14 @@ public class LocalizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<LocaleRegion>(501, e.Message);
         }
     }
 
 
     [HttpGet("country/all")]
    // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> GetCountries()
+    public async Task<ActionResult<ApiResponse<IEnumerable<Country>>>> GetCountries()
     {
         try
         {
@@ -98,60 +99,60 @@ public class LocalizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<Country>>(501, e.Message);
         }
     }
 
     [HttpPost("import")]
    // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> Import([FromForm] LocalizationImportRequest request)
+    public async Task<ActionResult<ApiResponse<bool>>> Import([FromForm] LocalizationImportRequest request)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             if (request.ImportFile == null || request.ImportFile.Length == 0)
-                return ErrorResponse(400, "Upload file is required.");
+                return ErrorResponse<bool>(400, "Upload file is required.");
 
             var importedDatas = _importService.Import<LocaleResourcesImportModel>(request.ImportFile);
 
             var status = await _localeService.ImportLocaleResources(importedDatas, User.Identity.GetUserName());
             if (!status.IsImported)
-                return ErrorResponse(500, status.Error ?? "Import failed.");
+                return ErrorResponse<bool>(500, status.Error ?? "Import failed.");
 
             return SuccessResponse("Data has been imported successfully.", true);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
   
     [HttpPost("region/new")]
    // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> CreateRegion([FromBody] LocaleRegion model)
+    public async Task<ActionResult<ApiResponse<LocaleRegion>>> CreateRegion([FromBody] LocaleRegion model)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, model);
+            return ErrorResponse<LocaleRegion>(ModelState, 600, model);
 
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<LocaleRegion>();
 
             model.AutoFill();
 
             if (model.LocaleRegionId != 0)
-                return ErrorResponse(400, "LocaleRegionId must be 0 for creation.");
+                return ErrorResponse<LocaleRegion>(400, "LocaleRegionId must be 0 for creation.");
 
             var exists = await _localeService.CheckAlreadyExist(model.CountryId, model.Culture);
             if (exists)
-                return ErrorResponse(409, "Localization already exists.");
+                return ErrorResponse<LocaleRegion>(409, "Localization already exists.");
 
             var countries = await _countryService.CountryCrudService.GetListAsync();
             var flagName = countries.FirstOrDefault(x => x.CountryId == model.CountryId)?.ISO;
@@ -165,26 +166,26 @@ public class LocalizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<LocaleRegion>(501, e.Message);
         }
     }
 
 
     [HttpPost("region/update")]
    // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> UpdateRegion([FromBody] LocaleRegionEditViewModel model)
+    public async Task<ActionResult<ApiResponse<bool>>> UpdateRegion([FromBody] LocaleRegionEditViewModel model)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, model);
+            return ErrorResponse<bool>(ModelState, 600, model);
 
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             if (model.LocaleRegionId <= 0 || model.LocaleRegionId != model.LocaleRegionId)
-                return ErrorResponse(400, "Invalid locale region id.");
+                return ErrorResponse<bool>(400, "Invalid locale region id.");
 
             model.AutoFill();
 
@@ -205,14 +206,14 @@ public class LocalizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
    
     [HttpGet("region/{localRegionId:int}/resource/all")]
    // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> GetResources(
+    public async Task<ActionResult<ApiResponse<LocaleRegionEditViewModel>>> GetResources(
         [FromRoute] int localRegionId,
         [FromQuery] int pageNo = 1,
         [FromQuery] int limit = 20)
@@ -230,7 +231,7 @@ public class LocalizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<LocaleRegionEditViewModel>(501, e.Message);
         }
     }
 
@@ -242,7 +243,7 @@ public class LocalizationApiController : BaseApiController
         try
         {
             if (localRegionId <= 0)
-                return ErrorResponse(400, "Invalid locale region id.");
+                return Fail(400, "Invalid locale region id.");
 
             var webSetting = await _settingService.GetSetting();
             var model = await _localeService.GetAllResourcesForExportAsync(localRegionId, webSetting.BaseCulture);
@@ -260,29 +261,29 @@ public class LocalizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return Fail(501, e.Message);
         }
     }
 
    
     [HttpPost("set-default")]
    // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> SetDefault([FromBody] SetDefaultLocaleRequest request)
+    public async Task<ActionResult<ApiResponse<bool>>> SetDefault([FromBody] SetDefaultLocaleRequest request)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, request);
+            return ErrorResponse<bool>(ModelState, 600, request);
 
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             var webSetting = await _settingService.GetSetting();
             var ok = await _localeService.SetDefaultAsync(request.LocaleRegionId);
 
             if (!ok)
-                return ErrorResponse(500, "Unable to set default locale region.");
+                return ErrorResponse<bool>(500, "Unable to set default locale region.");
 
             webSetting.BaseCulture = request.Culture;
             await _settingService.SaveSetting(webSetting);
@@ -292,7 +293,7 @@ public class LocalizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
@@ -300,7 +301,7 @@ public class LocalizationApiController : BaseApiController
     [AllowAnonymous]
     [HttpPost("resource/missing")]
     [DisableRateLimiting]
-    public async Task<IActionResult> SaveMissingKeys([FromBody] Dictionary<string, string> missingKeys)
+    public async Task<ActionResult<ApiResponse<bool>>> SaveMissingKeys([FromBody] Dictionary<string, string> missingKeys)
     {
         try
         {
@@ -333,23 +334,23 @@ public class LocalizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
 
     [HttpPost("resource/save")]
    // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> UpdateLocaleValue([FromBody] LocaleResource model)
+    public async Task<ActionResult<ApiResponse<bool>>> UpdateLocaleValue([FromBody] LocaleResource model)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, model);
+            return ErrorResponse<bool>(ModelState, 600, model);
 
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             model.AutoFill();
             await _localeService.CrudService.UpdateAsync(model);
@@ -359,24 +360,24 @@ public class LocalizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
    
     [HttpDelete("region/{id:int}")]
    // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> DeleteRegion([FromRoute] int id)
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteRegion([FromRoute] int id)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             var region = await _localeService.RegionCrudService.GetAsync(id);
             if (region == null)
-                return ErrorResponse(404, "Locale region not found.");
+                return ErrorResponse<bool>(404, "Locale region not found.");
 
             await _localeService.CrudService.DeleteAsync("Where Culture=@Culture", new { region.Culture });
             await _localeService.RegionCrudService.UpdateAsDeleted(id);
@@ -386,19 +387,19 @@ public class LocalizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
 
     [HttpPost("language")]
    // [Authorize(Roles = "Admin,SuperAdmin")]
-    public IActionResult SetLanguage([FromBody] SetLanguageRequest request)
+    public ActionResult<ApiResponse<bool>> SetLanguage([FromBody] SetLanguageRequest request)
     {
         try
         {
             if (string.IsNullOrWhiteSpace(request.Culture))
-                return ErrorResponse(400, "Culture is required.");
+                return ErrorResponse<bool>(400, "Culture is required.");
 
             Response.Cookies.Append(
                 CookieRequestCultureProvider.DefaultCookieName,
@@ -411,7 +412,7 @@ public class LocalizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 }

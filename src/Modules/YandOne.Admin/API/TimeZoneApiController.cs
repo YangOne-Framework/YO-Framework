@@ -5,6 +5,7 @@ using YangOne.Admin.Dto;
 using YangOne.Identity.Extensions;
 using YangOne.Log;
 using YangOne.Web.API;
+using YangOne.Web.Model;
 using YangOne.Web.Service;
 
 namespace YandOne.Admin.API;
@@ -25,7 +26,7 @@ public class TimeZoneApiController : BaseApiController
     }
 
     [HttpGet("all")]
-    public async Task<IActionResult> GetAll()
+    public async Task<ActionResult<ApiResponse<IEnumerable<Timezone>>>> GetAll()
     {
         try
         {
@@ -35,36 +36,36 @@ public class TimeZoneApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<Timezone>>(501, e.Message);
         }
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<ActionResult<ApiResponse<Timezone>>> GetById(int id)
     {
         try
         {
             var tz = await _timeZoneService.TimeZoneCrudService.GetAsync(id);
             if (tz == null)
-                return ErrorResponse(404, "TimeZone not found");
+                return ErrorResponse<Timezone>(404, "TimeZone not found");
 
             return SuccessResponse("Success", tz);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<Timezone>(501, e.Message);
         }
     }
 
     [HttpGet("check/user")]
-    public async Task<IActionResult> CheckUserHasTimeZone()
+    public async Task<ActionResult<ApiResponse<Timezone>>> CheckUserHasTimeZone()
     {
         try
         {
             var currentUserId = User.Identity.GetIdentityUserId();
             if (currentUserId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<Timezone>();
 
             var tz = await _timeZoneService.CheckUserHasTimeZone(currentUserId);
             return SuccessResponse("Success", tz);
@@ -72,18 +73,18 @@ public class TimeZoneApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<Timezone>(501, e.Message);
         }
     }
 
     [HttpPost("save/user-timezone")]
-    public async Task<IActionResult> SaveUserTimeZone([FromBody] SaveUserTimeZoneRequest request)
+    public async Task<ActionResult<ApiResponse<Timezone>>> SaveUserTimeZone([FromBody] SaveUserTimeZoneRequest request)
     {
         try
         {
             var currentUserId = User.Identity.GetIdentityUserId();
             if (currentUserId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<Timezone>();
 
             var tz = await _timeZoneService.SaveUserTimeZone(request.UserId, request.TimeZoneId);
             return SuccessResponse("Saved successfully", tz);
@@ -91,7 +92,7 @@ public class TimeZoneApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<Timezone>(501, e.Message);
         }
     }
 }

@@ -7,6 +7,7 @@ using Microsoft.Extensions.Hosting;
 using YangOne.Caching;
 using YangOne.Identity.Extensions;
 using YangOne.Log;
+using YangOne.Admin.Dto;
 using YangOne.Web.API;
 
 namespace YandOne.Admin.API;
@@ -33,7 +34,7 @@ public class CacheApiController : BaseApiController
     }
 
     [HttpGet("info")]
-    public IActionResult GetInfo()
+    public ActionResult<ApiResponse<CacheInfoDto>> GetInfo()
     {
         try
         {
@@ -50,23 +51,18 @@ public class CacheApiController : BaseApiController
                 keys = new List<string>();
             }
 
-            return SuccessResponse("Success", new
-            {
-                KeyCount = keys.Count,
-                Keys = keys,
-                ProviderName = providerName,
-                ProviderType = providerFullName
-            });
+            var dto = new CacheInfoDto(keys.Count, keys, providerName, providerFullName);
+            return SuccessResponse("Success", dto);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<CacheInfoDto>(501, e.Message);
         }
     }
 
     [HttpGet("list")]
-    public IActionResult GetList()
+    public ActionResult<ApiResponse<List<CacheKeyDto>>> GetList()
     {
         try
         {
@@ -80,24 +76,24 @@ public class CacheApiController : BaseApiController
                 keys = new List<string>();
             }
 
-            var items = keys.Select(k => new { Key = k }).ToList();
+            var items = keys.Select(k => new CacheKeyDto(k)).ToList();
             return SuccessResponse("Success", items);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<List<CacheKeyDto>>(501, e.Message);
         }
     }
 
     [HttpPost("flush")]
-    public IActionResult Flush()
+    public ActionResult<ApiResponse<bool>> Flush()
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             _cacheService.Flush();
             return SuccessResponse("All cache cleared successfully", true);
@@ -105,18 +101,18 @@ public class CacheApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     [HttpPost("refresh/{key}")]
-    public IActionResult Refresh(string key)
+    public ActionResult<ApiResponse<bool>> Refresh(string key)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             _cacheService.Remove(key);
             return SuccessResponse($"Cache key '{key}' removed successfully. It will be re-cached on next request.", true);
@@ -124,12 +120,12 @@ public class CacheApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     [HttpGet("providers")]
-    public IActionResult GetProviders()
+    public ActionResult<ApiResponse<CacheProvidersDto>> GetProviders()
     {
         try
         {
@@ -145,40 +141,40 @@ public class CacheApiController : BaseApiController
                     configuredProvider = prop.GetString() ?? "Memory";
             }
 
-            var providers = new List<object>
+            var isRedis = currentName.Contains("RedisCache");
+            var providers = new List<CacheProviderDto>
             {
-                new { Name = "In-Memory", Value = "Memory", IsCurrent = currentName.Contains("DefaultCache") || configuredProvider == "Memory" },
-                new { Name = "Redis", Value = "Redis", IsCurrent = currentName.Contains("RedisCache") || configuredProvider == "Redis" }
+                new("In-Memory", "Memory", isRedis ? false : configuredProvider == "Memory"),
+                new("Redis", "Redis", isRedis || configuredProvider == "Redis")
             };
 
-            return SuccessResponse("Success", new
-            {
-                Providers = providers,
-                CurrentProvider = currentName.Contains("RedisCache") ? "Redis" : "Memory",
-                ConfiguredProvider = configuredProvider,
-                RequiresRestart = currentName.Contains("RedisCache")
-                    ? (configuredProvider != "Redis")
-                    : (configuredProvider != "Memory")
-            });
+            var dto = new CacheProvidersDto(
+                providers,
+                isRedis ? "Redis" : "Memory",
+                configuredProvider,
+                isRedis ? (configuredProvider != "Redis") : (configuredProvider != "Memory")
+            );
+
+            return SuccessResponse("Success", dto);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<CacheProvidersDto>(501, e.Message);
         }
     }
 
     [HttpPost("provider/switch")]
-    public IActionResult SwitchProvider([FromBody] SwitchProviderModel model)
+    public ActionResult<ApiResponse<bool>> SwitchProvider([FromBody] SwitchProviderModel model)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             if (model.Provider != "Memory" && model.Provider != "Redis")
-                return ValidationResponse(new List<string> { "Invalid provider. Must be 'Memory' or 'Redis'." });
+                return ValidationResponse<bool>(new List<string> { "Invalid provider. Must be 'Memory' or 'Redis'." });
 
             var configPath = Path.Combine(_env.ContentRootPath, "App_Data", "cacheconfig.json");
             var config = new { CacheProvider = model.Provider };
@@ -187,23 +183,23 @@ public class CacheApiController : BaseApiController
 
             return SuccessResponse(
                 $"Cache provider changed to '{model.Provider}'. Application restart required to apply the change.",
-                new { Provider = model.Provider, RestartRequired = true });
+                true);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     [HttpPost("restart")]
-    public IActionResult Restart()
+    public ActionResult<ApiResponse<bool>> Restart()
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             _appLifetime.StopApplication();
             return SuccessResponse("Application is restarting...", true);
@@ -211,7 +207,7 @@ public class CacheApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 

@@ -12,7 +12,7 @@ namespace YangOne.FCM.API
     /// <summary>
     /// Represents a class FCMTestApiController.
     /// </summary>
-    public  class FCMTestApiController:BaseApiController
+    public  class FCMTestApiController : BaseApiController
     {
         private readonly IFCMService _fcmService;
         private readonly ILogger _logger;
@@ -26,7 +26,7 @@ namespace YangOne.FCM.API
         [HttpGet]
         [Route("test")]
         [AllowAnonymous]
-        public async Task<dynamic> TestFCM(string usertoken, string title, string message, string clickUrl, string imageUrl,string key1,string key2,string key3)
+        public async Task<ActionResult<ApiResponse<bool>>> TestFCM(string usertoken, string title, string message, string clickUrl, string imageUrl,string key1,string key2,string key3)
         {
             try
             {
@@ -37,7 +37,7 @@ namespace YangOne.FCM.API
             catch (Exception e)
             {
                 _logger.Log(LogType.Error, () => e.Message.ToString(), e);
-                return ErrorResponse(500,e.Message);
+                return ErrorResponse<bool>(500,e.Message);
             }
 
         }

@@ -26,12 +26,12 @@ namespace YandOne.Admin.API
 
         [HttpGet("recurring")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> GetRecurringJobs()
+        public async Task<ActionResult<ApiResponse<object>>> GetRecurringJobs()
         {
             try
             {
                 var jobs = await _jobManager.GetJobsAsync();
-                return SuccessResponse("Success", jobs);
+                return SuccessResponse("Success", (object)jobs);
             }
             catch (Exception e)
             {
@@ -42,65 +42,65 @@ namespace YandOne.Admin.API
 
         [HttpDelete("recurring/{jobId}")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> RemoveRecurringJob(string jobId)
+        public async Task<ActionResult<ApiResponse<bool>>> RemoveRecurringJob(string jobId)
         {
             try
             {
                 var result = await _jobManager.RemoveAsync(jobId);
-                return SuccessResponse("Recurring job removed", new { Success = result });
+                return SuccessResponse("Recurring job removed", result);
             }
             catch (Exception e)
             {
                 _logger.Log(LogType.Error, () => e.Message, e);
-                return ErrorResponse(501, e.Message);
+                return ErrorResponse<bool>(501, e.Message);
             }
         }
 
         [HttpPost("recurring/{jobId}/trigger")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> TriggerRecurringJob(string jobId)
+        public async Task<ActionResult<ApiResponse<bool>>> TriggerRecurringJob(string jobId)
         {
             try
             {
                 var result = await _jobManager.TriggerAsync(jobId);
-                return SuccessResponse("Recurring job triggered", new { Success = result });
+                return SuccessResponse("Recurring job triggered", result);
             }
             catch (Exception e)
             {
                 _logger.Log(LogType.Error, () => e.Message, e);
-                return ErrorResponse(501, e.Message);
+                return ErrorResponse<bool>(501, e.Message);
             }
         }
 
         [HttpPost("recurring/{jobId}/pause")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> PauseRecurringJob(string jobId)
+        public async Task<ActionResult<ApiResponse<bool>>> PauseRecurringJob(string jobId)
         {
             try
             {
                 var result = await _jobManager.PauseAsync(jobId);
-                return SuccessResponse("Recurring job paused", new { Success = result });
+                return SuccessResponse("Recurring job paused", result);
             }
             catch (Exception e)
             {
                 _logger.Log(LogType.Error, () => e.Message, e);
-                return ErrorResponse(501, e.Message);
+                return ErrorResponse<bool>(501, e.Message);
             }
         }
 
         [HttpPost("recurring/{jobId}/resume")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> ResumeRecurringJob(string jobId)
+        public async Task<ActionResult<ApiResponse<bool>>> ResumeRecurringJob(string jobId)
         {
             try
             {
                 var result = await _jobManager.ResumeAsync(jobId);
-                return SuccessResponse("Recurring job resumed", new { Success = result });
+                return SuccessResponse("Recurring job resumed", result);
             }
             catch (Exception e)
             {
                 _logger.Log(LogType.Error, () => e.Message, e);
-                return ErrorResponse(501, e.Message);
+                return ErrorResponse<bool>(501, e.Message);
             }
         }
 
@@ -110,12 +110,12 @@ namespace YandOne.Admin.API
 
         [HttpGet("succeeded")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> GetSucceededJobs([FromQuery] int offset = 0, [FromQuery] int count = 50)
+        public async Task<ActionResult<ApiResponse<object>>> GetSucceededJobs([FromQuery] int offset = 0, [FromQuery] int count = 50)
         {
             try
             {
                 var result = await _jobManager.GetSucceededJobsAsync(offset, count);
-                return SuccessResponse("Success", result);
+                return SuccessResponse("Success", (object)result);
             }
             catch (Exception e)
             {
@@ -126,12 +126,12 @@ namespace YandOne.Admin.API
 
         [HttpGet("failed")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> GetFailedJobs([FromQuery] int offset = 0, [FromQuery] int count = 50)
+        public async Task<ActionResult<ApiResponse<object>>> GetFailedJobs([FromQuery] int offset = 0, [FromQuery] int count = 50)
         {
             try
             {
                 var result = await _jobManager.GetFailedJobsAsync(offset, count);
-                return SuccessResponse("Success", result);
+                return SuccessResponse("Success", (object)result);
             }
             catch (Exception e)
             {
@@ -142,12 +142,12 @@ namespace YandOne.Admin.API
 
         [HttpGet("enqueued")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> GetEnqueuedJobs([FromQuery] string queue = "default", [FromQuery] int offset = 0, [FromQuery] int count = 50)
+        public async Task<ActionResult<ApiResponse<object>>> GetEnqueuedJobs([FromQuery] string queue = "default", [FromQuery] int offset = 0, [FromQuery] int count = 50)
         {
             try
             {
                 var result = await _jobManager.GetEnqueuedJobsAsync(queue, offset, count);
-                return SuccessResponse("Success", result);
+                return SuccessResponse("Success", (object)result);
             }
             catch (Exception e)
             {
@@ -158,12 +158,12 @@ namespace YandOne.Admin.API
 
         [HttpGet("processing")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> GetProcessingJobs([FromQuery] int offset = 0, [FromQuery] int count = 50)
+        public async Task<ActionResult<ApiResponse<object>>> GetProcessingJobs([FromQuery] int offset = 0, [FromQuery] int count = 50)
         {
             try
             {
                 var result = await _jobManager.GetProcessingJobsAsync(offset, count);
-                return SuccessResponse("Success", result);
+                return SuccessResponse("Success", (object)result);
             }
             catch (Exception e)
             {
@@ -174,12 +174,12 @@ namespace YandOne.Admin.API
 
         [HttpGet("scheduled")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> GetScheduledJobs([FromQuery] int offset = 0, [FromQuery] int count = 50)
+        public async Task<ActionResult<ApiResponse<object>>> GetScheduledJobs([FromQuery] int offset = 0, [FromQuery] int count = 50)
         {
             try
             {
                 var result = await _jobManager.GetScheduledJobsAsync(offset, count);
-                return SuccessResponse("Success", result);
+                return SuccessResponse("Success", (object)result);
             }
             catch (Exception e)
             {
@@ -190,12 +190,12 @@ namespace YandOne.Admin.API
 
         [HttpGet("workers")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> GetWorkerStatus()
+        public async Task<ActionResult<ApiResponse<object>>> GetWorkerStatus()
         {
             try
             {
                 var result = await _jobManager.GetWorkerStatusAsync();
-                return SuccessResponse("Success", result);
+                return SuccessResponse("Success", (object)result);
             }
             catch (Exception e)
             {
@@ -206,12 +206,12 @@ namespace YandOne.Admin.API
 
         [HttpGet("stats")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> GetJobStats()
+        public async Task<ActionResult<ApiResponse<object>>> GetJobStats()
         {
             try
             {
                 var stats = await _jobManager.GetStatsAsync();
-                return SuccessResponse("Success", stats);
+                return SuccessResponse("Success", (object)stats);
             }
             catch (Exception e)
             {
@@ -226,17 +226,17 @@ namespace YandOne.Admin.API
 
         [HttpDelete("{jobId}")]
         [Authorize(Roles = "Admin,SuperAdmin")]
-        public async Task<IActionResult> DeleteJob(string jobId)
+        public async Task<ActionResult<ApiResponse<bool>>> DeleteJob(string jobId)
         {
             try
             {
                 var result = await _jobManager.DeleteAsync(jobId);
-                return SuccessResponse("Job deleted", new { Success = result });
+                return SuccessResponse("Job deleted", result);
             }
             catch (Exception e)
             {
                 _logger.Log(LogType.Error, () => e.Message, e);
-                return ErrorResponse(501, e.Message);
+                return ErrorResponse<bool>(501, e.Message);
             }
         }
 

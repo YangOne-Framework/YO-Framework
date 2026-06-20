@@ -5,6 +5,7 @@ using YangOne.Identity.Extensions;
 using YangOne.Log;
 using YangOne.Web.API;
 using YangOne.Web.Dto;
+using YangOne.Web.Model;
 using YangOne.Web.Service;
 
 namespace YandOne.Admin.API;
@@ -25,7 +26,7 @@ public class HtmlComponentAPIController : BaseApiController
     }
     [HttpGet]
     [Route("check/unique")]
-    public async Task<IActionResult> CheckNameUnique(
+    public async Task<ActionResult<ApiResponse<bool>>> CheckNameUnique(
         [FromQuery] string name,
         [FromQuery] string oldName,
         [FromQuery] int htmlComponentId = 0)
@@ -38,12 +39,12 @@ public class HtmlComponentAPIController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
     [HttpGet]
     [Route("all/active")]
-    public async Task<IActionResult> GetAllActive(
+    public async Task<ActionResult<ApiResponse<IEnumerable<HtmlComponentDetailDto>>>> GetAllActive(
         [FromQuery] int offset = 1,
         [FromQuery] int limit = 20,
         [FromQuery] string query = "")
@@ -56,13 +57,13 @@ public class HtmlComponentAPIController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<HtmlComponentDetailDto>>(501, e.Message);
         }
     }
 
     [HttpGet]
     [Route("all")]
-    public async Task<IActionResult> GetAll(
+    public async Task<ActionResult<ApiResponse<IEnumerable<HtmlComponentItemDto>>>> GetAll(
         [FromQuery] int offset = 1,
         [FromQuery] int limit = 20,
         [FromQuery] string query = "")
@@ -75,35 +76,35 @@ public class HtmlComponentAPIController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<HtmlComponentItemDto>>(501, e.Message);
         }
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<ActionResult<ApiResponse<HtmlComponentDetailDto>>> GetById(int id)
     {
         try
         {
             var item = await _htmlComponentService.GetByIdAsync(id);
             if (item == null)
-                return ErrorResponse(404, "HtmlComponent not found");
+                return ErrorResponse<HtmlComponentDetailDto>(404, "HtmlComponent not found");
 
             return SuccessResponse("Success", item);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<HtmlComponentDetailDto>(501, e.Message);
         }
     }
 
     [HttpPost]
     [Route("save")]
-    public async Task<IActionResult> Save([FromBody] HtmlComponentSaveRequest request)
+    public async Task<ActionResult<ApiResponse<HtmlComponentDetailDto>>> Save([FromBody] HtmlComponentSaveRequest request)
     {
         if (!ModelState.IsValid)
         {
-            return ErrorResponse(ModelState, 600, request);
+            return ErrorResponse<HtmlComponentDetailDto>(ModelState, 600, request);
         }
 
         try
@@ -111,7 +112,7 @@ public class HtmlComponentAPIController : BaseApiController
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
             {
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<HtmlComponentDetailDto>();
             }
 
             var saved = await _htmlComponentService.SaveAsync(request);
@@ -120,31 +121,31 @@ public class HtmlComponentAPIController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<HtmlComponentDetailDto>(501, e.Message);
         }
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
             {
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
             }
 
             var ok = await _htmlComponentService.DeleteAsync(id);
             if (!ok)
-                return ErrorResponse(404, "HtmlComponent not found");
+                return ErrorResponse<bool>(404, "HtmlComponent not found");
 
             return SuccessResponse("Deleted successfully", true);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 }

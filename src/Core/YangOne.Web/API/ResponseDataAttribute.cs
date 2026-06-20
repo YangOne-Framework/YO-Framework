@@ -1,31 +1,19 @@
 ﻿// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 #nullable enable
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using Microsoft.AspNetCore.RateLimiting;
-using System.Net;
-using YangOne.Identity.Extensions;
-using YangOne.Log;
-
 namespace YangOne.Web.API
 {
     /// <summary>
-    /// Generic API response wrapper with code, message, data and errors.
+    /// Specifies the concrete data type for OpenAPI response schema generation on IActionResult endpoints.
+    /// Place this on controller methods that return IActionResult with ApiResponse data.
     /// </summary>
-    public class ApiResponse<T>
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    public class ResponseDataAttribute : Attribute
     {
-        public int Code { get; set; }
-        public string Message { get; set; }
-        public T Data { get; set; }
-        public string[] Errors { get; set; }
-
-        public ApiResponse()
+        public Type DataType { get; }
+        public ResponseDataAttribute(Type dataType)
         {
-            Errors = Array.Empty<string>();
+            DataType = dataType;
         }
     }
 
@@ -57,5 +45,7 @@ namespace YangOne.Web.API
     //    var dto = new UserDto(id, "Binod");
     //    return SuccessResponse("OK", dto);
     //}
+
+
 
 }

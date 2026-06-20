@@ -59,7 +59,7 @@ public class SettingApiController : BaseApiController
 
     [HttpGet("web")]
     // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> GetWebSetting()
+    public async Task<ActionResult<ApiResponse<Setting>>> GetWebSetting()
     {
         try
         {
@@ -69,22 +69,22 @@ public class SettingApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<Setting>(501, e.Message);
         }
     }
 
     [HttpPost("web/save")]
     // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> SaveWebSetting([FromForm] Setting model)
+    public async Task<ActionResult<ApiResponse<Setting>>> SaveWebSetting([FromForm] Setting model)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, model);
+            return ErrorResponse<Setting>(ModelState, 600, model);
 
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<Setting>();
 
             model.AutoFill();
 
@@ -99,7 +99,7 @@ public class SettingApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<Setting>(501, e.Message);
         }
     }
 
@@ -109,7 +109,7 @@ public class SettingApiController : BaseApiController
 
     [HttpPost("app/restart")]
     [Authorize(Roles = "SuperUser")]
-    public IActionResult Shutdown()
+    public ActionResult<ApiResponse<bool>> Shutdown()
     {
         try
         {
@@ -119,7 +119,7 @@ public class SettingApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
@@ -129,7 +129,7 @@ public class SettingApiController : BaseApiController
 
     [HttpGet("csp")]
     // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> GetCspConfig()
+    public async Task<ActionResult<ApiResponse<CspConfig>>> GetCspConfig()
     {
         try
         {
@@ -139,16 +139,16 @@ public class SettingApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<CspConfig>(501, e.Message);
         }
     }
 
     [HttpPost("csp/save")]
     // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> SaveCspConfig([FromBody] CspConfig config)
+    public async Task<ActionResult<ApiResponse<bool>>> SaveCspConfig([FromBody] CspConfig config)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, config);
+            return ErrorResponse<bool>(ModelState, 600, config);
 
         try
         {
@@ -158,7 +158,7 @@ public class SettingApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
@@ -168,7 +168,7 @@ public class SettingApiController : BaseApiController
 
     [HttpGet("api")]
     // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> GetApiConfig()
+    public async Task<ActionResult<ApiResponse<ApiConfig>>> GetApiConfig()
     {
         try
         {
@@ -178,16 +178,16 @@ public class SettingApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<ApiConfig>(501, e.Message);
         }
     }
 
     [HttpPost("api/save")]
     // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> SaveApiConfig([FromBody] ApiConfig model)
+    public async Task<ActionResult<ApiResponse<bool>>> SaveApiConfig([FromBody] ApiConfig model)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, model);
+            return ErrorResponse<bool>(ModelState, 600, model);
 
         try
         {
@@ -214,7 +214,7 @@ public class SettingApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
@@ -224,7 +224,7 @@ public class SettingApiController : BaseApiController
 
     [HttpGet("optimization")]
     // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> GetOptimizationConfig()
+    public async Task<ActionResult<ApiResponse<OptimizationConfig>>> GetOptimizationConfig()
     {
         try
         {
@@ -234,16 +234,16 @@ public class SettingApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<OptimizationConfig>(501, e.Message);
         }
     }
 
     [HttpPost("optimization/save")]
     // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> SaveOptimizationConfig([FromBody] OptimizationConfig model)
+    public async Task<ActionResult<ApiResponse<bool>>> SaveOptimizationConfig([FromBody] OptimizationConfig model)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, model);
+            return ErrorResponse<bool>(ModelState, 600, model);
 
         try
         {
@@ -253,7 +253,7 @@ public class SettingApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
@@ -263,7 +263,7 @@ public class SettingApiController : BaseApiController
 
     [HttpGet("file")]
     // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> GetFileConfig()
+    public async Task<ActionResult<ApiResponse<FileConfig>>> GetFileConfig()
     {
         try
         {
@@ -273,16 +273,16 @@ public class SettingApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<FileConfig>(501, e.Message);
         }
     }
 
     [HttpPost("file/save")]
     // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> SaveFileConfig([FromBody] FileConfig config)
+    public async Task<ActionResult<ApiResponse<bool>>> SaveFileConfig([FromBody] FileConfig config)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, config);
+            return ErrorResponse<bool>(ModelState, 600, config);
 
         try
         {
@@ -292,7 +292,7 @@ public class SettingApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
@@ -302,7 +302,7 @@ public class SettingApiController : BaseApiController
 
     [HttpGet("basic")]
     // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> GetBasicSecurityConfig()
+    public async Task<ActionResult<ApiResponse<AppBasicSecurity>>> GetBasicSecurityConfig()
     {
         try
         {
@@ -312,16 +312,16 @@ public class SettingApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<AppBasicSecurity>(501, e.Message);
         }
     }
 
     [HttpPost("basic/save")]
     // [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> SaveBasicSecurityConfig([FromBody] AppBasicSecurity model)
+    public async Task<ActionResult<ApiResponse<bool>>> SaveBasicSecurityConfig([FromBody] AppBasicSecurity model)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, model);
+            return ErrorResponse<bool>(ModelState, 600, model);
 
         try
         {
@@ -331,7 +331,7 @@ public class SettingApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 

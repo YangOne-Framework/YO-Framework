@@ -44,6 +44,7 @@ using YangOne.Web.Diagnostics;
 using YangOne.Web.Templating;
 using YangOne.Web.Theme;
 using YangOne.Web.Middleware;
+using YangOne.Web.API.OpenAPI;
 
 namespace YangOne.Web
 {
@@ -199,6 +200,7 @@ namespace YangOne.Web
             // Add framework services.
             IMvcBuilder mvcBuilder = services.AddMvc(options =>
                 {
+                    options.Conventions.Add(new ApiResponseConvention());
                     options.Filters.Add(new AuditAttribute());
                     options.Filters.AddService<ProtectPayloadFilter>();
                 }).AddNewtonsoftJson(options =>

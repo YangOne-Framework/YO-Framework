@@ -9,6 +9,7 @@ using YangOne.Log;
 using YangOne.Web;
 using YangOne.Web.API;
 using YangOne.Web.Model;
+using YangOne.Admin.Dto;
 using YangOne.Web.Service;
 
 namespace YandOne.Admin.API;
@@ -36,50 +37,46 @@ public class PermissionApiController : BaseApiController
    
     [HttpGet("role/{roleId:int}")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> GetRolePermissions([FromRoute] int roleId)
+    public async Task<ActionResult<ApiResponse<RolePermissionsDto>>> GetRolePermissions([FromRoute] int roleId)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<RolePermissionsDto>();
 
-            var roles = await GetRoles(); // excludes role Id=1 as in your MVC code
+            var roles = await GetRoles();
             var rolePermission = await _permissionService.GetRolePermissionsById(roleId);
 
-            return SuccessResponse("Success", new
-            {
-                Roles = roles,
-                RolePermission = rolePermission
-            });
+            return SuccessResponse("Success", new RolePermissionsDto(roles, rolePermission));
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<RolePermissionsDto>(501, e.Message);
         }
     }
 
     
     [HttpPost("role/{roleId:int}/save")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> SaveRolePermissions(
+    public async Task<ActionResult<ApiResponse<bool>>> SaveRolePermissions(
         [FromRoute] int roleId,
         [FromBody] RolePermissionViewModel rolePermissions)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, rolePermissions);
+            return ErrorResponse<bool>(ModelState, 600, rolePermissions);
 
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             // Safety: ensure route roleId matches payload role id (when present)
             var payloadRoleId = rolePermissions?.RolePermission?.FirstOrDefault()?.RoleId ?? 0;
             if (payloadRoleId != 0 && payloadRoleId != roleId)
-                return ErrorResponse(400, "RoleId in route does not match RoleId in payload.");
+                return ErrorResponse<bool>(400, "RoleId in route does not match RoleId in payload.");
 
             await _permissionService.SaveRolePermissions(rolePermissions);
 
@@ -88,20 +85,20 @@ public class PermissionApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
-   
+    
     [HttpGet("role/all")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> GetRolesList()
+    public async Task<ActionResult<ApiResponse<List<UserRolesSelected>>>> GetRolesList()
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<List<UserRolesSelected>>();
 
             var roles = await GetRoles();
             return SuccessResponse("Success", roles);
@@ -109,64 +106,64 @@ public class PermissionApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<List<UserRolesSelected>>(501, e.Message);
         }
     }
 
     [HttpGet("my")]
     [Authorize]
-    public async Task<IActionResult> GetMyPermissions()
+    public async Task<ActionResult<ApiResponse<List<string>>>> GetMyPermissions()
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<List<string>>();
 
             var permissions = await _permissionService.GetMyPermissions(userId);
-            return SuccessResponse("Success", permissions);
+            return SuccessResponse("Success", permissions.ToList());
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<List<string>>(501, e.Message);
         }
     }
 
     [HttpGet("user/{userId:long}")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> GetUserPermissions([FromRoute] long userId)
+    public async Task<ActionResult<ApiResponse<List<UserPermission>>>> GetUserPermissions([FromRoute] long userId)
     {
         try
         {
             var currentUserId = User.Identity.GetIdentityUserId();
             if (currentUserId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<List<UserPermission>>();
 
             var userPermissions = await _permissionService.GetUserPermissionsById(userId);
-            return SuccessResponse("Success", new { UserPermission = userPermissions });
+            return SuccessResponse("Success", userPermissions.ToList());
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<List<UserPermission>>(501, e.Message);
         }
     }
 
     [HttpPost("user/{userId:long}/save")]
     [Authorize(Roles = "Admin,SuperAdmin")]
-    public async Task<IActionResult> SaveUserPermissions(
+    public async Task<ActionResult<ApiResponse<bool>>> SaveUserPermissions(
         [FromRoute] long userId,
         [FromBody] UserPermissionViewModel userPermissions)
     {
         if (!ModelState.IsValid)
-            return ErrorResponse(ModelState, 600, userPermissions);
+            return ErrorResponse<bool>(ModelState, 600, userPermissions);
 
         try
         {
             var currentUserId = User.Identity.GetIdentityUserId();
             if (currentUserId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             foreach (var item in userPermissions.UserPermission)
             {
@@ -179,7 +176,7 @@ public class PermissionApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 

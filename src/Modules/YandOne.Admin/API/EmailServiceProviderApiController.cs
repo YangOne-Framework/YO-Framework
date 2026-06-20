@@ -32,7 +32,7 @@ public class EmailServiceProviderApiController : BaseApiController
     }
 
     [HttpGet("all")]
-    public async Task<IActionResult> GetAll(
+    public async Task<ActionResult<ApiResponse<IEnumerable<EmailServiceProvider>>>> GetAll(
         [FromQuery] int offset = 1,
         [FromQuery] int limit = 20,
         [FromQuery] string query = "")
@@ -49,30 +49,30 @@ public class EmailServiceProviderApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<EmailServiceProvider>>(501, e.Message);
         }
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<ActionResult<ApiResponse<EmailServiceProvider>>> GetById(int id)
     {
         try
         {
             var provider = await _emailServiceProviderService.ProviderCrudService.GetAsync(id);
             if (provider == null)
-                return ErrorResponse(404, "EmailServiceProvider not found");
+                return ErrorResponse<EmailServiceProvider>(404, "EmailServiceProvider not found");
 
             return SuccessResponse("Success", provider);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<EmailServiceProvider>(501, e.Message);
         }
     }
 
     [HttpGet("default")]
-    public async Task<IActionResult> GetDefault()
+    public async Task<ActionResult<ApiResponse<EmailServiceProvider>>> GetDefault()
     {
         try
         {
@@ -82,12 +82,12 @@ public class EmailServiceProviderApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<EmailServiceProvider>(501, e.Message);
         }
     }
 
     [HttpGet("{id:int}/settings")]
-    public async Task<IActionResult> GetSettings(int id)
+    public async Task<ActionResult<ApiResponse<IEnumerable<EmailServiceProviderSetting>>>> GetSettings(int id)
     {
         try
         {
@@ -97,18 +97,18 @@ public class EmailServiceProviderApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<EmailServiceProviderSetting>>(501, e.Message);
         }
     }
 
     [HttpPost("save")]
-    public async Task<IActionResult> Save([FromForm] EmailServiceProvider model)
+    public async Task<ActionResult<ApiResponse<int>>> Save([FromForm] EmailServiceProvider model)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<int>();
 
             if (model.ImageFile != null)
             {
@@ -116,23 +116,23 @@ public class EmailServiceProviderApiController : BaseApiController
             }
 
             var id = await _emailServiceProviderService.InsertOrSave(model);
-            return SuccessResponse("Saved successfully", new { EmailServiceProviderId = id });
+            return SuccessResponse("Saved successfully", id);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<int>(501, e.Message);
         }
     }
 
     [HttpPost("set-default")]
-    public async Task<IActionResult> SetDefault([FromBody] SetDefaultProviderRequest request)
+    public async Task<ActionResult<ApiResponse<bool>>> SetDefault([FromBody] SetDefaultProviderRequest request)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             var ok = await _emailServiceProviderService.SetDefaultProviderAsync(request.Id);
             return SuccessResponse("Default provider set successfully", ok);
@@ -140,18 +140,18 @@ public class EmailServiceProviderApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     [HttpPost("update-status")]
-    public async Task<IActionResult> UpdateStatus([FromBody] EmailServiceProvider model)
+    public async Task<ActionResult<ApiResponse<bool>>> UpdateStatus([FromBody] EmailServiceProvider model)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             var ok = await _emailServiceProviderService.UpdateStatus(model);
             return SuccessResponse("Status updated successfully", ok);
@@ -159,18 +159,18 @@ public class EmailServiceProviderApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     [HttpPost("settings/update")]
-    public async Task<IActionResult> UpdateSettings([FromBody] List<EmailServiceProviderSetting> settings)
+    public async Task<ActionResult<ApiResponse<bool>>> UpdateSettings([FromBody] List<EmailServiceProviderSetting> settings)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             var ok = await _emailServiceProviderService.UpdateSettings(settings);
             return SuccessResponse("Settings updated successfully", ok);
@@ -178,28 +178,28 @@ public class EmailServiceProviderApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     [HttpDelete("{name}")]
-    public async Task<IActionResult> Delete(string name)
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(string name)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             var ok = await _emailServiceProviderService.DeleteEmailService(name);
             if (!ok)
-                return ErrorResponse(400, "Cannot delete the default provider. Set another provider as default first.");
+                return ErrorResponse<bool>(400, "Cannot delete the default provider. Set another provider as default first.");
             return SuccessResponse("Deleted successfully", ok);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 }

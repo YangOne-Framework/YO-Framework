@@ -32,7 +32,7 @@ namespace YangOne.Web.API
         [Route("create/{userId}")]
         //[SwaggerResponse(201, Type = typeof(SessionCreationStatusResponse))]
         //[SwaggerResponse(500)]
-        public async Task<dynamic>  StartSession([FromRoute] long userId,
+        public async Task<ActionResult<ApiResponse<SessionCreationStatusResponse>>> StartSession([FromRoute] long userId,
             [FromForm] CreateSessionParams sessionParams)
         {
 
@@ -58,20 +58,20 @@ namespace YangOne.Web.API
         //[SwaggerResponse(202, Description = "Server busy during that particular upload. Try again")]
         //[SwaggerResponse(410, Description = "Session timeout")]
         //[SwaggerResponse(500, Description = "Internal server error")]
-        public  async Task<dynamic>  UploadFileChunk([FromRoute, Required] long? userId,
+        public async Task<ActionResult<ApiResponse<string>>> UploadFileChunk([FromRoute, Required] long? userId,
             [FromRoute, Required] string sessionId,
             [FromQuery, Required] int? chunkNumber,
             [FromForm] IFormFile file)
         {
             if (!userId.HasValue)
-                return ErrorResponse(500, "User missing");
+                return ErrorResponse<string>(500, "User missing");
            
 
             if (String.IsNullOrWhiteSpace(sessionId))
-                return ErrorResponse(500, "Session ID is missing"); 
+                return ErrorResponse<string>(500, "Session ID is missing"); 
 
             if (chunkNumber < 1)
-                return ErrorResponse(500, "Invalid chunk number");
+                return ErrorResponse<string>(500, "Invalid chunk number");
 
             // due to a bug, inputFile comes null from Mvc
             // however, I want to test the code and have to pass it to the UploadFileChunk function...
@@ -93,10 +93,10 @@ namespace YangOne.Web.API
         //[SwaggerResponse(404, Description = "Session not found")]
         //[SwaggerResponse(500, Description = "Internal server error")]
         //[SwaggerResponse(200, typeof(UploadStatusResponse))]
-        public async Task<dynamic> GetUploadStatus([FromRoute, Required] string sessionId)
+        public async Task<ActionResult<ApiResponse<UploadStatusResponse>>> GetUploadStatus([FromRoute, Required] string sessionId)
         {
             var session = _storageProvider.GetSession(sessionId);
-          
+           
             return HttpResponse(200, "", UploadStatusResponse.fromSession(session));
         }
 
@@ -108,7 +108,7 @@ namespace YangOne.Web.API
         [Route("uploads")]
         //[SwaggerResponse(404, Description = "Session not found")]
         //[SwaggerResponse(200, typeof(List<UploadStatusResponse>))]
-        public async Task<dynamic> GetAllUploadStatus()
+        public async Task<ActionResult<ApiResponse<List<UploadStatusResponse>>>> GetAllUploadStatus()
         {
             var sessions = _storageProvider.GetAllSessions();
            // return UploadStatusResponse.fromSessionList(sessions);

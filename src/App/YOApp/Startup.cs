@@ -4,6 +4,8 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,6 +26,7 @@ using YangOne.IdentityServer.Service;
 using YangOne.Web;
 using Hangfire;
 using YangOne.Web.API;
+
 using YangOne.Web.Service;
 
 namespace YOApp
@@ -278,6 +281,7 @@ namespace YOApp
                 // options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
                 options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
                 options.AddOperationTransformer<AuthOperationTransformer>();
+                options.AddOperationTransformer<ApiResponseOperationTransformer>();
             });
             //services.ConfigureApplicationCookie(options =>
             //{
@@ -452,72 +456,7 @@ namespace YOApp
 
         }
     }
-    /// <summary>
-    /// Adds a Bearer security scheme to the OpenAPI document
-    /// </summary>
-    internal sealed class BearerSecuritySchemeTransformer(
-        IAuthenticationSchemeProvider authenticationSchemeProvider)
-        : IOpenApiDocumentTransformer
-    {
-        public async Task TransformAsync(
-            OpenApiDocument document,
-            OpenApiDocumentTransformerContext context,
-            CancellationToken cancellationToken)
-        {
-            var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
-
-            var hasBearerAuthentication = authenticationSchemes.Any(authenticationScheme =>
-                authenticationScheme.Name == JwtBearerDefaults.AuthenticationScheme ||
-                authenticationScheme.Name == "Bearer");
-
-            if (!hasBearerAuthentication)
-            {
-                return;
-            }
-
-            document.Components ??= new OpenApiComponents();
-
-            document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
-
-            document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
-            {
-                Type = SecuritySchemeType.Http,
-                Scheme = "bearer",
-                BearerFormat = "JWT",
-                In = ParameterLocation.Header,
-                Description = "Paste JWT token only. Do not include Bearer prefix."
-            };
-        }
-    }
-    /// <summary>
-    /// Adds security requirements to non-anonymous OpenAPI operations
-    /// </summary>
-    internal sealed class AuthOperationTransformer : IOpenApiOperationTransformer
-    {
-        public Task TransformAsync(
-            OpenApiOperation openApiOperation,
-            OpenApiOperationTransformerContext openApiOperationContext,
-            CancellationToken cancellationToken)
-        {
-            var hasAllowAnonymousAttribute = openApiOperationContext.Description.ActionDescriptor.EndpointMetadata
-                .OfType<AllowAnonymousAttribute>()
-                .Any();
-
-            if (hasAllowAnonymousAttribute)
-            {
-                return Task.CompletedTask;
-            }
-
-            openApiOperation.Security ??= new List<OpenApiSecurityRequirement>();
-
-            openApiOperation.Security.Add(new OpenApiSecurityRequirement
-            {
-                [new OpenApiSecuritySchemeReference("Bearer", openApiOperationContext.Document)] = new List<string>()
-            });
-
-            return Task.CompletedTask;
-        }
-    }
+   
 }
 
 

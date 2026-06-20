@@ -28,7 +28,7 @@ public class RestrictionApiController : BaseApiController
     }
 
     [HttpGet("key/all")]
-    public async Task<IActionResult> GetAllKeys(
+    public async Task<ActionResult<ApiResponse<IEnumerable<RestrictionKey>>>> GetAllKeys(
         [FromQuery] int offset = 1,
         [FromQuery] int limit = 20,
         [FromQuery] string query = "")
@@ -45,71 +45,71 @@ public class RestrictionApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<RestrictionKey>>(501, e.Message);
         }
     }
 
     [HttpGet("key/{id:int}")]
-    public async Task<IActionResult> GetKeyById(int id)
+    public async Task<ActionResult<ApiResponse<RestrictionKey>>> GetKeyById(int id)
     {
         try
         {
             var key = await _restrictionService.KeyCrudService.GetAsync(id);
             if (key == null)
-                return ErrorResponse(404, "RestrictionKey not found");
+                return ErrorResponse<RestrictionKey>(404, "RestrictionKey not found");
 
             return SuccessResponse("Success", key);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<RestrictionKey>(501, e.Message);
         }
     }
 
     [HttpPost("key/save")]
-    public async Task<IActionResult> SaveKey([FromBody] RestrictionKey model)
+    public async Task<ActionResult<ApiResponse<int>>> SaveKey([FromBody] RestrictionKey model)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<int>();
 
             model.AutoFill();
             if (model.RestrictionKeyId == 0)
             {
                 var id = await _restrictionService.KeyCrudService.InsertAsync<int>(model);
-                return SuccessResponse("Saved successfully", new { RestrictionKeyId = id });
+                return SuccessResponse("Saved successfully", id);
             }
             else
             {
                 await _restrictionService.KeyCrudService.UpdateAsync(model);
-                return SuccessResponse("Updated successfully", true);
+                return SuccessResponse("Updated successfully", 0);
             }
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<int>(501, e.Message);
         }
     }
 
     [HttpDelete("key/{id:int}")]
-    public async Task<IActionResult> DeleteKey(int id)
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteKey(int id)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             var key = await _restrictionService.KeyCrudService.GetAsync(id);
             if (key == null)
-                return ErrorResponse(404, "RestrictionKey not found");
+                return ErrorResponse<bool>(404, "RestrictionKey not found");
 
             if (key.IsSystem)
-                return ErrorResponse(400, "System restriction keys cannot be deleted.");
+                return ErrorResponse<bool>(400, "System restriction keys cannot be deleted.");
 
             await _restrictionService.KeyCrudService.DeleteAsync(id);
             return SuccessResponse("Deleted successfully", true);
@@ -117,12 +117,12 @@ public class RestrictionApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     [HttpGet("all")]
-    public async Task<IActionResult> GetAll(
+    public async Task<ActionResult<ApiResponse<IEnumerable<Restriction>>>> GetAll(
         [FromQuery] int offset = 1,
         [FromQuery] int limit = 20,
         [FromQuery] string query = "")
@@ -139,30 +139,30 @@ public class RestrictionApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<Restriction>>(501, e.Message);
         }
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<ActionResult<ApiResponse<Restriction>>> GetById(int id)
     {
         try
         {
             var restriction = await _restrictionService.RestrictionCrudService.GetAsync(id);
             if (restriction == null)
-                return ErrorResponse(404, "Restriction not found");
+                return ErrorResponse<Restriction>(404, "Restriction not found");
 
             return SuccessResponse("Success", restriction);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<Restriction>(501, e.Message);
         }
     }
 
     [HttpGet("by-key/{keyId:int}")]
-    public async Task<IActionResult> GetByKeyId(
+    public async Task<ActionResult<ApiResponse<IEnumerable<Restriction>>>> GetByKeyId(
         int keyId,
         [FromQuery] int offset = 1,
         [FromQuery] int limit = 50)
@@ -179,50 +179,50 @@ public class RestrictionApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<Restriction>>(501, e.Message);
         }
     }
 
     [HttpPost("save")]
-    public async Task<IActionResult> Save([FromBody] Restriction model)
+    public async Task<ActionResult<ApiResponse<int>>> Save([FromBody] Restriction model)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<int>();
 
             model.AutoFill();
             if (model.RestrictionId == 0)
             {
                 var id = await _restrictionService.RestrictionCrudService.InsertAsync<int>(model);
-                return SuccessResponse("Saved successfully", new { RestrictionId = id });
+                return SuccessResponse("Saved successfully", id);
             }
             else
             {
                 await _restrictionService.RestrictionCrudService.UpdateAsync(model);
-                return SuccessResponse("Updated successfully", true);
+                return SuccessResponse("Updated successfully", 0);
             }
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<int>(501, e.Message);
         }
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             var restriction = await _restrictionService.RestrictionCrudService.GetAsync(id);
             if (restriction == null)
-                return ErrorResponse(404, "Restriction not found");
+                return ErrorResponse<bool>(404, "Restriction not found");
 
             await _restrictionService.RestrictionCrudService.DeleteAsync(id);
             return SuccessResponse("Deleted successfully", true);
@@ -230,12 +230,12 @@ public class RestrictionApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     //[HttpGet("check/{keyName}/{value}")]
-    //public async Task<IActionResult> CheckRestricted(string keyName, string value)
+    //public async Task<ActionResult<ApiResponse<object>>> CheckRestricted(string keyName, string value)
     //{
     //    try
     //    {
@@ -258,7 +258,7 @@ public class RestrictionApiController : BaseApiController
     //}
 
     //[HttpGet("grouped")]
-    //public async Task<IActionResult> GetAllGroupedByKey()
+    //public async Task<ActionResult<ApiResponse<object>>> GetAllGroupedByKey()
     //{
     //    try
     //    {
@@ -282,7 +282,7 @@ public class RestrictionApiController : BaseApiController
     //}
 
     [HttpGet("admin-ip/all")]
-    public async Task<IActionResult> GetAllAdminIps(
+    public async Task<ActionResult<ApiResponse<IEnumerable<AdministrativeIPAccess>>>> GetAllAdminIps(
         [FromQuery] int offset = 1,
         [FromQuery] int limit = 20,
         [FromQuery] string query = "")
@@ -299,70 +299,70 @@ public class RestrictionApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<AdministrativeIPAccess>>(501, e.Message);
         }
     }
 
     [HttpGet("admin-ip/{id:int}")]
-    public async Task<IActionResult> GetAdminIpById(int id)
+    public async Task<ActionResult<ApiResponse<AdministrativeIPAccess>>> GetAdminIpById(int id)
     {
         try
         {
             var ipAccess = await _restrictionService.AdminIPAccessCrudService.GetAsync(id);
             if (ipAccess == null)
-                return ErrorResponse(404, "AdministrativeIPAccess not found");
+                return ErrorResponse<AdministrativeIPAccess>(404, "AdministrativeIPAccess not found");
 
             return SuccessResponse("Success", ipAccess);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<AdministrativeIPAccess>(501, e.Message);
         }
     }
 
     [HttpPost("admin-ip/save")]
-    public async Task<IActionResult> SaveAdminIp([FromBody] AdministrativeIPAccess model)
+    public async Task<ActionResult<ApiResponse<int>>> SaveAdminIp([FromBody] AdministrativeIPAccess model)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<int>();
 
             model.AutoFill();
             if (model.AdministrativeIPAccessId == 0)
             {
                 var id = await _restrictionService.AdminIPAccessCrudService.InsertAsync<int>(model);
                 _restrictionService.InvalidateAdminIPAccessCache();
-                return SuccessResponse("Saved successfully", new { AdministrativeIPAccessId = id });
+                return SuccessResponse("Saved successfully", id);
             }
             else
             {
                 await _restrictionService.AdminIPAccessCrudService.UpdateAsync(model);
                 _restrictionService.InvalidateAdminIPAccessCache();
-                return SuccessResponse("Updated successfully", true);
+                return SuccessResponse("Updated successfully", 0);
             }
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<int>(501, e.Message);
         }
     }
 
     [HttpDelete("admin-ip/{id:int}")]
-    public async Task<IActionResult> DeleteAdminIp(int id)
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteAdminIp(int id)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             var ipAccess = await _restrictionService.AdminIPAccessCrudService.GetAsync(id);
             if (ipAccess == null)
-                return ErrorResponse(404, "AdministrativeIPAccess not found");
+                return ErrorResponse<bool>(404, "AdministrativeIPAccess not found");
 
             await _restrictionService.AdminIPAccessCrudService.DeleteAsync(id);
             _restrictionService.InvalidateAdminIPAccessCache();
@@ -371,7 +371,7 @@ public class RestrictionApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 }

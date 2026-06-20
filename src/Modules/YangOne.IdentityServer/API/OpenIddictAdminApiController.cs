@@ -40,7 +40,7 @@ public class OpenIddictAdminApiController : BaseApiController
     #region Dashboard
 
     [HttpGet("dashboard/stat")]
-    public async Task<IActionResult> Dashboard()
+    public async Task<ActionResult<ApiResponse<DashboardDto>>> Dashboard()
     {
         try
         {
@@ -57,7 +57,7 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<DashboardDto>(501, e.Message);
         }
     }
 
@@ -73,8 +73,8 @@ public class OpenIddictAdminApiController : BaseApiController
     #region Helpers / Metadata (same info your MVC used)
 
     [HttpGet("consenttype/all")]
-    public IActionResult GetConsentTypes()
-        => SuccessResponse("Success", new List<string>
+    public ActionResult<ApiResponse<object>> GetConsentTypes()
+        => SuccessResponse("Success", (object)new List<string>
         {
             OpenIddictConstants.ConsentTypes.Explicit,
             OpenIddictConstants.ConsentTypes.Implicit,
@@ -84,20 +84,20 @@ public class OpenIddictAdminApiController : BaseApiController
 
     // Your MVC method name was misleading; these are CLIENT TYPES, not grant types.
     [HttpGet("clienttype/all")]
-    public IActionResult GetClientTypes()
-        => SuccessResponse("Success", new List<string>
+    public ActionResult<ApiResponse<object>> GetClientTypes()
+        => SuccessResponse("Success", (object)new List<string>
         {
             OpenIddictConstants.ClientTypes.Public,
             OpenIddictConstants.ClientTypes.Confidential
         });
 
     [HttpGet("permission/all")]
-    public async Task<IActionResult> GetPermissions()
+    public async Task<ActionResult<ApiResponse<object>>> GetPermissions()
     {
         try
         {
             var perms = await GetAvailablePermissionsInternal();
-            return SuccessResponse("Success", perms);
+            return SuccessResponse("Success", (object)perms);
         }
         catch (Exception e)
         {
@@ -153,7 +153,7 @@ public class OpenIddictAdminApiController : BaseApiController
     //#region Clients (API for your MVC Clients actions)
 
     //[HttpGet("client/all")]
-    //public async Task<IActionResult> Clients([FromQuery] int offset = 1, [FromQuery] int limit = 20, [FromQuery] string query = "")
+    //public async Task<ActionResult<ApiResponse<object>>> Clients([FromQuery] int offset = 1, [FromQuery] int limit = 20, [FromQuery] string query = "")
     //{
     //    try
     //    {
@@ -184,7 +184,7 @@ public class OpenIddictAdminApiController : BaseApiController
     //}
 
     //[HttpGet("client/{id}")]
-    //public async Task<IActionResult> ClientDetails(string id)
+    //public async Task<ActionResult<ApiResponse<object>>> ClientDetails(string id)
     //{
     //    try
     //    {
@@ -220,7 +220,7 @@ public class OpenIddictAdminApiController : BaseApiController
     //}
 
     //[HttpPost("client/save")]
-    //public async Task<IActionResult> CreateClient([FromBody] CreateOrUpdateClientRequest model)
+    //public async Task<ActionResult<ApiResponse<object>>> CreateClient([FromBody] CreateOrUpdateClientRequest model)
     //{
     //    if (!ModelState.IsValid) return ErrorResponse(ModelState, 600, model);
 
@@ -250,7 +250,7 @@ public class OpenIddictAdminApiController : BaseApiController
     //}
 
     //[HttpPost("client/update")]
-    //public async Task<IActionResult> EditClient([FromBody] CreateOrUpdateClientRequest model)
+    //public async Task<ActionResult<ApiResponse<object>>> EditClient([FromBody] CreateOrUpdateClientRequest model)
     //{
     //    if (!ModelState.IsValid) return ErrorResponse(ModelState, 600, model);
 
@@ -286,7 +286,7 @@ public class OpenIddictAdminApiController : BaseApiController
     //}
 
     //[HttpDelete("client/{id}")]
-    //public async Task<IActionResult> DeleteClient(string id)
+    //public async Task<ActionResult<ApiResponse<object>>> DeleteClient(string id)
     //{
     //    try
     //    {
@@ -308,7 +308,7 @@ public class OpenIddictAdminApiController : BaseApiController
     #region Applications (API for your MVC Applications actions)
 
     [HttpGet("application/all")]
-    public async Task<IActionResult> Applications([FromQuery] int offset = 1, [FromQuery] int limit = 20, [FromQuery] string search = "")
+    public async Task<ActionResult<ApiResponse<object>>> Applications([FromQuery] int offset = 1, [FromQuery] int limit = 20, [FromQuery] string search = "")
     {
         try
         {
@@ -316,7 +316,7 @@ public class OpenIddictAdminApiController : BaseApiController
 
 
 
-            return SuccessResponse("Success", new { RowTotal = total, Rows = items });
+            return SuccessResponse("Success", (object)new { RowTotal = total, Rows = items });
         }
         catch (Exception e)
         {
@@ -327,12 +327,12 @@ public class OpenIddictAdminApiController : BaseApiController
 
     // MVC had "applications/details/{id}"
     [HttpGet("application/detail/{id}")]
-    public async Task<IActionResult> ApplicationDetails(string id)
+    public async Task<ActionResult<ApiResponse<ApplicationDetailsDto>>> ApplicationDetails(string id)
     {
         try
         {
             var app = await _applicationManager.FindByIdAsync(id);
-            if (app == null) return ErrorResponse(404, "Application not found");
+            if (app == null) return ErrorResponse<ApplicationDetailsDto>(404, "Application not found");
 
             var perms = (await _applicationManager.GetPermissionsAsync(app)).ToList();
 
@@ -358,14 +358,14 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<ApplicationDetailsDto>(501, e.Message);
         }
     }
 
     [HttpPost("application/save")]
-    public async Task<IActionResult> EditApplication([FromBody] CreateOrUpdateApplicationRequest model)
+    public async Task<ActionResult<ApiResponse<ApplicationDetailsDto>>> EditApplication([FromBody] CreateOrUpdateApplicationRequest model)
     {
-        if (!ModelState.IsValid) return ErrorResponse(ModelState, 600, model);
+        if (!ModelState.IsValid) return ErrorResponse<ApplicationDetailsDto>(ModelState, 600, model);
 
         try
         {
@@ -387,12 +387,33 @@ public class OpenIddictAdminApiController : BaseApiController
                 AddStrings(descriptor.Permissions, model.Permissions);
                 var x = OpenIddictConstants.Requirements.Features.ProofKeyForCodeExchange;
                 await _applicationManager.CreateAsync(descriptor);
-                return SuccessResponse("Saved successfully", true);
+
+                var app = await _applicationManager.FindByClientIdAsync(model.ClientId);
+                var perms = (await _applicationManager.GetPermissionsAsync(app)).ToList();
+
+                var dto = new ApplicationDetailsDto
+                {
+                    Id = await _applicationManager.GetIdAsync(app) ?? "",
+                    ClientId = await _applicationManager.GetClientIdAsync(app) ?? "",
+                    DisplayName = await _applicationManager.GetDisplayNameAsync(app),
+                    ClientType = await _applicationManager.GetClientTypeAsync(app),
+                    ConsentType = await _applicationManager.GetConsentTypeAsync(app),
+                    RedirectUris = (await _applicationManager.GetRedirectUrisAsync(app)).Select(u => u.ToString()).ToList(),
+                    PostLogoutRedirectUris = (await _applicationManager.GetPostLogoutRedirectUrisAsync(app)).Select(u => u.ToString()).ToList(),
+                    Permissions = perms,
+                    Requirements = (await _applicationManager.GetRequirementsAsync(app)).ToList(),
+                    GrantTypes = perms
+                        .Where(p => p.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType, StringComparison.Ordinal))
+                        .Select(p => p[OpenIddictConstants.Permissions.Prefixes.GrantType.Length..])
+                        .ToList()
+                };
+
+                return SuccessResponse("Saved successfully", dto);
             }
             else
             {
                 var app = await _applicationManager.FindByIdAsync(model.Id);
-                if (app == null) return ErrorResponse(404, "Application not found");
+                if (app == null) return ErrorResponse<ApplicationDetailsDto>(404, "Application not found");
 
                 var descriptor = new OpenIddictApplicationDescriptor
                 {
@@ -410,23 +431,43 @@ public class OpenIddictAdminApiController : BaseApiController
                 AddStrings(descriptor.Permissions, model.Permissions);
 
                 await _applicationManager.UpdateAsync(app, descriptor);
-                return SuccessResponse("Updated successfully", true);
+
+                var perms = (await _applicationManager.GetPermissionsAsync(app)).ToList();
+
+                var dto = new ApplicationDetailsDto
+                {
+                    Id = model.Id,
+                    ClientId = await _applicationManager.GetClientIdAsync(app) ?? "",
+                    DisplayName = await _applicationManager.GetDisplayNameAsync(app),
+                    ClientType = await _applicationManager.GetClientTypeAsync(app),
+                    ConsentType = await _applicationManager.GetConsentTypeAsync(app),
+                    RedirectUris = (await _applicationManager.GetRedirectUrisAsync(app)).Select(u => u.ToString()).ToList(),
+                    PostLogoutRedirectUris = (await _applicationManager.GetPostLogoutRedirectUrisAsync(app)).Select(u => u.ToString()).ToList(),
+                    Permissions = perms,
+                    Requirements = (await _applicationManager.GetRequirementsAsync(app)).ToList(),
+                    GrantTypes = perms
+                        .Where(p => p.StartsWith(OpenIddictConstants.Permissions.Prefixes.GrantType, StringComparison.Ordinal))
+                        .Select(p => p[OpenIddictConstants.Permissions.Prefixes.GrantType.Length..])
+                        .ToList()
+                };
+
+                return SuccessResponse("Updated successfully", dto);
             }
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<ApplicationDetailsDto>(501, e.Message);
         }
     }
 
     [HttpDelete("application/delete/{id}")]
-    public async Task<IActionResult> DeleteApplication(string id)
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteApplication(string id)
     {
         try
         {
             var app = await _applicationManager.FindByIdAsync(id);
-            if (app == null) return ErrorResponse(404, "Application not found");
+            if (app == null) return ErrorResponse<bool>(404, "Application not found");
 
             await _applicationManager.DeleteAsync(app);
             return SuccessResponse("Deleted successfully", true);
@@ -434,7 +475,7 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
@@ -443,7 +484,7 @@ public class OpenIddictAdminApiController : BaseApiController
     #region API Resources (rs_*) - create/edit/delete/list
 
     [HttpGet("apiresource/all")]
-    public async Task<IActionResult> ApiResources([FromQuery] int offset = 1, [FromQuery] int limit = 20, [FromQuery] string search = "")
+    public async Task<ActionResult<ApiResponse<PagedResult<ApiResourceDto>>>> ApiResources([FromQuery] int offset = 1, [FromQuery] int limit = 20, [FromQuery] string search = "")
     {
         try
         {
@@ -479,21 +520,21 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<PagedResult<ApiResourceDto>>(501, e.Message);
         }
     }
 
     [HttpGet("apiresource/{id}")]
-    public async Task<IActionResult> ApiResourceDetails(string id)
+    public async Task<ActionResult<ApiResponse<ApiResourceDto>>> ApiResourceDetails(string id)
     {
         try
         {
             var scope = await _scopeManager.FindByIdAsync(id);
-            if (scope == null) return ErrorResponse(404, "API resource not found");
+            if (scope == null) return ErrorResponse<ApiResourceDto>(404, "API resource not found");
 
             var name = await _scopeManager.GetNameAsync(scope) ?? "";
             if (!name.StartsWith("rs_", StringComparison.Ordinal))
-                return ErrorResponse(400, "Not an API resource (expected rs_* scope)");
+                return ErrorResponse<ApiResourceDto>(400, "Not an API resource (expected rs_* scope)");
 
             var dto = new ApiResourceDto
             {
@@ -508,14 +549,14 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<ApiResourceDto>(501, e.Message);
         }
     }
 
     [HttpPost("apiresource/save")]
-    public async Task<IActionResult> CreateApiResource([FromBody] ApiResourceDto model)
+    public async Task<ActionResult<ApiResponse<ApiResourceDto>>> CreateApiResource([FromBody] ApiResourceDto model)
     {
-        if (!ModelState.IsValid) return ErrorResponse(ModelState, 600, model);
+        if (!ModelState.IsValid) return ErrorResponse<ApiResourceDto>(ModelState, 600, model);
 
         try
         {
@@ -528,24 +569,34 @@ public class OpenIddictAdminApiController : BaseApiController
             descriptor.Resources.Add("rs_" + model.Name);
 
             await _scopeManager.CreateAsync(descriptor);
-            return SuccessResponse("Created successfully", true);
+
+            var scope = await _scopeManager.FindByNameAsync("rs_" + model.Name);
+            var dto = new ApiResourceDto
+            {
+                Id = await _scopeManager.GetIdAsync(scope) ?? "",
+                Name = model.Name,
+                DisplayName = model.DisplayName,
+                Description = model.Description
+            };
+
+            return SuccessResponse("Created successfully", dto);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<ApiResourceDto>(501, e.Message);
         }
     }
 
     [HttpPost("apiresource/update")]
-    public async Task<IActionResult> EditApiResource([FromBody] ApiResourceDto model)
+    public async Task<ActionResult<ApiResponse<ApiResourceDto>>> EditApiResource([FromBody] ApiResourceDto model)
     {
-        if (!ModelState.IsValid) return ErrorResponse(ModelState, 600, model);
+        if (!ModelState.IsValid) return ErrorResponse<ApiResourceDto>(ModelState, 600, model);
 
         try
         {
             var scope = await _scopeManager.FindByIdAsync(model.Id);
-            if (scope == null) return ErrorResponse(404, "API resource not found");
+            if (scope == null) return ErrorResponse<ApiResourceDto>(404, "API resource not found");
 
             var descriptor = new OpenIddictScopeDescriptor
             {
@@ -556,22 +607,31 @@ public class OpenIddictAdminApiController : BaseApiController
             descriptor.Resources.Add("rs_" + model.Name);
 
             await _scopeManager.UpdateAsync(scope, descriptor);
-            return SuccessResponse("Updated successfully", true);
+
+            var dto = new ApiResourceDto
+            {
+                Id = model.Id,
+                Name = model.Name,
+                DisplayName = model.DisplayName,
+                Description = model.Description
+            };
+
+            return SuccessResponse("Updated successfully", dto);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<ApiResourceDto>(501, e.Message);
         }
     }
 
     [HttpDelete("apiresource/{id}")]
-    public async Task<IActionResult> DeleteApiResource(string id)
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteApiResource(string id)
     {
         try
         {
             var scope = await _scopeManager.FindByIdAsync(id);
-            if (scope == null) return ErrorResponse(404, "API resource not found");
+            if (scope == null) return ErrorResponse<bool>(404, "API resource not found");
 
             await _scopeManager.DeleteAsync(scope);
             return SuccessResponse("Deleted successfully", true);
@@ -579,7 +639,7 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
@@ -588,7 +648,7 @@ public class OpenIddictAdminApiController : BaseApiController
     #region Identity Resources (not rs_ and not api_)
 
     [HttpGet("identityresource/all")]
-    public async Task<IActionResult> IdentityResources([FromQuery] int offset = 1, [FromQuery] int limit = 20, [FromQuery] string search = "")
+    public async Task<ActionResult<ApiResponse<PagedResult<IdentityResourceDto>>>> IdentityResources([FromQuery] int offset = 1, [FromQuery] int limit = 20, [FromQuery] string search = "")
     {
         try
         {
@@ -624,17 +684,17 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<PagedResult<IdentityResourceDto>>(501, e.Message);
         }
     }
 
     [HttpGet("identityresource/{id}")]
-    public async Task<IActionResult> IdentityResourceDetails(string id)
+    public async Task<ActionResult<ApiResponse<IdentityResourceDto>>> IdentityResourceDetails(string id)
     {
         try
         {
             var scope = await _scopeManager.FindByIdAsync(id);
-            if (scope == null) return ErrorResponse(404, "Identity resource not found");
+            if (scope == null) return ErrorResponse<IdentityResourceDto>(404, "Identity resource not found");
 
             var dto = new IdentityResourceDto
             {
@@ -649,14 +709,14 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IdentityResourceDto>(501, e.Message);
         }
     }
 
     [HttpPost("identityresource/save")]
-    public async Task<IActionResult> CreateIdentityResource([FromBody] IdentityResourceDto model)
+    public async Task<ActionResult<ApiResponse<IdentityResourceDto>>> CreateIdentityResource([FromBody] IdentityResourceDto model)
     {
-        if (!ModelState.IsValid) return ErrorResponse(ModelState, 600, model);
+        if (!ModelState.IsValid) return ErrorResponse<IdentityResourceDto>(ModelState, 600, model);
 
         try
         {
@@ -669,24 +729,34 @@ public class OpenIddictAdminApiController : BaseApiController
             descriptor.Resources.Add(model.Name);
 
             await _scopeManager.CreateAsync(descriptor);
-            return SuccessResponse("Created successfully", true);
+
+            var scope = await _scopeManager.FindByNameAsync(model.Name);
+            var dto = new IdentityResourceDto
+            {
+                Id = await _scopeManager.GetIdAsync(scope) ?? "",
+                Name = model.Name,
+                DisplayName = model.DisplayName,
+                Description = model.Description
+            };
+
+            return SuccessResponse("Created successfully", dto);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IdentityResourceDto>(501, e.Message);
         }
     }
 
     [HttpPost("identityresource/update")]
-    public async Task<IActionResult> EditIdentityResource([FromBody] IdentityResourceDto model)
+    public async Task<ActionResult<ApiResponse<IdentityResourceDto>>> EditIdentityResource([FromBody] IdentityResourceDto model)
     {
-        if (!ModelState.IsValid) return ErrorResponse(ModelState, 600, model);
+        if (!ModelState.IsValid) return ErrorResponse<IdentityResourceDto>(ModelState, 600, model);
 
         try
         {
             var scope = await _scopeManager.FindByIdAsync(model.Id);
-            if (scope == null) return ErrorResponse(404, "Identity resource not found");
+            if (scope == null) return ErrorResponse<IdentityResourceDto>(404, "Identity resource not found");
 
             var descriptor = new OpenIddictScopeDescriptor
             {
@@ -697,22 +767,31 @@ public class OpenIddictAdminApiController : BaseApiController
             descriptor.Resources.Add(model.Name);
 
             await _scopeManager.UpdateAsync(scope, descriptor);
-            return SuccessResponse("Updated successfully", true);
+
+            var dto = new IdentityResourceDto
+            {
+                Id = model.Id,
+                Name = model.Name,
+                DisplayName = model.DisplayName,
+                Description = model.Description
+            };
+
+            return SuccessResponse("Updated successfully", dto);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IdentityResourceDto>(501, e.Message);
         }
     }
 
     [HttpDelete("identityresource/{id}")]
-    public async Task<IActionResult> DeleteIdentityResource(string id)
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteIdentityResource(string id)
     {
         try
         {
             var scope = await _scopeManager.FindByIdAsync(id);
-            if (scope == null) return ErrorResponse(404, "Identity resource not found");
+            if (scope == null) return ErrorResponse<bool>(404, "Identity resource not found");
 
             await _scopeManager.DeleteAsync(scope);
             return SuccessResponse("Deleted successfully", true);
@@ -720,7 +799,7 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
@@ -729,7 +808,7 @@ public class OpenIddictAdminApiController : BaseApiController
     #region API Scopes (api_*)
 
     [HttpGet("apiscope/all")]
-    public async Task<IActionResult> ApiScopes([FromQuery] int offset = 1, [FromQuery] int limit = 20, [FromQuery] string search = "")
+    public async Task<ActionResult<ApiResponse<PagedResult<ApiScopeDto>>>> ApiScopes([FromQuery] int offset = 1, [FromQuery] int limit = 20, [FromQuery] string search = "")
     {
         try
         {
@@ -766,21 +845,21 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<PagedResult<ApiScopeDto>>(501, e.Message);
         }
     }
 
     [HttpGet("apiscope/{id}")]
-    public async Task<IActionResult> ApiScopeDetails(string id)
+    public async Task<ActionResult<ApiResponse<ApiScopeDto>>> ApiScopeDetails(string id)
     {
         try
         {
             var scope = await _scopeManager.FindByIdAsync(id);
-            if (scope == null) return ErrorResponse(404, "API scope not found");
+            if (scope == null) return ErrorResponse<ApiScopeDto>(404, "API scope not found");
 
             var name = await _scopeManager.GetNameAsync(scope) ?? "";
             if (!name.StartsWith("api_", StringComparison.Ordinal))
-                return ErrorResponse(400, "Not an API scope (expected api_* scope)");
+                return ErrorResponse<ApiScopeDto>(400, "Not an API scope (expected api_* scope)");
 
             var dto = new ApiScopeDto
             {
@@ -795,14 +874,14 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<ApiScopeDto>(501, e.Message);
         }
     }
 
     [HttpPost("apiscope/save")]
-    public async Task<IActionResult> CreateApiScope([FromBody] ApiScopeDto model)
+    public async Task<ActionResult<ApiResponse<ApiScopeDto>>> CreateApiScope([FromBody] ApiScopeDto model)
     {
-        if (!ModelState.IsValid) return ErrorResponse(ModelState, 600, model);
+        if (!ModelState.IsValid) return ErrorResponse<ApiScopeDto>(ModelState, 600, model);
 
         try
         {
@@ -815,24 +894,34 @@ public class OpenIddictAdminApiController : BaseApiController
             descriptor.Resources.Add("api_" + model.Name);
 
             await _scopeManager.CreateAsync(descriptor);
-            return SuccessResponse("Created successfully", true);
+
+            var scope = await _scopeManager.FindByNameAsync("api_" + model.Name);
+            var dto = new ApiScopeDto
+            {
+                Id = await _scopeManager.GetIdAsync(scope) ?? "",
+                Name = model.Name,
+                DisplayName = model.DisplayName,
+                Description = model.Description
+            };
+
+            return SuccessResponse("Created successfully", dto);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<ApiScopeDto>(501, e.Message);
         }
     }
 
     [HttpPost("apiscope/update")]
-    public async Task<IActionResult> EditApiScope([FromBody] ApiScopeDto model)
+    public async Task<ActionResult<ApiResponse<ApiScopeDto>>> EditApiScope([FromBody] ApiScopeDto model)
     {
-        if (!ModelState.IsValid) return ErrorResponse(ModelState, 600, model);
+        if (!ModelState.IsValid) return ErrorResponse<ApiScopeDto>(ModelState, 600, model);
 
         try
         {
             var scope = await _scopeManager.FindByIdAsync(model.Id);
-            if (scope == null) return ErrorResponse(404, "API scope not found");
+            if (scope == null) return ErrorResponse<ApiScopeDto>(404, "API scope not found");
 
             var descriptor = new OpenIddictScopeDescriptor
             {
@@ -843,22 +932,31 @@ public class OpenIddictAdminApiController : BaseApiController
             descriptor.Resources.Add("api_" + model.Name);
 
             await _scopeManager.UpdateAsync(scope, descriptor);
-            return SuccessResponse("Updated successfully", true);
+
+            var dto = new ApiScopeDto
+            {
+                Id = model.Id,
+                Name = model.Name,
+                DisplayName = model.DisplayName,
+                Description = model.Description
+            };
+
+            return SuccessResponse("Updated successfully", dto);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<ApiScopeDto>(501, e.Message);
         }
     }
 
     [HttpDelete("apiscope/{id}")]
-    public async Task<IActionResult> DeleteApiScope(string id)
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteApiScope(string id)
     {
         try
         {
             var scope = await _scopeManager.FindByIdAsync(id);
-            if (scope == null) return ErrorResponse(404, "API scope not found");
+            if (scope == null) return ErrorResponse<bool>(404, "API scope not found");
 
             await _scopeManager.DeleteAsync(scope);
             return SuccessResponse("Deleted successfully", true);
@@ -866,7 +964,7 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
@@ -875,7 +973,7 @@ public class OpenIddictAdminApiController : BaseApiController
     #region Grants / Authorizations
 
     [HttpGet("grant/all")]
-    public async Task<IActionResult> Grants([FromQuery] int offset = 1, [FromQuery] int limit = 20, [FromQuery] string search = "")
+    public async Task<ActionResult<ApiResponse<PagedResult<GrantListItemDto>>>> Grants([FromQuery] int offset = 1, [FromQuery] int limit = 20, [FromQuery] string search = "")
     {
         try
         {
@@ -916,17 +1014,17 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<PagedResult<GrantListItemDto>>(501, e.Message);
         }
     }
 
     [HttpGet("grant/{id}")]
-    public async Task<IActionResult> GrantDetails(string id)
+    public async Task<ActionResult<ApiResponse<GrantListItemDto>>> GrantDetails(string id)
     {
         try
         {
             var authorization = await _authorizationManager.FindByIdAsync(id);
-            if (authorization == null) return ErrorResponse(404, "Grant not found");
+            if (authorization == null) return ErrorResponse<GrantListItemDto>(404, "Grant not found");
 
             var appId = await _authorizationManager.GetApplicationIdAsync(authorization);
             var app = !string.IsNullOrWhiteSpace(appId) ? await _applicationManager.FindByIdAsync(appId) : null;
@@ -946,14 +1044,14 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<GrantListItemDto>(501, e.Message);
         }
     }
 
     [HttpPost("grant/save")]
-    public async Task<IActionResult> CreateGrant([FromBody] CreateGrantRequest model)
+    public async Task<ActionResult<ApiResponse<GrantListItemDto>>> CreateGrant([FromBody] CreateGrantRequest model)
     {
-        if (!ModelState.IsValid) return ErrorResponse(ModelState, 600, model);
+        if (!ModelState.IsValid) return ErrorResponse<GrantListItemDto>(ModelState, 600, model);
 
         try
         {
@@ -972,46 +1070,79 @@ public class OpenIddictAdminApiController : BaseApiController
                 descriptor.Scopes.Add(s.Trim());
 
             await _authorizationManager.CreateAsync(descriptor);
-            return SuccessResponse("Created successfully", true);
+
+            var authorizations = await _authorizationManager.FindBySubjectAsync(model.Subject).ToListAsync();
+            var authorization = authorizations.FirstOrDefault();
+            if (authorization == null)
+            {
+                return ErrorResponse<GrantListItemDto>(500, "Authorization not found after creation");
+            }
+            var appId = await _authorizationManager.GetApplicationIdAsync(authorization);
+            var app = !string.IsNullOrWhiteSpace(appId) ? await _applicationManager.FindByIdAsync(appId) : null;
+
+            var dto = new GrantListItemDto
+            {
+                Id = await _authorizationManager.GetIdAsync(authorization) ?? "",
+                Subject = await _authorizationManager.GetSubjectAsync(authorization),
+                ApplicationName = app != null ? await _applicationManager.GetDisplayNameAsync(app) : null,
+                CreationDate = await _authorizationManager.GetCreationDateAsync(authorization),
+                Status = await _authorizationManager.GetStatusAsync(authorization),
+                Scopes = (await _authorizationManager.GetScopesAsync(authorization)).ToList()
+            };
+
+            return SuccessResponse("Created successfully", dto);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<GrantListItemDto>(501, e.Message);
         }
     }
 
     [HttpPost("grant/update")]
-    public async Task<IActionResult> EditGrant([FromBody] UpdateGrantRequest model)
+    public async Task<ActionResult<ApiResponse<GrantListItemDto>>> EditGrant([FromBody] UpdateGrantRequest model)
     {
-        if (!ModelState.IsValid) return ErrorResponse(ModelState, 600, model);
+        if (!ModelState.IsValid) return ErrorResponse<GrantListItemDto>(ModelState, 600, model);
 
         try
         {
             var authorization = await _authorizationManager.FindByIdAsync(model.Id);
-            if (authorization == null) return ErrorResponse(404, "Grant not found");
+            if (authorization == null) return ErrorResponse<GrantListItemDto>(404, "Grant not found");
 
             await _authorizationManager.UpdateAsync(authorization, new OpenIddictAuthorizationDescriptor
             {
                 Status = model.Status
             });
 
-            return SuccessResponse("Updated successfully", true);
+            var appId = await _authorizationManager.GetApplicationIdAsync(authorization);
+            var app = !string.IsNullOrWhiteSpace(appId) ? await _applicationManager.FindByIdAsync(appId) : null;
+
+            var dto = new GrantListItemDto
+            {
+                Id = model.Id,
+                Subject = await _authorizationManager.GetSubjectAsync(authorization),
+                ApplicationName = app != null ? await _applicationManager.GetDisplayNameAsync(app) : null,
+                CreationDate = await _authorizationManager.GetCreationDateAsync(authorization),
+                Status = await _authorizationManager.GetStatusAsync(authorization),
+                Scopes = (await _authorizationManager.GetScopesAsync(authorization)).ToList()
+            };
+
+            return SuccessResponse("Updated successfully", dto);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<GrantListItemDto>(501, e.Message);
         }
     }
 
     [HttpDelete("grant/{id}")]
-    public async Task<IActionResult> DeleteGrant(string id)
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteGrant(string id)
     {
         try
         {
             var authorization = await _authorizationManager.FindByIdAsync(id);
-            if (authorization == null) return ErrorResponse(404, "Grant not found");
+            if (authorization == null) return ErrorResponse<bool>(404, "Grant not found");
 
             await _authorizationManager.DeleteAsync(authorization);
             return SuccessResponse("Deleted successfully", true);
@@ -1019,18 +1150,18 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     // Matches your MVC "grants/revoke" action behavior (delete)
     [HttpPost("grant/revoke")]
-    public async Task<IActionResult> RevokeGrant([FromQuery] string id)
+    public async Task<ActionResult<ApiResponse<bool>>> RevokeGrant([FromQuery] string id)
     {
         try
         {
             var authorization = await _authorizationManager.FindByIdAsync(id);
-            if (authorization == null) return ErrorResponse(404, "Grant not found");
+            if (authorization == null) return ErrorResponse<bool>(404, "Grant not found");
 
             await _authorizationManager.DeleteAsync(authorization);
             return SuccessResponse("Revoked successfully", true);
@@ -1038,7 +1169,7 @@ public class OpenIddictAdminApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 

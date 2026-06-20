@@ -26,7 +26,7 @@ public class OptimizationApiController : BaseApiController
     }
 
     [HttpGet("config")]
-    public async Task<IActionResult> GetConfig()
+    public async Task<ActionResult<ApiResponse<OptimizationConfig>>> GetConfig()
     {
         try
         {
@@ -36,18 +36,18 @@ public class OptimizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<OptimizationConfig>(501, e.Message);
         }
     }
 
     [HttpPost("config/save")]
-    public async Task<IActionResult> SaveConfig([FromBody] OptimizationConfig model)
+    public async Task<ActionResult<ApiResponse<bool>>> SaveConfig([FromBody] OptimizationConfig model)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             await _optimizationConfigService.SaveConfigAsync(model);
             return SuccessResponse("Optimization configuration saved successfully", true);
@@ -55,12 +55,12 @@ public class OptimizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     [HttpGet("cache/info")]
-    public async Task<IActionResult> GetCacheInfo()
+    public async Task<ActionResult<ApiResponse<CacheInfo>>> GetCacheInfo()
     {
         try
         {
@@ -70,18 +70,18 @@ public class OptimizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<CacheInfo>(501, e.Message);
         }
     }
 
     [HttpPost("cache/clear")]
-    public async Task<IActionResult> ClearCache()
+    public async Task<ActionResult<ApiResponse<bool>>> ClearCache()
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             await _optimizationConfigService.ClearCacheAsync();
             return SuccessResponse("Cache cleared successfully", true);
@@ -89,46 +89,46 @@ public class OptimizationApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     [HttpPost("version/increment")]
-    public async Task<IActionResult> IncrementVersion()
+    public async Task<ActionResult<ApiResponse<string>>> IncrementVersion()
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<string>();
 
             var version = await _optimizationConfigService.IncrementVersionAsync();
-            return SuccessResponse("Version incremented", new { Version = version });
+            return SuccessResponse("Version incremented", version);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<string>(501, e.Message);
         }
     }
 
     [HttpPost("rebuild")]
-    public async Task<IActionResult> Rebuild()
+    public async Task<ActionResult<ApiResponse<string>>> Rebuild()
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<string>();
 
             await _optimizationConfigService.ClearCacheAsync();
             var version = await _optimizationConfigService.IncrementVersionAsync();
-            return SuccessResponse("Bundles rebuilt successfully", new { Version = version });
+            return SuccessResponse("Bundles rebuilt successfully", version);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<string>(501, e.Message);
         }
     }
 

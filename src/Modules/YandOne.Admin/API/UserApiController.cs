@@ -25,6 +25,7 @@ using YangOne.Web;
 using YangOne.Web.API;
 using YangOne.Web.Security.API;
 using YangOne.Web.Service;
+using YangOne.Admin.Dto;
 using YangOne.Web.Services;
 using IdentityUser = YangOne.Identity.Model.IdentityUser;
 
@@ -83,7 +84,7 @@ public  class UserApiController : BaseApiController
     #region Managment 
     [Route("management/all")]
     [HttpGet]
-    public async Task<dynamic> GetAllUsers(int offset = 1, int limit = 10, string search = "", string email = "", string phone = "",  string roleId = "")
+    public async Task<ActionResult<ApiResponse<IEnumerable<AppUser>>>> GetAllUsers(int offset = 1, int limit = 10, string search = "", string email = "", string phone = "",  string roleId = "")
     {
         var user = await _userService.GetAllUsers(offset, limit, search, email, phone, roleId);
         return HttpResponse(200, "success", user);
@@ -93,7 +94,7 @@ public  class UserApiController : BaseApiController
     [Route("management/changepassword")]
     [HttpPost]
    
-    public async Task<dynamic> ChangePasswordByAdmin(ChangePasswordByAdminRequest model)
+    public async Task<ActionResult<ApiResponse<bool>>> ChangePasswordByAdmin(ChangePasswordByAdminRequest model)
     {
         try
         {
@@ -101,16 +102,16 @@ public  class UserApiController : BaseApiController
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
             if (result.Succeeded)
-                return HttpResponse(200, "Password changed successfully.", true);
+                return HttpResponse<bool>(200, "Password changed successfully.", true);
             else
-                return HttpResponse(500, "Unable to change password.", false);
+                return HttpResponse<bool>(500, "Unable to change password.", false);
 
 
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<bool>(500, e.Message);
         }
 
     }
@@ -118,18 +119,18 @@ public  class UserApiController : BaseApiController
     [Route("management/save")]
     [HttpPost]
     
-    public async Task<dynamic> SaveManagementUser([FromBody] AppUserRegisterModel model)
+    public async Task<ActionResult<ApiResponse<bool>>> SaveManagementUser([FromBody] AppUserRegisterModel model)
     {
         try
         {
             if (model.AppUserId == 0)
             {
                 if (string.IsNullOrEmpty(model.Password) || model.Password.Length < 8)
-                    return ErrorResponse(400, "Password must be at least 8 characters.");
+                    return ErrorResponse<bool>(400, "Password must be at least 8 characters.");
 
                 var existingUser = await _userManager.FindByEmailAsync(model.Email);
                 if (existingUser != null)
-                    return ErrorResponse(400, "Email already registered.");
+                    return ErrorResponse<bool>(400, "Email already registered.");
 
                 NewUser newAppUser = model.To<NewUser>();
                 newAppUser.UserRoles = new List<UserRolesSelected>();
@@ -156,15 +157,15 @@ public  class UserApiController : BaseApiController
 
                 var userStatus = await _userService.SaveNewUserAsync(newAppUser);
                 if (!userStatus.HasError)
-                    return HttpResponse(200, "User created successfully.", true);
+                    return HttpResponse<bool>(200, "User created successfully.", true);
                 else
-                    return ErrorResponse(500, "Failed to create user.");
+                    return ErrorResponse<bool>(500, "Failed to create user.");
             }
             else
             {
                 var appUser = await _userService.AppUserCrudService.GetAsync(model.AppUserId);
                 if (appUser == null)
-                    return ErrorResponse(404, "User not found.");
+                    return ErrorResponse<bool>(404, "User not found.");
 
                 appUser.FirstName = model.FirstName;
                 appUser.LastName = string.IsNullOrEmpty(model.LastName) ? " " : model.LastName;
@@ -193,26 +194,26 @@ public  class UserApiController : BaseApiController
                         await _userManager.AddToRolesAsync(identityUser, roleNames);
                 }
 
-                return HttpResponse(200, "User updated successfully.", true);
+                return HttpResponse<bool>(200, "User updated successfully.", true);
             }
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<bool>(500, e.Message);
         }
     }
 
     [Route("management/{id:int}")]
     [HttpGet]
     
-    public async Task<dynamic> GetManagementUserById(int id)
+    public async Task<ActionResult<ApiResponse<AppUser>>> GetManagementUserById(int id)
     {
         try
         {
             var appUser = await _userService.AppUserCrudService.GetAsync(id);
             if (appUser == null)
-                return ErrorResponse(404, "User not found.");
+                return ErrorResponse<AppUser>(404, "User not found.");
 
             var identityUser = await _userManager.FindByIdAsync(appUser.IdentityUserId.ToString());
             var roles = new List<object>();
@@ -229,40 +230,26 @@ public  class UserApiController : BaseApiController
             }
             
 
-            return HttpResponse(200, "success", new
-            {
-                appUser.AppUserId,
-                appUser.FirstName,
-                appUser.LastName,
-                appUser.Email,
-                appUser.UserName,
-                appUser.PhoneNumber,
-                appUser.Address,
-                appUser.Gender,
-                appUser.DOB,
-                appUser.IsActive,
-                appUser.ProfilePicture,
-                Roles = roles
-            });
+            return HttpResponse<AppUser>(200, "success", appUser);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<AppUser>(500, e.Message);
         }
     }
 
     [Route("management/delete")]
     [HttpPost]
     
-    public async Task<dynamic> DeleteManagementUser([FromBody] dynamic model)
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteManagementUser([FromBody] dynamic model)
     {
         try
         {
             long userId = (long)model.AppUserId;
             var appUser = await _userService.AppUserCrudService.GetAsync(userId);
             if (appUser == null)
-                return ErrorResponse(404, "User not found.");
+                return ErrorResponse<bool>(404, "User not found.");
 
             appUser.IsDeleted = true;
             appUser.IsActive = false;
@@ -276,44 +263,44 @@ public  class UserApiController : BaseApiController
                 await _userManager.UpdateAsync(identityUser);
             }
 
-            return HttpResponse(200, "User deleted successfully.", true);
+            return HttpResponse<bool>(200, "User deleted successfully.", true);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<bool>(500, e.Message);
         }
     }
 
     [Route("management/resetpassword")]
     [HttpPost]
     
-    public async Task<dynamic> ResetManagementPassword([FromBody] ChangePasswordByAdminRequest model)
+    public async Task<ActionResult<ApiResponse<bool>>> ResetManagementPassword([FromBody] ChangePasswordByAdminRequest model)
     {
         try
         {
             var user = await _userManager.FindByIdAsync(model.IdentityUserId.ToString());
             if (user == null)
-                return ErrorResponse(404, "User not found.");
+                return ErrorResponse<bool>(404, "User not found.");
 
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var result = await _userManager.ResetPasswordAsync(user, token, model.NewPassword);
             if (result.Succeeded)
-                return HttpResponse(200, "Password reset successfully.", true);
+                return HttpResponse<bool>(200, "Password reset successfully.", true);
             else
-                return ErrorResponse(500, "Failed to reset password.");
+                return ErrorResponse<bool>(500, "Failed to reset password.");
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<bool>(500, e.Message);
         }
     }
 
     [Route("management/login-history/{userId:long}")]
     [HttpGet]
     
-    public async Task<dynamic> GetLoginHistory(long userId)
+    public async Task<ActionResult<ApiResponse<IEnumerable<UserLoginHistory>>>> GetLoginHistory(long userId)
     {
         try
         {
@@ -325,12 +312,11 @@ public  class UserApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<IEnumerable<UserLoginHistory>>(500, e.Message);
         }
+
     }
-
     #endregion
-
 
     [Route("profile")]
     /// <summary>
@@ -343,18 +329,18 @@ public  class UserApiController : BaseApiController
     /// </returns>
     [HttpGet]
 
-    public async Task<dynamic> Profile()
+    public async Task<ActionResult<ApiResponse<AppUser>>> Profile()
     {
         if (User.Identity.GetIdentityUserId() > 0)
         {
 
             var user = await _userService.AppUserCrudService.GetAsync("Where IdentityUserId=@IdentityUserId", new { IdentityUserId = User.Identity.GetIdentityUserId() });
 
-            return HttpResponse(200, "success", user);
+            return HttpResponse<AppUser>(200, "success", user);
         }
         else
         {
-            return ErrorResponse(401, "Unauthorized Access");
+            return ErrorResponse<AppUser>(401, "Unauthorized Access");
         }
 
     }
@@ -369,18 +355,18 @@ public  class UserApiController : BaseApiController
     /// </returns>
     [HttpGet]
 
-    public async Task<dynamic> CheckIsActive()
+    public async Task<ActionResult<ApiResponse<bool>>> CheckIsActive()
     {
         if (User.Identity.GetIdentityUserId() > 0)
         {
 
             var user = await _userService.AppUserCrudService.GetAsync(User.Identity.GetIdentityUserId());
 
-            return HttpResponse(200, "success", user.IsActive);
+            return HttpResponse<bool>(200, "success", user.IsActive);
         }
         else
         {
-            return ErrorResponse(401, "Unauthorized Access");
+            return ErrorResponse<bool>(401, "Unauthorized Access");
         }
 
     }
@@ -397,13 +383,13 @@ public  class UserApiController : BaseApiController
     /// 500 Internal Server Error if an exception occurs.
     /// </returns>
     [HttpPost]
-    public async Task<dynamic> Generate(string newEmail, string newPhoneNumber, string userName)
+    public async Task<ActionResult<ApiResponse<string>>> Generate(string newEmail, string newPhoneNumber, string userName)
     {
         try
         {
             if (string.IsNullOrEmpty(userName))
             {
-                return ErrorResponse(401, "Unauthorized Access");
+                return ErrorResponse<string>(401, "Unauthorized Access");
             }
 
             var user = userName.Contains("@") ? await _userManager.FindByEmailAsync(userName) : await _userManager.FindByNameAsync(userName);
@@ -443,7 +429,7 @@ public  class UserApiController : BaseApiController
                 var xuser = await _userManager.FindByEmailAsync(newEmail);
                 if (xuser != null)
                 {
-                    return HttpResponse(500, "email already exists.", false);
+                    return ErrorResponse<string>(500, "email already exists.");
                 }
                 await _emailSender.SendTemplatedEmailAsync<dynamic>("Your verification Code",
                     "emailtemplates/ok_otp_send.html",
@@ -484,7 +470,7 @@ public  class UserApiController : BaseApiController
                 }
             }
 
-            return HttpResponse(200, "success", user);
+return HttpResponse<string>(200, "success", otp);
 
 
 
@@ -492,7 +478,7 @@ public  class UserApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<string>(500, e.Message);
         }
 
     }
@@ -510,13 +496,13 @@ public  class UserApiController : BaseApiController
     /// 500 Internal Server Error if exception occurs.
     /// </returns>
     [HttpPost]
-    public async Task<dynamic> DeviceVerify(string device, string otp, string userName)
+    public async Task<ActionResult<ApiResponse<bool>>> DeviceVerify(string device, string otp, string userName)
     {
         try
         {
             if (string.IsNullOrEmpty(userName))
             {
-                return ErrorResponse(401, "Unauthorized Access");
+                return ErrorResponse<bool>(401, "Unauthorized Access");
             }
             var user = userName.Contains("@") == true ? await _userManager.FindByEmailAsync(userName) : await _userManager.FindByNameAsync(userName);
 
@@ -527,15 +513,15 @@ public  class UserApiController : BaseApiController
                 userdevice.IsVerified = true;
 
                 await _deviceService.DeviceService.UpdateAsync(userdevice);
-                return HttpResponse(200, "success");
+                return HttpResponse<bool>(200, "success", true);
             }
-            return HttpResponse(403, "Verifaction failed!");
+            return HttpResponse<bool>(403, "Verifaction failed!", false);
 
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<bool>(500, e.Message);
         }
 
     }
@@ -556,13 +542,13 @@ public  class UserApiController : BaseApiController
     /// 500 Internal Server Error if exception occurs.
     /// </returns>
     [HttpPost]
-    public async Task<dynamic> ChangeEmail(string newEmail, string otp, string userName)
+    public async Task<ActionResult<ApiResponse<bool>>> ChangeEmail(string newEmail, string otp, string userName)
     {
         try
         {
             if (string.IsNullOrEmpty(userName))
             {
-                return ErrorResponse(401, "Unauthorized Access");
+                return ErrorResponse<bool>(401, "Unauthorized Access");
             }
             var user = userName.Contains("@") == true ? await _userManager.FindByEmailAsync(userName) : await _userManager.FindByNameAsync(userName);
 
@@ -572,7 +558,7 @@ public  class UserApiController : BaseApiController
                 var existingUser = await _userManager.FindByEmailAsync(newEmail);
                 if (existingUser != null)
                 {
-                    return HttpResponse(403, "email already in use.");
+                    return HttpResponse<bool>(403, "email already in use.", false);
                 }
                 else
                 {
@@ -580,18 +566,18 @@ public  class UserApiController : BaseApiController
                     var ux = await _userManager.FindByIdAsync(user.Id.ToString());
                     var token = await _userManager.GenerateEmailConfirmationTokenAsync(ux);
                     await _userManager.ConfirmEmailAsync(ux, token);
-                    return HttpResponse(200, "success");
+                    return HttpResponse<bool>(200, "success", true);
                 }
             }
 
-            return HttpResponse(403, "Verifaction failed!");
+            return HttpResponse<bool>(403, "Verifaction failed!", false);
 
 
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<bool>(500, e.Message);
         }
 
     }
@@ -609,7 +595,7 @@ public  class UserApiController : BaseApiController
     /// 500 Internal Server Error if exception occurs.
     /// </returns>
     [HttpPost]
-    public async Task<dynamic> ChangePhone(string phoneNumber, string otp)
+    public async Task<ActionResult<ApiResponse<bool>>> ChangePhone(string phoneNumber, string otp)
     {
         try
         {
@@ -624,21 +610,21 @@ public  class UserApiController : BaseApiController
                     var token = await _userManager.GenerateChangePhoneNumberTokenAsync(user, phoneNumber);
                     await _userManager.VerifyChangePhoneNumberTokenAsync(user, token, phoneNumber);
 
-                    return HttpResponse(200, "success");
+                    return HttpResponse<bool>(200, "success", true);
                 }
 
-                return HttpResponse(403, "Verifaction failed!");
+                return HttpResponse<bool>(403, "Verifaction failed!", false);
             }
             else
             {
-                return ErrorResponse(401, "Unauthorized Access");
+                return ErrorResponse<bool>(401, "Unauthorized Access");
             }
 
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<bool>(500, e.Message);
         }
 
     }
@@ -650,7 +636,7 @@ public  class UserApiController : BaseApiController
     /// 200 OK with boolean indicating verification status,
     /// 401 Unauthorized if user is not logged in.
     /// </returns>
-    public async Task<dynamic> GetPhoneVerificationStatus()
+    public async Task<ActionResult<ApiResponse<bool>>> GetPhoneVerificationStatus()
     {
         try
         {
@@ -660,19 +646,19 @@ public  class UserApiController : BaseApiController
 
                 var user = await _userManager.FindByIdAsync(userId.ToString());
                 var status = await _userManager.IsPhoneNumberConfirmedAsync(user);
-                return HttpResponse(200, "success", status);
+                return HttpResponse<bool>(200, "success", status);
 
             }
             else
             {
-                return ErrorResponse(401, "Unauthorized Access");
+                return ErrorResponse<bool>(401, "Unauthorized Access");
             }
 
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<bool>(500, e.Message);
         }
 
     }
@@ -694,7 +680,7 @@ public  class UserApiController : BaseApiController
     /// ValidationResponse if input validation fails.
     /// </returns>
     [HttpPost]
-    public async Task<dynamic> Register(AppUserRegisterModel model)
+    public async Task<ActionResult<ApiResponse<bool>>> Register(AppUserRegisterModel model)
     {
         try
         {
@@ -758,23 +744,23 @@ public  class UserApiController : BaseApiController
 
                             }
                         });
-                    return HttpResponse(487, "Thank you for registration. Please verify your email", true);
+                    return HttpResponse<bool>(487, "Thank you for registration. Please verify your email", true);
                 }
                 else
                 {
-                    return ErrorResponse(500, "Failed to add new user at the moment,Try again later. ");
+                    return ErrorResponse<bool>(500, "Failed to add new user at the moment,Try again later. ");
                 }
             }
             else
             {
-                return ValidationResponse(ModelState.Values.SelectMany(x => x.Errors).Select(e => e.ErrorMessage).ToList());
+                return ValidationResponse<bool>(ModelState.Values.SelectMany(x => x.Errors).Select(e => e.ErrorMessage).ToList());
             }
 
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<bool>(500, e.Message);
         }
     }
 
@@ -791,7 +777,7 @@ public  class UserApiController : BaseApiController
     /// 500 Internal Server Error if exception occurs.
     /// </returns>
     [HttpPost]
-    public async Task<dynamic> UploadProfilePicture(IFormFile file)
+    public async Task<ActionResult<ApiResponse<string>>> UploadProfilePicture(IFormFile file)
     {
         try
         {
@@ -803,14 +789,14 @@ public  class UserApiController : BaseApiController
                     string filepath = await _storageProvider.Save("UserProfile", file);
                     // return HttpResponse(ApiResponseCode.Success, "File uploaded saved successfully.", filepath);
                     await _userService.UpdateProfilePicture(User.Identity.GetIdentityUserId(), filepath);
-                    return HttpResponse(200, "Your information saved successfully.", filepath);
+                    return HttpResponse<string>(200, "Your information saved successfully.", filepath);
 
                 }
-                return ValidationResponse(new string[] { "Please upload file first.." }.ToList());
+                return ValidationResponse<string>(new string[] { "Please upload file first.." }.ToList());
             }
             else
             {
-                return ErrorResponse(401, "Unauthorized Access");
+                return ErrorResponse<string>(401, "Unauthorized Access");
             }
 
 
@@ -818,7 +804,7 @@ public  class UserApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<string>(500, e.Message);
         }
 
     }
@@ -827,7 +813,7 @@ public  class UserApiController : BaseApiController
     //[Route("login")]
     //[HttpPost]
 
-    //public async Task<dynamic> Login(string userName, string password, string device)
+    //public async Task<ActionResult<ApiResponse<object>>> Login(string userName, string password, string device)
     //{
     //    var user = await _courseService.CourseUserCrudService.GetAsync("Where Email=@Email and IsActive=1 and password=@Password",
     //        new { Email = userName, Password = password });
@@ -878,7 +864,7 @@ public  class UserApiController : BaseApiController
     /// <returns>200 on success, 500 on error.</returns>
     [HttpPost]
     // [AllowAnonymous]
-    public async Task<dynamic> SaveLoginHistory(UserLoginHistory history)
+    public async Task<ActionResult<ApiResponse<bool>>> SaveLoginHistory(UserLoginHistory history)
     {
         try
         {
@@ -892,11 +878,11 @@ public  class UserApiController : BaseApiController
 
 
             // }
-            return HttpResponse(200, "success");
+            return HttpResponse<bool>(200, "success", true);
         }
         catch (Exception e)
         {
-            return HttpResponse(500, e.Message.ToLower());
+            return HttpResponse<bool>(500, e.Message.ToLower(), false);
         }
     }
 
@@ -907,14 +893,14 @@ public  class UserApiController : BaseApiController
     /// <returns>return status </returns>
     [Route("picture/update")]
     [HttpPost]
-    public async Task<dynamic> UpdatePicture(ProfilePictureUpdateRequest model)
+    public async Task<ActionResult<ApiResponse<bool>>> UpdatePicture(ProfilePictureUpdateRequest model)
     {
         try
         {
             if (User.Identity.GetIdentityUserId() == 0)
             {
                 //ModelState.AddModelError(model.IdentityUserId.ToString(), "Invalid user.");
-                return ErrorResponse(500, "Invalid User");
+                return ErrorResponse<bool>(500, "Invalid User");
             }
             if (string.IsNullOrEmpty(model.ImagePath))
             {
@@ -923,19 +909,19 @@ public  class UserApiController : BaseApiController
             if (ModelState.IsValid)
             {
                 await _userService.UpdateProfilePicture(User.Identity.GetIdentityUserId(), model.ImagePath);
-                return HttpResponse(200, "Your information saved successfully.", true);
-
+return HttpResponse<bool>(200, "Your information saved successfully.", true);
+  
             }
             else
             {
-                return ValidationResponse(ModelState.Values.SelectMany(x => x.Errors).Select(e => e.ErrorMessage).ToList());
+                return ValidationResponse<bool>(ModelState.Values.SelectMany(x => x.Errors).Select(e => e.ErrorMessage).ToList());
             }
 
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<bool>(500, e.Message);
         }
     }
 
@@ -947,7 +933,7 @@ public  class UserApiController : BaseApiController
     /// <returns>200 if password changed, 500 if failed, NotAuthorizedResponse if user not logged in.</returns>
 
     [HttpPost]
-    public async Task<dynamic> ChangePassword(ChangePasswordRequest model)
+    public async Task<ActionResult<ApiResponse<bool>>> ChangePassword(ChangePasswordRequest model)
     {
         try
         {
@@ -956,13 +942,13 @@ public  class UserApiController : BaseApiController
                 var user = await _userManager.FindByIdAsync(User.Identity.GetIdentityUserId().ToString());
                 var status = await _userManager.ChangePasswordAsync(user, model.OldPassword, model.NewPassword);
                 if (status.Succeeded)
-                    return HttpResponse(200, "Password changed successfully.", true);
+                    return HttpResponse<bool>(200, "Password changed successfully.", true);
                 else
-                    return HttpResponse(500, "Unable to change password.", false);
+                    return HttpResponse<bool>(500, "Unable to change password.", false);
             }
             else
             {
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
             }
 
 
@@ -972,7 +958,7 @@ public  class UserApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<bool>(500, e.Message);
         }
 
     }
@@ -987,7 +973,7 @@ public  class UserApiController : BaseApiController
     [HttpPost]
 
 
-    public async Task<dynamic> ForgotPassword([FromBody] ForgotPasswordRequest model)
+    public async Task<ActionResult<ApiResponse<string>>> ForgotPassword([FromBody] ForgotPasswordRequest model)
     {
         try
         {
@@ -998,7 +984,7 @@ public  class UserApiController : BaseApiController
             if (user == null)
             {
                 await Task.Delay(500); // Security delay
-                return HttpResponse(200, "Success", message);
+                return HttpResponse<string>(200, "Success", message);
             }
 
 
@@ -1031,25 +1017,25 @@ public  class UserApiController : BaseApiController
                 new EmailAddress[] { new EmailAddress { Email = user.Email, DisplayName = firstName } }
             );
 
-            return HttpResponse(200, "Success", message);
+            return HttpResponse<string>(200, "Success", message);
 
 
         }
         catch (Exception ex)
         {
-            return ErrorResponse(500, ex.Message);
+            return ErrorResponse<string>(500, ex.Message);
         }
     }
     [Route("verifyotp")]
     [HttpPost]
     [AllowAnonymous]
     [ExcludeFromPayloadProtection]
-    public async Task<dynamic> VerifyOTP([FromBody] VerifyOtpRequest model)
+    public async Task<ActionResult<ApiResponse<VerifyOtpResponseDto>>> VerifyOTP([FromBody] VerifyOtpRequestDto model)
     {
         try
         {
             var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null) return ErrorResponse(400, "Invalid request.");
+            if (user == null) return ErrorResponse<VerifyOtpResponseDto>(400, "Invalid request.");
 
             long userId = user.Id;
 
@@ -1061,37 +1047,33 @@ public  class UserApiController : BaseApiController
 
                 var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
 
-                return HttpResponse(200, "OTP Verified", new
-                {
-                    IsVerified = true,
-                    ResetToken = resetToken
-                });
+                return HttpResponse<VerifyOtpResponseDto>(200, "OTP Verified", new VerifyOtpResponseDto(true, resetToken));
             }
             else
             {
-                return ErrorResponse(400, "Invalid or Expired OTP.");
+                return ErrorResponse<VerifyOtpResponseDto>(400, "Invalid or Expired OTP.");
             }
         }
         catch (Exception ex)
         {
-            return ErrorResponse(500, ex.Message);
+            return ErrorResponse<VerifyOtpResponseDto>(500, ex.Message);
         }
     }
     [HttpPost]
     [AllowAnonymous]
     [ExcludeFromPayloadProtection]
     [Route("reset-password")]
-    public async Task<dynamic> ResetPassword([FromBody] RestPasswordRequest model)
+    public async Task<ActionResult<ApiResponse<bool>>> ResetPassword([FromBody] ResetPasswordRequestDto model)
     {
         try
         {
             if (model.NewPassword != model.ConfirmPassword)
             {
-                return ErrorResponse(400, "Passwords do not match.");
+                return ErrorResponse<bool>(400, "Passwords do not match.");
             }
 
             var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null) return ErrorResponse(400, "User not found.");
+            if (user == null) return ErrorResponse<bool>(400, "User not found.");
 
 
             var result = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
@@ -1099,17 +1081,17 @@ public  class UserApiController : BaseApiController
             if (result.Succeeded)
             {
 
-                return HttpResponse(200, "Password has been reset successfully.");
+                return HttpResponse<bool>(200, "Password has been reset successfully.", true);
             }
             else
             {
                 var errors = string.Join(", ", result.Errors.Select(e => e.Description));
-                return ErrorResponse(400, "Reset failed: " + errors);
+                return ErrorResponse<bool>(400, "Reset failed: " + errors);
             }
         }
         catch (Exception ex)
         {
-            return ErrorResponse(500, ex.Message);
+            return ErrorResponse<bool>(500, ex.Message);
         }
     }
 
@@ -1120,7 +1102,7 @@ public  class UserApiController : BaseApiController
     /// <param name="emailorUserName">Email or username of the user.</param>
     /// <returns>200 if verification email sent, 500 if error.</returns>
     [HttpPost]
-    public async Task<dynamic> SendVerificationEmail(string emailorUserName)
+    public async Task<ActionResult<ApiResponse<bool>>> SendVerificationEmail(string emailorUserName)
     {
         try
         {
@@ -1158,7 +1140,7 @@ public  class UserApiController : BaseApiController
                 //await _emailSender.SendEmailAsync("Reset Password",
                 //    $"Please reset your password by clicking here: <a href='{callbackUrl}'>link</a>", to.ToArray());
             }
-            return HttpResponse(200, "Reset email has been sent to your email.", true);
+            return HttpResponse<bool>(200, "Reset email has been sent to your email.", true);
 
 
 
@@ -1166,7 +1148,7 @@ public  class UserApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<bool>(500, e.Message);
         }
 
     }
@@ -1182,7 +1164,7 @@ public  class UserApiController : BaseApiController
     /// <param name="model">AppUser model containing updated information.</param>
     /// <returns>200 if updated successfully, validation errors if invalid, 500 if unauthorized or error.</returns>
 
-    public async Task<dynamic> Save(AppUser model)
+    public async Task<ActionResult<ApiResponse<AppUser>>> Save(AppUser model)
     {
         try
         {
@@ -1210,25 +1192,25 @@ public  class UserApiController : BaseApiController
                     }
                     existing.PhoneNumber = model.PhoneNumber;
                     await _userService.AppUserCrudService.UpdateAsync(existing);
-                    return HttpResponse(200, "Your information saved successfully.", model);
+                    return HttpResponse<AppUser>(200, "Your information saved successfully.", model);
 
                 }
                 else
                 {
-                    return ValidationResponse(
+                    return ValidationResponse<AppUser>(
                         ModelState.Values.SelectMany(x => x.Errors).Select(e => e.ErrorMessage).ToList());
                 }
             }
             else
             {
-                return ErrorResponse(500, "Unauthorized Access");
+                return ErrorResponse<AppUser>(500, "Unauthorized Access");
             }
 
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(500, e.Message);
+            return ErrorResponse<AppUser>(500, e.Message);
         }
     }
 

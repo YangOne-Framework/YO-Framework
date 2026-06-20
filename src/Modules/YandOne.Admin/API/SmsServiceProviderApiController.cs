@@ -33,7 +33,7 @@ public class SmsServiceProviderApiController : BaseApiController
     }
 
     [HttpGet("all")]
-    public async Task<IActionResult> GetAll(
+    public async Task<ActionResult<ApiResponse<IEnumerable<SMSGateway>>>> GetAll(
         [FromQuery] int offset = 1,
         [FromQuery] int limit = 20,
         [FromQuery] string query = "")
@@ -50,30 +50,30 @@ public class SmsServiceProviderApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<SMSGateway>>(501, e.Message);
         }
     }
 
     [HttpGet("{id:int}")]
-    public async Task<IActionResult> GetById(int id)
+    public async Task<ActionResult<ApiResponse<SMSGateway>>> GetById(int id)
     {
         try
         {
             var provider = await _smsService.GatewayCrudService.GetAsync(id);
             if (provider == null)
-                return ErrorResponse(404, "SmsServiceProvider not found");
+                return ErrorResponse<SMSGateway>(404, "SmsServiceProvider not found");
 
             return SuccessResponse("Success", provider);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<SMSGateway>(501, e.Message);
         }
     }
 
     [HttpGet("default")]
-    public async Task<IActionResult> GetDefault()
+    public async Task<ActionResult<ApiResponse<SMSGateway>>> GetDefault()
     {
         try
         {
@@ -83,12 +83,12 @@ public class SmsServiceProviderApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<SMSGateway>(501, e.Message);
         }
     }
 
     [HttpGet("{id:int}/settings")]
-    public async Task<IActionResult> GetSettings(int id)
+    public async Task<ActionResult<ApiResponse<IEnumerable<SMSGatewaySetting>>>> GetSettings(int id)
     {
         try
         {
@@ -98,18 +98,18 @@ public class SmsServiceProviderApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<SMSGatewaySetting>>(501, e.Message);
         }
     }
 
     [HttpPost("save")]
-    public async Task<IActionResult> Save([FromForm] SMSGateway model)
+    public async Task<ActionResult<ApiResponse<int>>> Save([FromForm] SMSGateway model)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<int>();
 
             if (model.ImageFile != null)
             {
@@ -117,23 +117,23 @@ public class SmsServiceProviderApiController : BaseApiController
             }
 
             var id = await _smsService.InsertOrSave(model);
-            return SuccessResponse("Saved successfully", new { SMSGatewayId = id });
+            return SuccessResponse("Saved successfully", id);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<int>(501, e.Message);
         }
     }
 
     [HttpPost("set-default")]
-    public async Task<IActionResult> SetDefault([FromBody] SetDefaultProviderRequest request)
+    public async Task<ActionResult<ApiResponse<bool>>> SetDefault([FromBody] SetDefaultProviderRequest request)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             var ok = await _smsService.SetDefaultProviderAsync(request.Id);
             return SuccessResponse("Default provider set successfully", ok);
@@ -141,18 +141,18 @@ public class SmsServiceProviderApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     [HttpPost("update-status")]
-    public async Task<IActionResult> UpdateStatus([FromBody] SMSGateway model)
+    public async Task<ActionResult<ApiResponse<bool>>> UpdateStatus([FromBody] SMSGateway model)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             var ok = await _smsService.UpdateStatus(model);
             return SuccessResponse("Status updated successfully", ok);
@@ -160,18 +160,18 @@ public class SmsServiceProviderApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     [HttpPost("settings/update")]
-    public async Task<IActionResult> UpdateSettings([FromBody] List<SMSGatewaySetting> settings)
+    public async Task<ActionResult<ApiResponse<bool>>> UpdateSettings([FromBody] List<SMSGatewaySetting> settings)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             var ok = await _smsService.UpdateSettings(settings);
             return SuccessResponse("Settings updated successfully", ok);
@@ -179,28 +179,28 @@ public class SmsServiceProviderApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 
     [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(int id)
     {
         try
         {
             var userId = User.Identity.GetIdentityUserId();
             if (userId == 0)
-                return NotAuthorizedResponse();
+                return NotAuthorizedResponse<bool>();
 
             var ok = await _smsService.DeleteSmsService(id);
             if (!ok)
-                return ErrorResponse(400, "Cannot delete the default provider. Set another provider as default first.");
+                return ErrorResponse<bool>(400, "Cannot delete the default provider. Set another provider as default first.");
             return SuccessResponse("Deleted successfully", ok);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<bool>(501, e.Message);
         }
     }
 }

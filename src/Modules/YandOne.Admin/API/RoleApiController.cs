@@ -36,7 +36,7 @@ public class RoleApiController : BaseApiController
 
     [Route("all")]
     [HttpGet]
-    public async Task<dynamic> GetAllRoles(string query = "", int offset = 1, int limit = 10)
+    public async Task<ActionResult<ApiResponse<IEnumerable<IdentityRole>>>> GetAllRoles(string query = "", int offset = 1, int limit = 10)
     {
         try
         {
@@ -51,25 +51,25 @@ public class RoleApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse((int)HttpStatusCode.InternalServerError, e.Message);
+            return ErrorResponse<IEnumerable<IdentityRole>>((int)HttpStatusCode.InternalServerError, e.Message);
         }
     }
 
     [Route("{id:int}")]
     [HttpGet]
-    public async Task<dynamic> GetRoleById(int id)
+    public async Task<ActionResult<ApiResponse<IdentityRole>>> GetRoleById(int id)
     {
         try
         {
             var role = await _identityRoleService.RoleService.GetAsync(id);
             if (role == null)
-                return ErrorResponse(404, "Role not found.");
+                return ErrorResponse<IdentityRole>(404, "Role not found.");
             return HttpResponse((int)HttpStatusCode.OK, "success", role);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse((int)HttpStatusCode.InternalServerError, e.Message);
+            return ErrorResponse<IdentityRole>((int)HttpStatusCode.InternalServerError, e.Message);
         }
     }
     [Route("save")]
@@ -80,7 +80,7 @@ public class RoleApiController : BaseApiController
     /// <param name="role">IdentityRole object containing role details.</param>
     /// <returns>HTTP response indicating success or validation errors.</returns>
     [HttpPost]
-    public async Task<dynamic> SaveRole(IdentityRole role)
+    public async Task<ActionResult<ApiResponse<bool>>> SaveRole(IdentityRole role)
     {
         try
         {
@@ -101,14 +101,14 @@ public class RoleApiController : BaseApiController
             }
             else
             {
-                return ValidationResponse(ModelState.Values.SelectMany(x => x.Errors).Select(e => e.ErrorMessage)
+                return ValidationResponse<bool>(ModelState.Values.SelectMany(x => x.Errors).Select(e => e.ErrorMessage)
                     .ToList());
             }
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse((int)HttpStatusCode.InternalServerError, e.Message);
+            return ErrorResponse<bool>((int)HttpStatusCode.InternalServerError, e.Message);
         }
     }
     [Route("delete")]
@@ -119,7 +119,7 @@ public class RoleApiController : BaseApiController
     /// <param name="role">IdentityRole object containing the role ID to delete.</param>
     /// <returns>HTTP response indicating success, failure, or restriction for system roles.</returns>
     [HttpPost]
-    public async Task<dynamic> Delete(IdentityRole role)
+    public async Task<ActionResult<ApiResponse<bool>>> Delete(IdentityRole role)
     {
         try
         {
@@ -143,7 +143,7 @@ public class RoleApiController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse((int)HttpStatusCode.InternalServerError, e.Message);
+            return ErrorResponse<bool>((int)HttpStatusCode.InternalServerError, e.Message);
         }
     }
 }

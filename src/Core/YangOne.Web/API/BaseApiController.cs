@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
 #nullable enable
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
@@ -13,177 +11,17 @@ using YangOne.Log;
 
 namespace YangOne.Web.API
 {
-    /// <summary>
-    /// Generic API response wrapper with code, message, data and errors.
-    /// </summary>
-    public class ApiResponse<T>
-    {
-        public int Code { get; set; }
-        public string Message { get; set; }
-        public T Data { get; set; }
-        public string[] Errors { get; set; }
+ 
 
-        public ApiResponse()
-        {
-            Errors = Array.Empty<string>();
-        }
-    }
+
     [LogError]
     [ApiAuthorize]
     [EnableRateLimiting("StrictPolicy")]
     [ApiController]
     /// <summary>
-    /// Base API controller providing standardized response helpers for success, validation, authorization and error responses.
+    /// Base API controller with typed response helpers for success, validation, authorization and error responses.
     /// </summary>
     public abstract class BaseApiController : ControllerBase
-    {
-        private string _sessionCode;
-
-        protected string SessionCode
-        {
-            get => User?.Identity?.GetSessionId() ?? _sessionCode;
-            set => _sessionCode = value;
-        }
-
-        // Helper to create the standard object structure
-        private ApiResponse<object> CreateResponse(int code, string msg, object? data, string[]? errors)
-        {
-            return new ApiResponse<object>
-            {
-                Code = code,
-                Message = msg,
-                Data = data,
-                Errors = errors ?? Array.Empty<string>()
-            };
-        }
-
-        #region Success helpers
-
-        [ApiExplorerSettings(IgnoreApi = true)]
-        protected IActionResult HttpResponse(int statusCode, string msg, object? data)
-        {
-            var response = CreateResponse(statusCode, msg, data, null);
-            return StatusCode(statusCode, response);
-        }
-
-        [ApiExplorerSettings(IgnoreApi = true)]
-        protected IActionResult HttpResponse(int statusCode, string msg)
-        {
-            var response = CreateResponse(statusCode, msg, null, null);
-            return StatusCode(statusCode, response);
-        }
-
-        // NOTE: To keep standard format, 'CurrentPage' is wrapped inside an anonymous object in Data.
-        // If you put 'CurrentPage' at the root, you break the standard schema.
-        [ApiExplorerSettings(IgnoreApi = true)]
-        protected IActionResult HttpResponse(int statusCode, string msg, object? data, int currentPage = 1)
-        {
-            var pagedData = new { Result = data, CurrentPage = currentPage };
-            var response = CreateResponse(statusCode, msg, pagedData, null);
-
-            return StatusCode(statusCode, response);
-        }
-
-        [ApiExplorerSettings(IgnoreApi = true)]
-        protected IActionResult SuccessResponse(string msg, object? data)
-        {
-            var response = CreateResponse(StatusCodes.Status200OK, msg, data, null);
-            return Ok(response);
-        }
-
-        #endregion
-
-        #region Validation / auth / error helpers
-
-        [ApiExplorerSettings(IgnoreApi = true)]
-        protected IActionResult ValidationResponse(List<string>? errors)
-        {
-            var response = CreateResponse(
-                600, // Custom code as per your request
-                "Validation Error",
-                null,
-                errors?.ToArray()
-            );
-
-            return BadRequest(response);
-        }
-
-        [ApiExplorerSettings(IgnoreApi = true)]
-        protected IActionResult NotAuthorizedResponse(string? message = null)
-        {
-            var response = CreateResponse(
-                StatusCodes.Status401Unauthorized,
-                message ?? "Unauthorized Request",
-                null,
-                new[] { "Access Denied" }
-            );
-
-            return Unauthorized(response);
-        }
-
-        [ApiExplorerSettings(IgnoreApi = true)]
-        protected IActionResult ErrorResponse(int statusCode, string msg)
-        {
-            var response = CreateResponse(statusCode, msg, null, new[] { msg });
-            return StatusCode(statusCode, response);
-        }
-
-        [ApiExplorerSettings(IgnoreApi = true)]
-        protected IActionResult ErrorResponse(string[] msgs)
-        {
-            var response = CreateResponse(
-                (int)HttpStatusCode.BadRequest,
-                "Error",
-                null,
-                msgs
-            );
-
-            return BadRequest(response);
-        }
-
-        [ApiExplorerSettings(IgnoreApi = true)]
-        protected IActionResult ErrorResponse(ModelStateDictionary modelState, int code, object? data)
-        {
-            var errorMessages = modelState.Values
-                .SelectMany(x => x.Errors)
-                .Select(x => x.ErrorMessage)
-                .ToArray();
-
-            var response = CreateResponse(
-                code,
-                "Validation Failed",
-                data,
-                errorMessages
-            );
-
-            return BadRequest(response);
-        }
-
-        [ApiExplorerSettings(IgnoreApi = true)]
-        protected IActionResult ExceptionResponse(Exception ex, object? data = null)
-        {
-            var response = CreateResponse(
-                StatusCodes.Status500InternalServerError,
-                ex.Message,
-                data,
-                new[] { ex.Message } // Or ex.StackTrace if in Development
-            );
-
-            return StatusCode(StatusCodes.Status500InternalServerError, response);
-        }
-
-        #endregion
-    }
-
-
-    [LogError]
-    [ApiAuthorize]
-    [EnableRateLimiting("StrictPolicy")]
-    [ApiController]
-    /// <summary>
-    /// Base API v2 controller with typed response helpers for success, validation, authorization and error responses.
-    /// </summary>
-    public abstract class BaseApiV2Controller : ControllerBase
     {
         private string _sessionCode;
 
@@ -246,12 +84,38 @@ namespace YangOne.Web.API
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
+        protected ActionResult<ApiResponse<T>> ValidationResponse<T>(List<string>? errors)
+        {
+            var response = CreateResponse<T>(
+                600,
+                "Validation Error",
+                default,
+                errors?.ToArray()
+            );
+
+            return BadRequest(response);
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
         protected ActionResult<ApiResponse<object>> NotAuthorizedResponse(string? message = null)
         {
             var response = CreateResponse<object>(
                 StatusCodes.Status401Unauthorized,
                 message ?? "Unauthorized Request",
                 null,
+                new[] { "Access Denied" }
+            );
+
+            return Unauthorized(response);
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        protected ActionResult<ApiResponse<T>> NotAuthorizedResponse<T>(string? message = null)
+        {
+            var response = CreateResponse<T>(
+                StatusCodes.Status401Unauthorized,
+                message ?? "Unauthorized Request",
+                default,
                 new[] { "Access Denied" }
             );
 
@@ -266,12 +130,32 @@ namespace YangOne.Web.API
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
+        protected ActionResult<ApiResponse<T>> ErrorResponse<T>(int statusCode, string msg)
+        {
+            var response = CreateResponse<T>(statusCode, msg, default, new[] { msg });
+            return StatusCode(statusCode, response);
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
         protected ActionResult<ApiResponse<object>> ErrorResponse(string[] msgs)
         {
             var response = CreateResponse<object>(
                 (int)HttpStatusCode.BadRequest,
                 "Error",
                 null,
+                msgs
+            );
+
+            return BadRequest(response);
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        protected ActionResult<ApiResponse<T>> ErrorResponse<T>(string[] msgs)
+        {
+            var response = CreateResponse<T>(
+                (int)HttpStatusCode.BadRequest,
+                "Error",
+                default,
                 msgs
             );
 
@@ -297,6 +181,24 @@ namespace YangOne.Web.API
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
+        protected ActionResult<ApiResponse<T>> ErrorResponse<T>(ModelStateDictionary modelState, int code, object? data)
+        {
+            var errorMessages = modelState.Values
+                .SelectMany(x => x.Errors)
+                .Select(x => x.ErrorMessage)
+                .ToArray();
+
+            var response = CreateResponse<T>(
+                code,
+                "Validation Failed",
+                default,
+                errorMessages
+            );
+
+            return BadRequest(response);
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
         protected ActionResult<ApiResponse<object>> ExceptionResponse(Exception ex, object? data = null)
         {
             var response = CreateResponse<object>(
@@ -307,6 +209,81 @@ namespace YangOne.Web.API
             );
 
             return StatusCode(StatusCodes.Status500InternalServerError, response);
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        protected ActionResult<ApiResponse<T>> ExceptionResponse<T>(Exception ex, object? data = null)
+        {
+            var response = CreateResponse<T>(
+                StatusCodes.Status500InternalServerError,
+                ex.Message,
+                default,
+                new[] { ex.Message }
+            );
+
+            return StatusCode(StatusCodes.Status500InternalServerError, response);
+        }
+
+        #endregion
+
+        #region IActionResult helpers (for endpoints returning IActionResult with [ResponseData] attribute)
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        protected IActionResult Success(string msg, object? data)
+        {
+            return Ok(CreateResponse<object>(StatusCodes.Status200OK, msg, data));
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        protected IActionResult HttpResult(int statusCode, string msg, object? data)
+        {
+            return StatusCode(statusCode, CreateResponse<object>(statusCode, msg, data));
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        protected IActionResult HttpResult(int statusCode, string msg)
+        {
+            return StatusCode(statusCode, CreateResponse<object>(statusCode, msg, null));
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        protected IActionResult ValidationError(List<string>? errors)
+        {
+            return BadRequest(CreateResponse<object>(600, "Validation Error", null, errors?.ToArray()));
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        protected IActionResult NotAllowed(string? message = null)
+        {
+            return Unauthorized(CreateResponse<object>(StatusCodes.Status401Unauthorized, message ?? "Unauthorized Request", null, new[] { "Access Denied" }));
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        protected IActionResult Fail(int statusCode, string msg)
+        {
+            return StatusCode(statusCode, CreateResponse<object>(statusCode, msg, null, new[] { msg }));
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        protected IActionResult Fail(string[] msgs)
+        {
+            return BadRequest(CreateResponse<object>((int)HttpStatusCode.BadRequest, "Error", null, msgs));
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        protected IActionResult Fail(ModelStateDictionary modelState, int code, object? data)
+        {
+            var errorMessages = modelState.Values
+                .SelectMany(x => x.Errors)
+                .Select(x => x.ErrorMessage)
+                .ToArray();
+            return BadRequest(CreateResponse<object>(code, "Validation Failed", data, errorMessages));
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
+        protected IActionResult ExceptionFail(Exception ex, object? data = null)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, CreateResponse<object>(StatusCodes.Status500InternalServerError, ex.Message, data, new[] { ex.Message }));
         }
 
         #endregion

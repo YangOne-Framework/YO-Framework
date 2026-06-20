@@ -3,6 +3,7 @@
 using Microsoft.AspNetCore.Mvc;
 using YangOne.Log;
 using YangOne.Web.API;
+using YangOne.Web.Model;
 using YangOne.Web.Services;
 
 namespace YangOne.Admin.API;
@@ -27,7 +28,7 @@ public class MiscAPIController : BaseApiController
     /// </summary>
     [HttpGet]
     [Route("country/all")]
-    public async Task<IActionResult> GetAllCountries()
+    public async Task<ActionResult<ApiResponse<IEnumerable<Country>>>> GetAllCountries()
     {
         try
         {
@@ -37,7 +38,7 @@ public class MiscAPIController : BaseApiController
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse(501, e.Message);
+            return ErrorResponse<IEnumerable<Country>>(501, e.Message);
         }
     }
     //[Route("state/all")]
