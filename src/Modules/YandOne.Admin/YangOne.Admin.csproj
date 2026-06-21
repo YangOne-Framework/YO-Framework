@@ -1,5 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+	<PropertyGroup>
+		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+		<RazorCompileOnBuild>true</RazorCompileOnBuild>
+		<RazorCompileOnPublish>true</RazorCompileOnPublish>
+	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="DartSassHost" Version="2.0.7" />
 		<PackageReference Include="JavaScriptEngineSwitcher.ChakraCore" Version="3.31.0" />
@@ -8,46 +12,6 @@
 		<PackageReference Include="NUglify" Version="1.21.17" />
 	</ItemGroup>
 	<ItemGroup>
-		<None Remove="Areas\Admin\Views\Audit\Index.cshtml" />
-		<None Remove="Areas\Admin\Views\EmailServiceProvider\Index.cshtml" />
-		<None Remove="Areas\Admin\Views\EmailServiceProvider\New.cshtml" />
-		<None Remove="Areas\Admin\Views\EmailServiceProvider\Setting.cshtml" />
-		<None Remove="Areas\Admin\Views\LiveEditor\Index.cshtml" />
-		<None Remove="Areas\Admin\Views\LiveEditor\Privacy.cshtml" />
-		<None Remove="Areas\Admin\Views\Localization\Edit.cshtml" />
-		<None Remove="Areas\Admin\Views\Localization\Index.cshtml" />
-		<None Remove="Areas\Admin\Views\Localization\New.cshtml" />
-		<None Remove="Areas\Admin\Views\Menu\Index.cshtml" />
-		<None Remove="Areas\Admin\Views\Module\Index.cshtml" />
-		<None Remove="Areas\Admin\Views\Page\Config.cshtml" />
-		<None Remove="Areas\Admin\Views\Page\Edit.cshtml" />
-		<None Remove="Areas\Admin\Views\Page\Index.cshtml" />
-		<None Remove="Areas\Admin\Views\Page\New.cshtml" />
-		<None Remove="Areas\Admin\Views\Page\PagePermission.cshtml" />
-		<None Remove="Areas\Admin\Views\Permission\Index.cshtml" />
-		<None Remove="Areas\Admin\Views\Plugins\Index.cshtml" />
-		<None Remove="Areas\Admin\Views\Plugins\New.cshtml" />
-		<None Remove="Areas\Admin\Views\Role\Edit.cshtml" />
-		<None Remove="Areas\Admin\Views\Role\Index.cshtml" />
-		<None Remove="Areas\Admin\Views\Role\New.cshtml" />
-		<None Remove="Areas\Admin\Views\SEO\Edit.cshtml" />
-		<None Remove="Areas\Admin\Views\SEO\Index.cshtml" />
-		<None Remove="Areas\Admin\Views\SEO\New.cshtml" />
-		<None Remove="Areas\Admin\Views\Setting\Caching.cshtml" />
-		<None Remove="Areas\Admin\Views\Setting\Security.cshtml" />
-		<None Remove="Areas\Admin\Views\Setting\Web.cshtml" />
-		<None Remove="Areas\Admin\Views\Theme\Editor.cshtml" />
-		<None Remove="Areas\Admin\Views\Theme\Index.cshtml" />
-		<None Remove="Areas\Admin\Views\Theme\LivePreview.cshtml" />
-		<None Remove="Areas\Admin\Views\Theme\New.cshtml" />
-		<None Remove="Areas\Admin\Views\Theme\Preview.cshtml" />
-		<None Remove="Areas\Admin\Views\User\ChangeAppUserPassword.cshtml" />
-		<None Remove="Areas\Admin\Views\User\ChangePassword.cshtml" />
-		<None Remove="Areas\Admin\Views\User\Edit.cshtml" />
-		<None Remove="Areas\Admin\Views\User\Index.cshtml" />
-		<None Remove="Areas\Admin\Views\User\New.cshtml" />
-		<None Remove="Areas\Admin\Views\_ViewImports.cshtml" />
-		<None Remove="Areas\Admin\Views\_ViewStart.cshtml" />
 		<None Remove="Components\AdminMenu\Default.cshtml" />
 		<None Remove="Components\FilePicker\Default.cshtml" />
 		<None Remove="Components\HtmlBuilder\Default.cshtml" />
@@ -57,6 +21,13 @@
 		<None Remove="Components\Pagination\Default.cshtml" />
 		<None Remove="Components\TopBar\Default.cshtml" />
 		<None Remove="Components\VideoPicker\Default.cshtml" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Content Include="Areas\Views\Admin\Index.cshtml">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
 	</ItemGroup>
 
 

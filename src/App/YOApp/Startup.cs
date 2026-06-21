@@ -409,6 +409,24 @@ namespace YOApp
                     Path.Combine(env.ContentRootPath, "smidge")),
                 RequestPath = new PathString("/smidge")
             });
+            // public ui react js location
+            if (!Directory.Exists(Path.Combine(env.ContentRootPath, "wwwroot", @"dist")))
+                Directory.CreateDirectory(Path.Combine(env.ContentRootPath, "wwwroot", @"dist"));
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(
+                    Path.Combine(env.ContentRootPath, "wwwroot", @"dist")),
+                RequestPath = new PathString("/dist")
+            });
+            // admin ui react js location
+            if (!Directory.Exists(Path.Combine(env.ContentRootPath, "wwwroot", @"admin-dist")))
+                Directory.CreateDirectory(Path.Combine(env.ContentRootPath, "wwwroot", @"admin-dist"));
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(
+                    Path.Combine(env.ContentRootPath, "wwwroot", @"admin-dist")),
+                RequestPath = new PathString("/admin-dist")
+            });
             //app.UseStaticFiles(new StaticFileOptions()
             //{
             //    FileProvider = new PhysicalFileProvider(
@@ -423,30 +441,32 @@ namespace YOApp
            
             app.UseEndpoints(endpoints =>
             {
+                var fOption = config.GetValue<string>("YangOneAppConfig:Framework");
 
-                endpoints.MapGet("/", () => "YO Framework running...visit /scalar/v1 to explore apis.");
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller}/{action}/{id?}",
-                    defaults: new { controller = "Home", action = "Index" });
+                if (fOption?.ToUpper() == "FULLSUITE")
+                {
+                    // Admin SPA → Admin/Index view (loads admin-dist bundles)
+                    endpoints.MapControllerRoute(
+                        name: "admin-spa",
+                        pattern: "admin/{**path}",
+                        defaults: new { area = "Admin", controller = "Admin", action = "Index" });
 
-                //endpoints.MapControllerRoute(
-                //    name: "default1",
-                //    pattern: "page/{pageUrl?}",
-                //    defaults: new { controller = "YOPage", action = "Index" }
-                //    //, constraints: new { pageUrl = @"\w+" }
-                //);
-                //endpoints.MapControllerRoute(
-                //    name: "default",
-                //    pattern: "{controller}/{action}/{id?}",
-                //    defaults: new { controller = "Home", action = "Index" });
-                endpoints.MapControllerRoute(
-                    name: "MyArea",
-                    pattern: "{area:exists}/{controller}/{action}/{id?}",
-                    defaults: new { area = "Admin", controller = "Dashboard", action = "Index" });
-                //endpoints.MapControllerRoute(
-                //    name: "default2",
-                //    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    // Public SPA → Home/Index view (loads dist bundles)
+                    endpoints.MapFallbackToController("Index", "Home");
+                }
+                else if (fOption?.ToUpper() == "STANDARD")
+                {
+                    endpoints.MapControllerRoute(
+                        name: "admin-spa",
+                        pattern: "admin/{**path}",
+                        defaults: new { area = "Admin", controller = "Admin", action = "Index" });
+
+                    endpoints.MapFallbackToController("Index", "Admin");
+                }
+                else if (fOption?.ToUpper() == "MINIMAL")
+                {
+                    endpoints.MapGet("/", () => "YO Framework running...visit /scalar/v1 to explore apis.");
+                }
             });
 
             var permissionService = serviceProvider.GetService<IPermissionService>();
