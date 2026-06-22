@@ -68,7 +68,7 @@ namespace YangOne.Web.Module
             int secondIndex = subpath.IndexOfNth("/", 2);
             string moduleName = subpath.Substring(firstIndex + 1, secondIndex - 1);
 
-            var module = _moduleManager.FindAsync(moduleName).GetAwaiter().GetResult();
+            var module = _moduleManager.Find(moduleName);
 
             if (module == null)
                 return new NotFoundFileInfo(subpath);

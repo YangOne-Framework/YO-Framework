@@ -9,6 +9,7 @@ namespace YangOne.Web.Module
     {
         Task<bool> InstallAsync(IModule module);
         Task<bool> UnInstallAsync(IModule module);
+        IModule Find(string moduleName);
         Task<IModule> FindAsync(string moduleName);
         Task<bool> UpdateModule(IModule module);
         Task<ModulePackageValidationResult> UploadPackageAsync(Stream packageStream, string fileName, long userId);

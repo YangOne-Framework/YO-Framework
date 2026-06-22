@@ -13,8 +13,7 @@ namespace YangOne.Web.Module
         protected YangOneModuleViewComponent(IModuleManager moduleManager)
         {
             ModuleManager = moduleManager;
-            Module = new T();
-            Module = ModuleManager.FindAsync(Module.Name).GetAwaiter().GetResult();
+            Module = ModuleManager.Find(new T().Name);
             checkIfInstalled();
 
         }

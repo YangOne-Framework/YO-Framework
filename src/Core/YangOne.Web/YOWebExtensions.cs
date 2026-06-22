@@ -146,7 +146,8 @@ namespace YangOne.Web
 
             try
             {
-                var modules = new ModuleRegistrar(services, logger, isInstalled);
+                var registrar = new ModuleRegistrar(services, logger, isInstalled);
+                registrar.RegisterAsync().GetAwaiter().GetResult();
             }
             catch (Exception e)
             {//if any db error occurs then restarting appliation.

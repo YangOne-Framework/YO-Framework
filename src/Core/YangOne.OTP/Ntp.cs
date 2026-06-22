@@ -33,13 +33,56 @@ namespace YangOne.OTP
 		/// This implementation is experimental and doesn't have any tests against it.
 		/// This isn't even close to a robust and reliable implementation.
 		/// </remarks>
-		public static Task<TimeCorrection> GetTimeCorrectionFromNistAsync(CancellationToken token = default(CancellationToken)) => new Task<TimeCorrection>(() => GetTimeCorrectionFromNist(token));
+		public static async Task<TimeCorrection> GetTimeCorrectionFromNistAsync(CancellationToken token = default(CancellationToken))
+		{
+			var servers = GetNistServers();
+
+			foreach (var server in servers)
+			{
+				token.ThrowIfCancellationRequested();
+				try
+				{
+					string response;
+					using (var client = new TcpClient())
+					{
+						await client.ConnectAsync(server, 13).WaitAsync(token);
+
+						var stream = client.GetStream();
+
+						using (var reader = new StreamReader(stream))
+						{
+							response = await reader.ReadToEndAsync();
+						}
+					}
+
+					if (TryParseResponse(response, out var networkTime))
+					{
+						return new TimeCorrection(networkTime);
+					}
+				}
+				catch (Exception e)
+				{
+					Debug.Write(e.Message);
+				}
+			}
+
+			throw new Exception("Couldn't get network time");
+		}
 
 		/// <summary>
 		/// Get a time correction factor using Google's webservers as the time source.  Extremely fast and reliable but not authoritative.
 		/// </summary>
 		/// <returns>Time Correction</returns>
-		public static Task<TimeCorrection> GetTimeCorrectionFromGoogleAsync() => new Task<TimeCorrection>(GetTimeCorrectionFromGoogle);
+		public static async Task<TimeCorrection> GetTimeCorrectionFromGoogleAsync()
+		{
+			using (var wc = new HttpClient())
+			{
+				var res = await wc.GetAsync("https://www.google.com");
+				var date = res.Headers.Date.Value.DateTime;
+
+				return new TimeCorrection(date);
+			}
+		}
 
 		/// <summary>
 		/// Get a time correction factor against NIST
@@ -61,7 +104,7 @@ namespace YangOne.OTP
 					string response;
 					using (var client = new TcpClient())
 					{
-						client.ConnectAsync(server, 13).Wait(token);
+						client.Connect(server, 13);
 
 						var stream = client.GetStream();
 
@@ -93,8 +136,7 @@ namespace YangOne.OTP
 		{
 			using (var wc = new HttpClient())
 			{
-				var res = wc.GetAsync("https://www.google.com").Result;
-				// just let this throw on error
+				var res = wc.GetAsync("https://www.google.com").GetAwaiter().GetResult();
 				var date = res.Headers.Date.Value.DateTime;
 
 				return new TimeCorrection(date);

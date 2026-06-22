@@ -31,7 +31,7 @@ namespace YangOne.FCM.API
             try
             {
 
-                 _fcmService.FcmSend(usertoken, title, message, clickUrl, imageUrl, key1, key2, key3);
+                 await _fcmService.FcmSendAsync(usertoken, title, message, clickUrl, imageUrl, key1, key2, key3);
                 return HttpResponse(200, "", true);
             }
             catch (Exception e)

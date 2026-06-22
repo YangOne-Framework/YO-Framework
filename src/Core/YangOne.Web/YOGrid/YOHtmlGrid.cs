@@ -105,8 +105,7 @@ namespace YangOne.Web.Grid
         {
            // Html.Partial(PartialViewName, Grid).WriteTo(writer, encoder);
             var renderer = (IViewRenderService)ContextResolver.Context.RequestServices.GetService(typeof(IViewRenderService));
-            var result = "";
-            Task.Run(async () => result = await renderer.RenderToStringAsync(PartialViewName, Grid)).Wait();
+            var result = renderer.RenderToStringAsync(PartialViewName, Grid).GetAwaiter().GetResult();
             writer.Write(result);
         }
 

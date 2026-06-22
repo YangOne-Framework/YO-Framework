@@ -19,32 +19,25 @@ namespace YangOne.Web.Module
         private readonly ILogger _logger;
         private readonly bool _hasDoneDbSetup;
 
-        public ModuleRegistrar(IServiceCollection services, ILogger logger,bool hasDoneDbSetup)
+        public ModuleRegistrar(IServiceCollection services, ILogger logger, bool hasDoneDbSetup)
         {
             _services = services;
             _logger = logger;
             _hasDoneDbSetup = hasDoneDbSetup;
-            Register();
         }
-        public bool Register()
+
+        public async Task<bool> RegisterAsync()
         {
             try
             {
                 var serviceProvider = _services.BuildServiceProvider();
                 var moduleService = serviceProvider.GetService<IModuleService>();
                 if (_hasDoneDbSetup)
-                    moduleService.EnsureModuleManagementSchemaAsync().GetAwaiter().GetResult();
-
-                var assesmblies = AppDomain.CurrentDomain.GetAssemblies();
+                    await moduleService.EnsureModuleManagementSchemaAsync();
 
                 var platform = Environment.OSVersion.Platform.ToString();
                 var runtimeAssemblyNames = DependencyContext.Default.GetRuntimeAssemblyNames(platform);
 
-                //var instances = runtimeAssemblyNames
-                //    .Select(Assembly.Load)
-                //    .SelectMany(a => a.ExportedTypes)
-                //    .Where(t => TypeExtensions.GetInterfaces(t).Contains(typeof(IModule)) && t.GetConstructor(Type.EmptyTypes) != null)
-                //    .Select(y => (IModule)Activator.CreateInstance(y));
                 var filteredAssemblies = runtimeAssemblyNames.Where(x => !(x.Name.Contains("Microsoft") || x.Name.Contains("System"))).ToList();
                 var instances = filteredAssemblies
                     .Select(Assembly.Load)
@@ -52,21 +45,11 @@ namespace YangOne.Web.Module
                     .Where(t => TypeExtensions.GetInterfaces(t).Contains(typeof(IModule)) && t.GetConstructor(Type.EmptyTypes) != null)
                     .Select(y => (IModule)Activator.CreateInstance(y));
                 var modules = new List<IModule>();
-                //foreach (var assembly in assesmblies)
-                //{
-                //    var instances = from t in assembly.GetTypes()
-                //                    where TypeExtensions.GetInterfaces(t).Contains(typeof(IModule))
-                //                          && t.GetConstructor(Type.EmptyTypes) != null
-                //                    select Activator.CreateInstance(t) as IModule;
-
-
-                //    modules.AddRange(instances);
-                //}
                 modules.AddRange(instances);
                 foreach (var module in modules)
                 {
                     if (_hasDoneDbSetup)
-                        moduleService.Save(module).GetAwaiter().GetResult();
+                        await moduleService.Save(module);
                 }
 
                 if (_hasDoneDbSetup)
@@ -93,7 +76,7 @@ namespace YangOne.Web.Module
                     foreach (var packagedModule in packagedModules)
                     {
                         if (_hasDoneDbSetup)
-                            moduleService.Save(packagedModule).GetAwaiter().GetResult();
+                            await moduleService.Save(packagedModule);
                     }
                     _logger.Log(LogType.Trace, () => $"Total {packagedModules.Count} Package Modules Loaded.");
                 }

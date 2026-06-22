@@ -147,66 +147,21 @@ namespace YangOne.FCM
             }
         }
 
-        public void FcmSend(string token, string title, string message, string click_Url, string image_Uri, string key1,string key2,string key3)
+        public async Task FcmSendAsync(string token, string title, string message, string click_Url, string image_Uri, string key1,string key2,string key3)
         {
-            //if (String.IsNullOrEmpty(token))
-            //    throw new Exception($"Empty Token");
+            var bearertoken = await GetToken();
 
-            //var client = _httpClientFactory.CreateClient();
-            //client.BaseAddress = new Uri("https://fcm.googleapis.com/v1/projects/fullmoon-e897f");
-            //client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            //client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("key", "=" + _settings.ApplicationId);
-            //client.DefaultRequestHeaders.Add("Sender", $"id={_settings.SenderId}");
-
-            //var data = new
-            //{
-            //    to = token,
-            //    notification = new
-            //    {
-            //        body = message,
-            //        title = title,
-            //        sound = "Enabled"
-            //    }
-            //};
-            //var data2 = new
-            //{
-            //    to = "/topics/" + token,
-            //    priority = "high",
-            //    collapse_key = "demo",
-            //    notification = new
-            //    {
-            //        body = message,
-            //        title = title,
-            //        icon = String.IsNullOrEmpty(Image_Uri) ? null : Image_Uri,
-            //        click_action = String.IsNullOrEmpty(Click_Url) ? null : Click_Url,
-            //        sound = "Enabled",
-            //    }
-            //};
-            //var JsonData = JsonConvert.SerializeObject(data);
-
-            //HttpContent contentPost = new StringContent(JsonData, Encoding.UTF8, MediaTypeNames.Application.Json);
-            //var Re = client.PostAsync("/messages:send", contentPost).Result;
-            ///--------Calling FCM-----------------------------
-
-            var bearertoken = GetToken().Result;
-
-            var clientHandler = new HttpClientHandler();
-            var client = new HttpClient(clientHandler);
-
-            client.BaseAddress = new Uri("https://fcm.googleapis.com/v1/projects/whollistic-minds/messages:send"); // FCM HttpV1 API
+            var client = _httpClientFactory.CreateClient();
 
             client.DefaultRequestHeaders.Accept.Clear();
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            //client.DefaultRequestHeaders.Accept.Add("Authorization", "Bearer " + bearertoken);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearertoken); // Authorization Token in this variable
-
-            //---------------Assigning Of data To Model --------------
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", bearertoken);
 
             Root rootObj = new Root();
             rootObj.message = new Message();
 
-            rootObj.message.token = token;//FCM Token id
+            rootObj.message.token = token;
             rootObj.message.data = new Data();
             rootObj.message.data.title = title;
             rootObj.message.data.body = message;
@@ -217,24 +172,15 @@ namespace YangOne.FCM
             rootObj.message.notification = new Notification();
             rootObj.message.notification.title = title;
             rootObj.message.notification.body = message;
-            //rootObj.message.notification.click_action = String.IsNullOrEmpty(click_Url) ? null : click_Url;
-            //rootObj.message.notification.icon = String.IsNullOrEmpty(image_Uri) ? null : image_Uri;
-
-
-            //-------------Convert Model To JSON ----------------------
 
             var jsonObj = JsonConvert.SerializeObject(rootObj);
-
-            //------------------------Calling Of FCM Notify API-------------------
 
             var data = new StringContent(jsonObj, Encoding.UTF8, "application/json");
             data.Headers.ContentType = new MediaTypeHeaderValue("application/json");
 
-            var response = client.PostAsync("https://fcm.googleapis.com/v1/projects/whollistic-minds/messages:send", data).Result; // Calling The FCM httpv1 API
+            var response = await client.PostAsync("https://fcm.googleapis.com/v1/projects/whollistic-minds/messages:send", data);
 
-            //---------- Deserialize Json Response from API ----------------------------------
-
-            var jsonResponse = response.Content.ReadAsStringAsync().Result;
+            var jsonResponse = await response.Content.ReadAsStringAsync();
             var responseObj = JsonConvert.SerializeObject(jsonResponse);
         }
 

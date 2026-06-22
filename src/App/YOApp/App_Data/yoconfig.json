@@ -4,7 +4,7 @@
     "SiteUrl": "https://localhost:7189",
     "IsInstalled": true,
     "DbProvider": "SQLServer",
-    "Framework": "",
+    "Framework": "FULLSUITE",
     "Version": "1.0.0",
     "EnableLogging": true,
     "EnableDbLogging": false,
@@ -28,7 +28,8 @@
       "UseSSL": true,
       "Port": 587
     },
-    "JobConnection": "JobConnection"
+    "JobConnection": "JobConnection",
+    "Audience": "AUD"
   },
   "DapperIdentityCryptography": {
     "Key": "FrFE/VtQ5pfNhGYVnyf65Sa6j4h6ion3ItkAnqLsnBE=",

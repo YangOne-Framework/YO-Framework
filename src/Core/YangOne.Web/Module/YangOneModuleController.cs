@@ -17,8 +17,7 @@ namespace YangOne.Web.Module
         {
 
             _moduleManager= ContextResolver.Context.RequestServices.GetService<IModuleManager>();
-            _module = new T();
-            _module = _moduleManager.FindAsync(_module.Name).GetAwaiter().GetResult();
+            _module = _moduleManager.Find(new T().Name);
 
         }
         public override void OnActionExecuting(ActionExecutingContext filterContext)

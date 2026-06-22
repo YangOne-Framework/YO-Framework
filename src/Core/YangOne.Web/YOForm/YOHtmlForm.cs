@@ -215,8 +215,7 @@ namespace YangOne.Web.Form
             try
             {
                 var renderer = (IViewRenderService)ContextResolver.Context.RequestServices.GetService(typeof(IViewRenderService));
-                var result = "";
-                Task.Run(async () => result = await renderer.RenderToStringAsync(PartialViewName, Form)).Wait();
+                var result = renderer.RenderToStringAsync(PartialViewName, Form).GetAwaiter().GetResult();
                 writer.Write(result);
                 //Html.Partial(PartialViewName, Form).WriteTo(writer, encoder);
 

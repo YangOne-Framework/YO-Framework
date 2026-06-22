@@ -77,7 +77,7 @@ namespace YangOne.Web.API
             // however, I want to test the code and have to pass it to the UploadFileChunk function...
             IFormFile ufile = file ;//?? Request.Form.Files.First());
 
-            _storageProvider.PersistBlock(sessionId, userId.Value, chunkNumber.Value, ToByteArray(ufile.OpenReadStream()));
+            await _storageProvider.PersistBlock(sessionId, userId.Value, chunkNumber.Value, ToByteArray(ufile.OpenReadStream()));
 
            // return Json(sessionId);
             return HttpResponse(200, "", sessionId);

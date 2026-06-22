@@ -308,7 +308,7 @@ namespace YangOne.Storage
             return list;
         }
 
-        public void PersistBlock(string sessionId, long userId, int chunkNumber, byte[] buffer)
+        public async Task PersistBlock(string sessionId, long userId, int chunkNumber, byte[] buffer)
         {
             FileSession session = GetSession(sessionId);
 
@@ -319,16 +319,14 @@ namespace YangOne.Storage
                     throw new NotFoundException("Session not found");
                 }
 
-                Persist(sessionId, chunkNumber, buffer);
+                await Persist(sessionId, chunkNumber, buffer);
 
 
 
                 session.FileInfo.MarkChunkAsPersisted(chunkNumber);
                 session.RenewTimeout();
-                // _cachingService.Get(session.Id, 60 * 60, () => session);
 
-                //keys[session.Id] = session;
-                File.WriteAllText(Path.Combine(GetTempChunkedPath(), sessionId, "session.json"),
+                await File.WriteAllTextAsync(Path.Combine(GetTempChunkedPath(), sessionId, "session.json"),
                     JsonConvert.SerializeObject(session));
             }
             catch (System.Exception e)
@@ -336,7 +334,7 @@ namespace YangOne.Storage
                 if (session != null)
                     session.MaskAsFailed();
 
-                throw e;
+                throw;
             }
         }
 
@@ -361,7 +359,7 @@ namespace YangOne.Storage
         }
 
 
-        public async void Persist(string id, int chunkNumber, byte[] buffer)
+        public async Task Persist(string id, int chunkNumber, byte[] buffer)
         {
             string chunkDestinationPath = Path.Combine(GetTempChunkedPath(), id);
 

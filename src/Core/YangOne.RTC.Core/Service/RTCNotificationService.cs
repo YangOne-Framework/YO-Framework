@@ -44,8 +44,8 @@ namespace YangOne.RTC
                     break;
             }
 
-            var userConnectionIds =
-                _connectionManager.GetUserConnectionIds(ContextResolver.Context.User.Identity.GetIdentityUserId()).GetAwaiter().GetResult();
+            var userId = ContextResolver.Context.User.Identity.GetIdentityUserId();
+            var userConnectionIds = _connectionManager.GetUserConnectionIds(userId).GetAwaiter().GetResult();
             _hubContext.Clients.Clients(userConnectionIds.ToArray()).SendAsync("OnNotificationRecieved", notification).GetAwaiter().GetResult();
             return true;
         }

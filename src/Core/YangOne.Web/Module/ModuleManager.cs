@@ -94,9 +94,14 @@ namespace YangOne.Web.Module
             return false;
         }
 
+        public IModule Find(string moduleName)
+        {
+            return _moduleContainer.Modules.SingleOrDefault(e => e.Name.Equals(moduleName, StringComparison.OrdinalIgnoreCase));
+        }
+
         public async Task<IModule> FindAsync(string moduleName)
         {
-            var module = _moduleContainer.Modules.SingleOrDefault(e => e.Name.Equals(moduleName, StringComparison.OrdinalIgnoreCase));
+            var module = Find(moduleName);
             if (module != null)
                 return module;
 
