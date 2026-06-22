@@ -9,8 +9,17 @@ namespace YangOne.Web.Module
     {
         public ModuleContainer(IEnumerable<IModule> modules)
         {
-            Modules = modules;
+            Modules = modules.ToList();
         }
-        public IEnumerable<IModule> Modules { get; private set; }
+        public IList<IModule> Modules { get; private set; }
+
+        public void AddOrUpdate(IModule module)
+        {
+            var existing = Modules.FirstOrDefault(x => x.Name.Equals(module.Name, StringComparison.OrdinalIgnoreCase));
+            if (existing != null)
+                Modules.Remove(existing);
+
+            Modules.Add(module);
+        }
     }
 }

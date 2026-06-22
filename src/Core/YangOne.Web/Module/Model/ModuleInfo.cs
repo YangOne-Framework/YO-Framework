@@ -20,6 +20,21 @@ namespace YangOne.Web.Module
         public string Version { get; set; }
         public bool IsInstalled { get; set; }
         public string Author { get; set; }
+        public string DisplayName { get; set; }
+        public string ModuleKey { get; set; }
+        public string ActiveVersion { get; set; }
+        public string StagedVersion { get; set; }
+        public string LifecycleState { get; set; }
+        public string RuntimeState { get; set; }
+        public string PackageHash { get; set; }
+        public string PackagePath { get; set; }
+        public string StagingPath { get; set; }
+        public string ManifestJson { get; set; }
+        public string LastOperation { get; set; }
+        public string LastError { get; set; }
+        public bool IsRestartRequired { get; set; }
+        public DateTime EnabledOn { get; set; }
+        public DateTime DisabledOn { get; set; }
        
         public bool IsBuiltIn { get; set; }
         public bool IsActive { get; set; }

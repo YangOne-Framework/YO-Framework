@@ -11,6 +11,15 @@ namespace YangOne.Web.Module
         Task<bool> UnInstallAsync(IModule module);
         Task<IModule> FindAsync(string moduleName);
         Task<bool> UpdateModule(IModule module);
-
+        Task<ModulePackageValidationResult> UploadPackageAsync(Stream packageStream, string fileName, long userId);
+        Task<ModulePackageValidationResult> ValidatePackageAsync(string packagePath);
+        Task<ModuleOperationResult> InstallPackageAsync(string moduleName, string version, long userId);
+        Task<ModuleOperationResult> EnableAsync(string moduleName, long userId);
+        Task<ModuleOperationResult> DisableAsync(string moduleName, long userId);
+        Task<ModuleOperationResult> UpgradeAsync(string moduleName, string version, long userId);
+        Task<ModuleOperationResult> RollbackAsync(string moduleName, string version, long userId);
+        Task<ModuleOperationResult> UninstallPackageAsync(string moduleName, bool purgeData, long userId);
+        Task<IEnumerable<ModuleOperationJournal>> GetOperationJournalAsync(string moduleName, int count = 50);
+        Task<ModuleOperationResult> PingAsync(string moduleName);
     }
 }

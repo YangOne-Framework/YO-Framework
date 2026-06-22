@@ -186,10 +186,25 @@ CREATE TABLE dbo.Module
 (
 	ModuleId								int primary key identity(1,1) not null,
 	Name									nvarchar(256) not null,
+	DisplayName								nvarchar(256),
+	ModuleKey								nvarchar(256),
 	Description								nvarchar(max) ,
 	Version									nvarchar(256) not null,
+	ActiveVersion							nvarchar(64),
+	StagedVersion							nvarchar(64),
+	LifecycleState							nvarchar(64),
+	RuntimeState							nvarchar(64),
+	PackageHash								nvarchar(128),
+	PackagePath								nvarchar(1024),
+	StagingPath								nvarchar(1024),
+	ManifestJson							nvarchar(max),
+	LastOperation							nvarchar(64),
+	LastError								nvarchar(max),
 	IsInstalled								bit default(0) not null,
 	Author									nvarchar(256),
+	IsRestartRequired						bit default(0) not null,
+	EnabledOn								datetime,
+	DisabledOn								datetime,
 	IsBuiltIn								bit default(0) not null,
 	IsActive                                bit NOT NULL Default(1),
 	IsDeleted                               bit NOT NULL Default(0),
@@ -201,6 +216,138 @@ CREATE TABLE dbo.Module
 	UpdatedBy                               bigint not null default(0)
 
 );
+
+CREATE INDEX IX_Module_ModuleKey
+	ON dbo.Module (ModuleKey);
+
+CREATE TABLE dbo.ModuleOperationJournal
+(
+	ModuleOperationJournalId				bigint primary key identity(1,1) not null,
+	ModuleName								nvarchar(256) not null,
+	ModuleVersion							nvarchar(64),
+	OperationType							nvarchar(64) not null,
+	OperationStatus							nvarchar(64) not null,
+	LifecycleState							nvarchar(64) not null,
+	RuntimeState							nvarchar(64) not null,
+	Message									nvarchar(max),
+	PayloadJson								nvarchar(max),
+	ErrorJson								nvarchar(max),
+	StartedOn								datetime not null default(getutcdate()),
+	CompletedOn								datetime,
+	RequestedBy								bigint not null default(0)
+);
+
+CREATE INDEX IX_ModuleOperationJournal_ModuleName
+	ON dbo.ModuleOperationJournal (ModuleName, StartedOn DESC);
+
+CREATE TABLE dbo.ModuleMigrationHistory
+(
+	ModuleMigrationHistoryId					bigint primary key identity(1,1) not null,
+	ModuleName								nvarchar(256) not null,
+	ModuleVersion							nvarchar(64) not null,
+	MigrationName							nvarchar(256) not null,
+	MigrationType							nvarchar(64) not null,
+	ScriptPath								nvarchar(1024) not null,
+	ScriptHash								nvarchar(128) not null,
+	Succeeded								bit not null default(0),
+	ErrorMessage								nvarchar(max),
+	AppliedOn								datetime not null default(getutcdate()),
+	AppliedBy								bigint not null default(0)
+);
+
+CREATE UNIQUE INDEX IX_ModuleMigrationHistory_Unique
+	ON dbo.ModuleMigrationHistory (ModuleName, ModuleVersion, ScriptHash);
+
+CREATE TABLE dbo.ModuleVersion
+(
+	ModuleVersionId						bigint primary key identity(1,1) not null,
+	ModuleName							nvarchar(256) not null,
+	Version								nvarchar(64) not null,
+	VersionPath							nvarchar(1024) not null,
+	PackageHash							nvarchar(128),
+	ManifestJson							nvarchar(max),
+	ValidationStatus						nvarchar(64) not null,
+	LifecycleState							nvarchar(64) not null,
+	IsActive								bit not null default(0),
+	IsRollbackEligible						bit not null default(1),
+	InstalledOn							datetime,
+	AddedOn								datetime not null default(getutcdate()),
+	AddedBy								bigint not null default(0),
+	UpdatedOn							datetime,
+	UpdatedBy							bigint not null default(0)
+);
+
+CREATE UNIQUE INDEX IX_ModuleVersion_Unique
+	ON dbo.ModuleVersion (ModuleName, Version);
+
+CREATE TABLE dbo.ModuleDependency
+(
+	ModuleDependencyId					bigint primary key identity(1,1) not null,
+	ModuleName							nvarchar(256) not null,
+	ModuleVersion						nvarchar(64) not null,
+	DependencyModuleName					nvarchar(256) not null,
+	MinimumVersion						nvarchar(64),
+	MaximumVersion						nvarchar(64),
+	IsRequired							bit not null default(1),
+	AddedOn								datetime not null default(getutcdate())
+);
+
+CREATE INDEX IX_ModuleDependency_Module
+	ON dbo.ModuleDependency (ModuleName, ModuleVersion);
+
+CREATE TABLE dbo.ModulePermission
+(
+	ModulePermissionId					bigint primary key identity(1,1) not null,
+	ModuleName							nvarchar(256) not null,
+	ModuleVersion						nvarchar(64) not null,
+	PermissionKey						nvarchar(256) not null,
+	IsActive								bit not null default(1),
+	AddedOn								datetime not null default(getutcdate()),
+	UpdatedOn							datetime
+);
+
+CREATE UNIQUE INDEX IX_ModulePermission_Unique
+	ON dbo.ModulePermission (ModuleName, ModuleVersion, PermissionKey);
+
+CREATE TABLE dbo.ModuleMenu
+(
+	ModuleMenuId						bigint primary key identity(1,1) not null,
+	ModuleName							nvarchar(256) not null,
+	ModuleVersion						nvarchar(64) not null,
+	MenuKey								nvarchar(256) not null,
+	Title								nvarchar(256) not null,
+	Url									nvarchar(512) not null,
+	Icon								nvarchar(256),
+	ParentKey							nvarchar(256),
+	MenuOrder							int not null default(0),
+	MenuGroupId							int not null default(1),
+	IsBackend							bit not null default(1),
+	IsActive								bit not null default(1),
+	MenuId								int,
+	AddedOn								datetime not null default(getutcdate()),
+	UpdatedOn							datetime
+);
+
+CREATE UNIQUE INDEX IX_ModuleMenu_Unique
+	ON dbo.ModuleMenu (ModuleName, ModuleVersion, MenuKey);
+
+CREATE TABLE dbo.ModuleSetting
+(
+	ModuleSettingId						bigint primary key identity(1,1) not null,
+	ModuleName							nvarchar(256) not null,
+	ModuleVersion						nvarchar(64) not null,
+	SettingKey							nvarchar(256) not null,
+	Name								nvarchar(256) not null,
+	DataType							nvarchar(64),
+	DefaultValue							nvarchar(max),
+	IsRequired							bit not null default(0),
+	IsActive								bit not null default(1),
+	AddedOn								datetime not null default(getutcdate()),
+	UpdatedOn							datetime
+);
+
+CREATE UNIQUE INDEX IX_ModuleSetting_Unique
+	ON dbo.ModuleSetting (ModuleName, ModuleVersion, SettingKey);
 
 create TABLE dbo.Page
 (

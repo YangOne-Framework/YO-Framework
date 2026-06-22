@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Localization;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation;
 using Microsoft.AspNetCore.Razor.TagHelpers;
@@ -82,6 +83,7 @@ namespace YangOne.Web
             services.AddScoped<IYangOneConfigurationManager, YOConfigurationManager>();
             services.AddSingleton<IScriptRunner, SQLScriptRunner>();
             services.AddSingleton<IModuleService, ModuleService>();
+            services.TryAddSingleton(new ModuleContainer(Array.Empty<IModule>()));
             services.AddSingleton<IModuleManager, ModuleManager>();
             services.AddScoped<IModuleComponentProvider, ModuleComponentProvider>();
             services.AddScoped<ITemplateEngine, MustacheTemplateEngine>();
@@ -220,6 +222,22 @@ namespace YangOne.Web
                 .AddViewLocalization()
                 .AddRazorRuntimeCompilation()
                 .AddViewComponentsAsServices(); //.SetCompatibilityVersion(CompatibilityVersion.Version_2_2); 
+            var moduleProvider = services.BuildServiceProvider();
+            var moduleContainer = moduleProvider.GetService<ModuleContainer>();
+            if (moduleContainer != null)
+            {
+                mvcBuilder.ConfigureApplicationPartManager(applicationPartManager =>
+                {
+                    foreach (var module in moduleContainer.Modules.Where(x => x.IsInstalled && x.Assembly != null))
+                    {
+                        var assemblyName = module.Assembly.GetName().Name;
+                        if (applicationPartManager.ApplicationParts.Any(x => x.Name == assemblyName))
+                            continue;
+
+                        applicationPartManager.ApplicationParts.Add(new AssemblyPart(module.Assembly));
+                    }
+                });
+            }
             //dual authorization support
             services.AddControllersWithViews().AddNewtonsoftJson();
             services.AddControllers().AddNewtonsoftJson();
@@ -253,6 +271,7 @@ namespace YangOne.Web
         public static IApplicationBuilder UseYOWeb(this IApplicationBuilder app, IWebHostEnvironment hostingEnvironment, bool useDefaultRoute = true)
         {
 
+            app.UseMiddleware<ModuleGateMiddleware>();
             app.UseMiddleware<ModuleResourceMiddleware>();
             var provider = new FileExtensionContentTypeProvider();
             // Add new mappings

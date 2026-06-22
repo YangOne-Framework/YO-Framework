@@ -20,6 +20,17 @@ public class CheckSeoUrlRequest
 public class ModuleActionRequest
 {
     public string ModuleName { get; set; } = string.Empty;
+    public string Version { get; set; } = string.Empty;
+    public bool PurgeData { get; set; }
+}
+
+/// <summary>
+/// Represents a module ZIP upload request.
+/// </summary>
+public class ModulePackageUploadRequest
+{
+    [Required]
+    public IFormFile? PackageFile { get; set; }
 }
 
 /// <summary>

@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\..\Core\YangOne.Web\YangOne.Web.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Module\EmbeddedMigrations\install.sql" LogicalName="$(AssemblyName).db.mssql.install.sql" />
+    <EmbeddedResource Include="Module\EmbeddedMigrations\uninstall.sql" LogicalName="$(AssemblyName).db.mssql.uninstall.sql" />
+    <EmbeddedResource Include="Module\EmbeddedMigrations\upgrade\1_0_0_to_1_1_0\001_upgrade.sql" LogicalName="$(AssemblyName).db.mssql.upgrade.1_0_0_to_1_1_0.001_upgrade.sql" />
+  </ItemGroup>
+
+</Project>

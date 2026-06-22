@@ -26,7 +26,13 @@ namespace YangOne.Web.Module
             { ".png", "image/png" },
             { ".gif", "image/gif" },
             { ".css", "text/css" },
-            { ".js", "text/javascript" }
+            { ".js", "text/javascript" },
+            { ".html", "text/html" },
+            { ".json", "application/json" },
+            { ".svg", "image/svg+xml" },
+            { ".webp", "image/webp" },
+            { ".wasm", "application/wasm" },
+            { ".map", "application/json" }
         };
         #endregion
 
@@ -47,6 +53,15 @@ namespace YangOne.Web.Module
         public async Task Invoke(HttpContext context)
         {
             var path = context.Request.Path.Value;
+            if (path.StartsWith("/modules/"))
+            {
+                if (await TryServeVersionedFrontendAsync(context, path))
+                    return;
+
+                context.Response.StatusCode = 404;
+                return;
+            }
+
             if (path.StartsWith("/module/"))
             {
                 var moduleContainer = context.RequestServices.GetService<ModuleContainer>();
@@ -67,6 +82,37 @@ namespace YangOne.Web.Module
                 {
                     context.Response.StatusCode = 404;
                     return;
+                }
+                if (moduleAssembly is ManifestModule manifestModule && Directory.Exists(manifestModule.FrontendPath))
+                {
+                    var remainingPath = string.Join('/', pathparts.Skip(2));
+                    if (string.IsNullOrWhiteSpace(remainingPath))
+                        remainingPath = manifestModule.Manifest.ReactEntryPoint ?? "index.html";
+
+                    if (remainingPath.StartsWith("frontend/", StringComparison.OrdinalIgnoreCase))
+                        remainingPath = remainingPath.Substring("frontend/".Length);
+
+                    var physicalPath = Path.GetFullPath(Path.Combine(manifestModule.FrontendPath, remainingPath.Replace('/', Path.DirectorySeparatorChar)));
+                    var frontendRoot = Path.GetFullPath(manifestModule.FrontendPath);
+                    if (physicalPath.StartsWith(frontendRoot, StringComparison.OrdinalIgnoreCase) && File.Exists(physicalPath))
+                    {
+                        var physicalFileInfo = new FileInfo(physicalPath);
+                        var etag = GenerateETag(path, physicalFileInfo.LastWriteTimeUtc);
+                        var etagHeader = context.Request.Headers["If-None-Match"];
+                        if (etagHeader.Count == 0 || etagHeader[0] != etag)
+                        {
+                            context.Response.ContentType = GetContentType(Path.GetExtension(physicalPath));
+                            context.Response.ContentLength = physicalFileInfo.Length;
+                            context.Response.Headers["ETag"] = etag;
+                            context.Response.GetTypedHeaders().LastModified = new DateTimeOffset(physicalFileInfo.LastWriteTimeUtc);
+                            await context.Response.SendFileAsync(physicalPath);
+                        }
+                        else
+                        {
+                            context.Response.StatusCode = StatusCodes.Status304NotModified;
+                        }
+                        return;
+                    }
                 }
                 var provider = new EmbeddedFileProvider(moduleAssembly.Assembly);
                 var resourceFilepath = path.Replace("/module/", "");
@@ -109,6 +155,61 @@ namespace YangOne.Web.Module
             {
                 await next.Invoke(context);
             }
+        }
+
+        private async Task<bool> TryServeVersionedFrontendAsync(HttpContext context, string path)
+        {
+            var moduleContainer = context.RequestServices.GetService<ModuleContainer>();
+            if (moduleContainer == null)
+                return false;
+
+            var pathparts = path.Split('/').Where(x => !string.IsNullOrWhiteSpace(x)).ToArray();
+            if (pathparts.Length < 4 || !pathparts[0].Equals("modules", StringComparison.OrdinalIgnoreCase) || !pathparts[3].Equals("ui", StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            var moduleName = pathparts[1];
+            var requestedVersion = pathparts[2];
+            var module = moduleContainer.Modules.SingleOrDefault(e => e.Name.Equals(moduleName, StringComparison.OrdinalIgnoreCase));
+            if (module is not ManifestModule manifestModule || !module.IsInstalled || !manifestModule.Version.Equals(requestedVersion, StringComparison.OrdinalIgnoreCase))
+                return false;
+
+            var remainingPath = string.Join('/', pathparts.Skip(4));
+            if (string.IsNullOrWhiteSpace(remainingPath))
+                remainingPath = manifestModule.Manifest.ReactEntryPoint ?? "index.html";
+
+            return await TryServePhysicalFrontendFileAsync(context, manifestModule, remainingPath);
+        }
+
+        private async Task<bool> TryServePhysicalFrontendFileAsync(HttpContext context, ManifestModule manifestModule, string remainingPath)
+        {
+            if (!Directory.Exists(manifestModule.FrontendPath))
+                return false;
+
+            if (remainingPath.StartsWith("frontend/", StringComparison.OrdinalIgnoreCase))
+                remainingPath = remainingPath.Substring("frontend/".Length);
+
+            var physicalPath = Path.GetFullPath(Path.Combine(manifestModule.FrontendPath, remainingPath.Replace('/', Path.DirectorySeparatorChar)));
+            var frontendRoot = Path.GetFullPath(manifestModule.FrontendPath);
+            if (!physicalPath.StartsWith(frontendRoot, StringComparison.OrdinalIgnoreCase) || !File.Exists(physicalPath))
+                return false;
+
+            var physicalFileInfo = new FileInfo(physicalPath);
+            var etag = GenerateETag(context.Request.Path.Value, physicalFileInfo.LastWriteTimeUtc);
+            var etagHeader = context.Request.Headers["If-None-Match"];
+            if (etagHeader.Count == 0 || etagHeader[0] != etag)
+            {
+                context.Response.ContentType = GetContentType(Path.GetExtension(physicalPath));
+                context.Response.ContentLength = physicalFileInfo.Length;
+                context.Response.Headers["ETag"] = etag;
+                context.Response.GetTypedHeaders().LastModified = new DateTimeOffset(physicalFileInfo.LastWriteTimeUtc);
+                await context.Response.SendFileAsync(physicalPath);
+            }
+            else
+            {
+                context.Response.StatusCode = StatusCodes.Status304NotModified;
+            }
+
+            return true;
         }
 
 

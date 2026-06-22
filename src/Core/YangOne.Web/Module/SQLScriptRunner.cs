@@ -4,6 +4,7 @@ using System.Data.Common;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Npgsql;
+using System.Text.RegularExpressions;
 using YangOne.Data;
 using YangOne.Data.Crud;
 using YangOne.Log;
@@ -41,7 +42,7 @@ namespace YangOne.Web.Module
                         {
                             foreach (var script in scripts)
                             {
-                                var sqlqueries = script.Split(new[] { " GO " }, StringSplitOptions.RemoveEmptyEntries);
+                                var sqlqueries = SplitSqlBatches(script);
                                 foreach (var query in sqlqueries)
                                 {
                                     await db.ExecuteAsync(query, transaction: tran);
@@ -119,11 +120,11 @@ namespace YangOne.Web.Module
                     {
                         foreach (var script in scripts)
                         {
-                            if (!string.IsNullOrWhiteSpace(script))
+                            foreach (var sqlBatch in SplitSqlBatches(script))
                             {
                                 try
                                 {
-                                    using (var cmd = new SqlCommand(script, db, transaction))
+                                    using (var cmd = new SqlCommand(sqlBatch, db, transaction))
                                     {
                                         await cmd.ExecuteNonQueryAsync();
                                     }
@@ -165,11 +166,11 @@ namespace YangOne.Web.Module
                     {
                         foreach (var script in scripts)
                         {
-                            if (!string.IsNullOrWhiteSpace(script))
+                            foreach (var sqlBatch in SplitSqlBatches(script))
                             {
                                 try
                                 {
-                                    using (var cmd = new NpgsqlCommand(script, db, transaction))
+                                    using (var cmd = new NpgsqlCommand(sqlBatch, db, transaction))
                                     {
                                         await cmd.ExecuteNonQueryAsync();
                                     }
@@ -363,6 +364,16 @@ namespace YangOne.Web.Module
             {
                 throw e;
             }
+        }
+
+        private static IEnumerable<string> SplitSqlBatches(string script)
+        {
+            if (string.IsNullOrWhiteSpace(script))
+                return Enumerable.Empty<string>();
+
+            return Regex.Split(script, @"^\s*GO\s*;?\s*$", RegexOptions.Multiline | RegexOptions.IgnoreCase)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim());
         }
     }
 }

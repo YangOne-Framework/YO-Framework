@@ -32,6 +32,8 @@ namespace YangOne.Web.Module
             {
                 var serviceProvider = _services.BuildServiceProvider();
                 var moduleService = serviceProvider.GetService<IModuleService>();
+                if (_hasDoneDbSetup)
+                    moduleService.EnsureModuleManagementSchemaAsync().GetAwaiter().GetResult();
 
                 var assesmblies = AppDomain.CurrentDomain.GetAssemblies();
 
@@ -64,7 +66,7 @@ namespace YangOne.Web.Module
                 foreach (var module in modules)
                 {
                     if (_hasDoneDbSetup)
-                        Task.Run(async () => await moduleService.Save(module));
+                        moduleService.Save(module).GetAwaiter().GetResult();
                 }
 
                 if (_hasDoneDbSetup)
@@ -81,10 +83,20 @@ namespace YangOne.Web.Module
                     }
                 }
 
-                _services.TryAddSingleton(new ModuleContainer(modules));
-                _logger.Log(LogType.Trace, () => $"Total {modules.Count} Modules Found.");
+                _services.AddSingleton(new ModuleContainer(modules));
+                _logger.Log(LogType.Trace, () => $"Total {modules.Count} Built-in Modules Found.");
                 serviceProvider = _services.BuildServiceProvider();
                 var moduleManager = serviceProvider.GetService<IModuleManager>();
+                if (moduleManager is ModuleManager manager)
+                {
+                    var packagedModules = manager.LoadActivePackageModules().ToList();
+                    foreach (var packagedModule in packagedModules)
+                    {
+                        if (_hasDoneDbSetup)
+                            moduleService.Save(packagedModule).GetAwaiter().GetResult();
+                    }
+                    _logger.Log(LogType.Trace, () => $"Total {packagedModules.Count} Package Modules Loaded.");
+                }
                 var cacheService = serviceProvider.GetService<ICacheService>();
                 var modulesFileProvider = new ModuleViewProvider(moduleManager, cacheService);
 
@@ -98,7 +110,7 @@ namespace YangOne.Web.Module
             catch (Exception e)
             {
                 _logger.Log(LogType.Error, () => $"Module registration failed.", e);
-                throw e;
+                throw;
             }
         }
     }

@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>YangOne.Sample.Inventory.Module</AssemblyName>
+    <RootNamespace>YangOne.Sample.Inventory.Module</RootNamespace>
+    <Description>Sample installable YO module with embedded SQL migrations and API-only runtime surface.</Description>
+    <ModulePackageVersion Condition="'$(ModulePackageVersion)' == ''">1.0.0</ModulePackageVersion>
+    <ModuleAssemblyVersion Condition="'$(ModuleAssemblyVersion)' == ''">$(ModulePackageVersion).0</ModuleAssemblyVersion>
+    <Version>$(ModulePackageVersion)</Version>
+    <AssemblyVersion>$(ModuleAssemblyVersion)</AssemblyVersion>
+    <FileVersion>$(ModuleAssemblyVersion)</FileVersion>
+    <InformationalVersion>$(ModulePackageVersion)</InformationalVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\YangOne.Web\YangOne.Web.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="db\mssql\install.sql" LogicalName="$(AssemblyName).db.mssql.install.sql" />
+    <EmbeddedResource Include="db\mssql\uninstall.sql" LogicalName="$(AssemblyName).db.mssql.uninstall.sql" />
+    <EmbeddedResource Include="db\mssql\upgrade\1_0_0_to_1_1_0\001_upgrade.sql" LogicalName="$(AssemblyName).db.mssql.upgrade.1_0_0_to_1_1_0.001_upgrade.sql" />
+    <EmbeddedResource Include="db\mssql\rollback\1_1_0_to_1_0_0\001_rollback.sql" LogicalName="$(AssemblyName).db.mssql.rollback.1_1_0_to_1_0_0.001_rollback.sql" />
+  </ItemGroup>
+
+</Project>
