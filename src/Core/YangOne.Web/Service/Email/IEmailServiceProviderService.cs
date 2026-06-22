@@ -15,8 +15,9 @@ namespace YangOne.Web.Services
         CrudService<EmailServiceProviderSetting> SettingCrudService { get; set; }
         Task<IEmailSender> GetDefaultEmailSender();
         Task<IEnumerable<EmailServiceProviderSetting>> GetSettings(int emailServiceProviderId);
-        T GetSettings<T>(int emailServiceProviderId) where T : class;
-        T GetSettings<T>(string name) where T : class;
+        Task<IEnumerable<EmailServiceProviderSetting>> GetSettings(string name);
+        Task<T> GetSettingsAsync<T>(int emailServiceProviderId) where T : class;
+        Task<T> GetSettingsAsync<T>(string name) where T : class;
         Task<bool> SaveSetting<T>(T setting, int emailServiceProviderId);
         Task<bool> SetDefaultProviderAsync(int id);
         Task<EmailServiceProvider> GetDefaultProviderAsync();

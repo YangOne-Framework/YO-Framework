@@ -44,13 +44,9 @@ namespace YangOne.RTC
                     break;
             }
 
-            //var messages = _tempDataWrapper.Get<IList<Notification>>(_key) ?? new List<Notification>();
-            //messages.Add(notification);
-            //_tempDataWrapper.Add(_key, messages);
-
             var userConnectionIds =
-                _connectionManager.GetUserConnectionIds(ContextResolver.Context.User.Identity.GetIdentityUserId()).Result;
-            _hubContext.Clients.Clients(userConnectionIds.ToArray()).SendAsync("OnNotificationRecieved", notification);
+                _connectionManager.GetUserConnectionIds(ContextResolver.Context.User.Identity.GetIdentityUserId()).GetAwaiter().GetResult();
+            _hubContext.Clients.Clients(userConnectionIds.ToArray()).SendAsync("OnNotificationRecieved", notification).GetAwaiter().GetResult();
             return true;
         }
 

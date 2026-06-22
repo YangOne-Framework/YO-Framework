@@ -71,13 +71,13 @@ namespace YangOne.Storage
 
 
 
-        public Task<bool> Delete(string dirPath, string filePath)
+        public async Task<bool> Delete(string dirPath, string filePath)
         {
-            string physicallPath = CheckOrCreateDirectory(dirPath).Result;
+            string physicallPath = await CheckOrCreateDirectory(dirPath);
             var path = Path.Combine(physicallPath, filePath);
             if (File.Exists(path))
                 File.Delete(path);
-            return Task.FromResult(true);
+            return true;
         }
 
         public Task<bool> Delete(string filePath)

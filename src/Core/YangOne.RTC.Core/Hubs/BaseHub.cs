@@ -21,7 +21,7 @@ namespace YangOne.RTC.Hubs
             ConnectionManager = connectionManager;
         }
 
-        public   override Task OnConnectedAsync()
+        public override async Task OnConnectedAsync()
         {
             string connectionId = Context.ConnectionId;
             var rtcUser = new RTCUser();
@@ -31,43 +31,38 @@ namespace YangOne.RTC.Hubs
             rtcUser.ConnectionIds.Add(connectionId);
             rtcUser.IdentityUserId = context.User.Identity.GetIdentityUserId();
             rtcUser.SessionId = context.Session.Id;
-          
+
             rtcUser.HubNames.Add(this.GetType().Name);
-            //rtcUser.IsFromMobile = false;
             rtcUser.IsFromWeb = true;
             rtcUser.UserRoles = string.Join(',', context.User.Identity.GetRoles());
             rtcUser.ConnectionId = connectionId;
             ConnectionManager.AddUser(rtcUser);
-          
-                try
-                 {
-                    var status =  ConnectionManager.GetOnlineUserStatus().Result;
-                     Clients.All.SendAsync("OnUserChange", status);
-                }
-                catch (Exception e)
-                {
-                    
-                }
-               
-            
-         
-            return base.OnConnectedAsync();
+
+            try
+            {
+                var status = await ConnectionManager.GetOnlineUserStatus();
+                await Clients.All.SendAsync("OnUserChange", status);
+            }
+            catch
+            {
+            }
+
+            await base.OnConnectedAsync();
         }
 
-        public override Task OnDisconnectedAsync(Exception exception)
+        public override async Task OnDisconnectedAsync(Exception exception)
         {
             ConnectionManager.RemoveUser(Context.ConnectionId);
             try
             {
-                var status = ConnectionManager.GetOnlineUserStatus().Result;
-                Clients.All.SendAsync("OnUserChange", status);
+                var status = await ConnectionManager.GetOnlineUserStatus();
+                await Clients.All.SendAsync("OnUserChange", status);
             }
-            catch (Exception e)
+            catch
             {
-
             }
 
-            return base.OnDisconnectedAsync(exception);
+            await base.OnDisconnectedAsync(exception);
         }
     }
 }

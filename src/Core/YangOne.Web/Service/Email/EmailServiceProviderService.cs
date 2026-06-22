@@ -150,79 +150,34 @@ namespace YangOne.Web.Services
             var emailServiceProvider = ProviderCrudService.Get("Where Name=@Name", new {Name = name});
             return await SettingCrudService.GetListAsync(@"Where EmailServiceProviderId=@EmailServiceProviderId", new { emailServiceProvider.EmailServiceProviderId });
         }
-        public T GetSettings<T>(int emailServiceProviderId) where T : class
+        public async Task<T> GetSettingsAsync<T>(int emailServiceProviderId) where T : class
         {
-
-            try
-            {
-
-                // var dbfactory = DbFactoryProvider.GetFactory();
-
-                IEnumerable<EmailServiceProviderSetting> settings = GetSettings(emailServiceProviderId).Result;
-
-
-                var settingObj = Activator.CreateInstance<T>();
-                var settingObjType = settingObj.GetType();
-                PropertyInfo[] pi = settingObjType.GetProperties();
-                foreach (var setting in settings)
-                {
-                    var prop = pi.SingleOrDefault(z => z.Name == setting.ProviderKey);
-                    if (prop != null)
-                    {
-                        Type tPropertyType = settingObjType.GetProperty(prop.Name).PropertyType;
-                        // Fix nullables...
-                        Type newT = Nullable.GetUnderlyingType(tPropertyType) ?? tPropertyType;
-                        object newValue = Convert.ChangeType(setting.ProviderValue, newT);
-                        settingObj.GetType().GetProperty(prop.Name).SetValue(settingObj, newValue, null);
-                    }
-                }
-
-
-                return settingObj as T;
-
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
+            IEnumerable<EmailServiceProviderSetting> settings = await GetSettings(emailServiceProviderId);
+            return MapSettings<T>(settings);
         }
-        public T GetSettings<T>(string name) where T : class
+
+        public async Task<T> GetSettingsAsync<T>(string name) where T : class
         {
+            IEnumerable<EmailServiceProviderSetting> settings = await GetSettings(name);
+            return MapSettings<T>(settings);
+        }
 
-            try
+        private static T MapSettings<T>(IEnumerable<EmailServiceProviderSetting> settings) where T : class
+        {
+            var settingObj = Activator.CreateInstance<T>();
+            var settingObjType = settingObj.GetType();
+            PropertyInfo[] pi = settingObjType.GetProperties();
+            foreach (var setting in settings)
             {
+                var prop = pi.SingleOrDefault(z => z.Name == setting.ProviderKey);
+                if (prop == null) continue;
 
-                // var dbfactory = DbFactoryProvider.GetFactory();
-
-                IEnumerable<EmailServiceProviderSetting> settings = GetSettings(name).Result;
-
-
-                var settingObj = Activator.CreateInstance<T>();
-                var settingObjType = settingObj.GetType();
-                PropertyInfo[] pi = settingObjType.GetProperties();
-                foreach (var setting in settings)
-                {
-                    var prop = pi.SingleOrDefault(z => z.Name == setting.ProviderKey);
-                    if (prop != null)
-                    {
-                        Type tPropertyType = settingObjType.GetProperty(prop.Name).PropertyType;
-                        // Fix nullables...
-                        Type newT = Nullable.GetUnderlyingType(tPropertyType) ?? tPropertyType;
-                        object newValue = Convert.ChangeType(setting.ProviderValue, newT);
-                        settingObj.GetType().GetProperty(prop.Name).SetValue(settingObj, newValue, null);
-                    }
-                }
-
-
-                return settingObj as T;
-
+                Type tPropertyType = settingObjType.GetProperty(prop.Name).PropertyType;
+                Type newT = Nullable.GetUnderlyingType(tPropertyType) ?? tPropertyType;
+                object newValue = Convert.ChangeType(setting.ProviderValue, newT);
+                settingObj.GetType().GetProperty(prop.Name).SetValue(settingObj, newValue, null);
             }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
+            return settingObj as T;
         }
         public async Task<bool> SaveSetting<T>(T setting, int emailServiceProviderId)
         {

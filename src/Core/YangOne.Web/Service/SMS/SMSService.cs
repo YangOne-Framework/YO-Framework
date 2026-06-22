@@ -68,73 +68,35 @@ namespace YangOne.Web.Service
             var provider = GatewayCrudService.Get("Where Name=@Name", new {Name = name});
             return await SettingCrudService.GetListAsync(@"Where SmsGatewayId=@SmsGatewayId", new { provider.SMSGatewayId });
         }
-
-        public T GetSettings<T>(int smsGatewayId) where T : class
+        public async Task<T> GetSettingsAsync<T>(int smsGatewayId) where T : class
         {
-            try
-            {
-
-                // var dbfactory = DbFactoryProvider.GetFactory();
-
-                IEnumerable<SMSGatewaySetting> settings = GetSettings(smsGatewayId).Result;
-
-
-                var settingObj = Activator.CreateInstance<T>();
-                var settingObjType = settingObj.GetType();
-                PropertyInfo[] pi = settingObjType.GetProperties();
-                foreach (var setting in settings)
-                {
-                    var prop = pi.SingleOrDefault(z => z.Name == setting.GatewayKey);
-                    if (prop != null)
-                    {
-                        Type tPropertyType = settingObjType.GetProperty(prop.Name).PropertyType;
-                        // Fix nullables...
-                        Type newT = Nullable.GetUnderlyingType(tPropertyType) ?? tPropertyType;
-                        object newValue = Convert.ChangeType(setting.GatewayValue, newT);
-                        settingObj.GetType().GetProperty(prop.Name).SetValue(settingObj, newValue, null);
-                    }
-                }
-
-
-                return settingObj as T;
-
-            }
-            catch (Exception ex)
-            {
-
-                throw;
-            }
+            IEnumerable<SMSGatewaySetting> settings = await GetSettings(smsGatewayId);
+            return MapSettings<T>(settings);
         }
 
-        public T GetSettings<T>(string name) where T : class
+        public async Task<T> GetSettingsAsync<T>(string name) where T : class
         {
-            try
-            {
-                IEnumerable<SMSGatewaySetting> settings = GetSettings(name).Result;
-
-                var settingObj = Activator.CreateInstance<T>();
-                var settingObjType = settingObj.GetType();
-                PropertyInfo[] pi = settingObjType.GetProperties();
-                foreach (var setting in settings)
-                {
-                    var prop = pi.SingleOrDefault(z => z.Name == setting.GatewayKey);
-                    if (prop != null)
-                    {
-                        Type tPropertyType = settingObjType.GetProperty(prop.Name).PropertyType;
-                        Type newT = Nullable.GetUnderlyingType(tPropertyType) ?? tPropertyType;
-                        object newValue = Convert.ChangeType(setting.GatewayValue, newT);
-                        settingObj.GetType().GetProperty(prop.Name).SetValue(settingObj, newValue, null);
-                    }
-                }
-
-                return settingObj as T;
-            }
-            catch (Exception ex)
-            {
-                throw;
-            }
+            IEnumerable<SMSGatewaySetting> settings = await GetSettings(name);
+            return MapSettings<T>(settings);
         }
 
+        private static T MapSettings<T>(IEnumerable<SMSGatewaySetting> settings) where T : class
+        {
+            var settingObj = Activator.CreateInstance<T>();
+            var settingObjType = settingObj.GetType();
+            PropertyInfo[] pi = settingObjType.GetProperties();
+            foreach (var setting in settings)
+            {
+                var prop = pi.SingleOrDefault(z => z.Name == setting.GatewayKey);
+                if (prop == null) continue;
+
+                Type tPropertyType = settingObjType.GetProperty(prop.Name).PropertyType;
+                Type newT = Nullable.GetUnderlyingType(tPropertyType) ?? tPropertyType;
+                object newValue = Convert.ChangeType(setting.GatewayValue, newT);
+                settingObj.GetType().GetProperty(prop.Name).SetValue(settingObj, newValue, null);
+            }
+            return settingObj as T;
+        }
         public async Task<bool> SaveSetting<T>(T setting, int smsGatewayId)
         {
             var dbFactory = DbFactoryProvider.GetFactory();

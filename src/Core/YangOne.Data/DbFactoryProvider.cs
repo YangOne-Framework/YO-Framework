@@ -10,22 +10,24 @@ namespace YangOne.Data
     public static class DbFactoryProvider
     {
         private static IDatabaseFactory _currentDatabaseFactory;
+        private static readonly object _lock = new();
 
         public static void SetCurrentDbFactory(IDatabaseFactory dbFactory)
         {
-            _currentDatabaseFactory = dbFactory;
+            lock (_lock)
+            {
+                _currentDatabaseFactory = dbFactory;
+            }
         }
 
-        //public static IDatabaseFactory GetFactory(string connectionString)
-        //{
-        //    IDatabaseFactory dbfactory = _currentDatabaseFactory ?? new MsSQLFactory(connectionString);
-        //    return dbfactory;
-        //}
         public static IDatabaseFactory GetFactory()
         {
-            if(_currentDatabaseFactory==null)
-                throw new Exception("Please set first default db factory!");
-            return _currentDatabaseFactory;
+            lock (_lock)
+            {
+                if (_currentDatabaseFactory == null)
+                    throw new InvalidOperationException("Database factory has not been initialized. Call SetCurrentDbFactory during startup.");
+                return _currentDatabaseFactory;
+            }
         }
 
     }

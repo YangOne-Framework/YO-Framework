@@ -18,8 +18,8 @@ namespace YangOne.Web.Services
         Task<ISmsSender> GetDefaultSmsSender();
         Task<IEnumerable<SMSGatewaySetting>> GetSettings(int smsGatewayId);
         Task<IEnumerable<SMSGatewaySetting>> GetSettings(string name);
-        T GetSettings<T>(int smsGatewayId) where T : class;
-        T GetSettings<T>(string name) where T : class;
+        Task<T> GetSettingsAsync<T>(int smsGatewayId) where T : class;
+        Task<T> GetSettingsAsync<T>(string name) where T : class;
         Task<bool> SaveSetting<T>(T setting, int smsGatewayId);
         Task<bool> SetDefaultProviderAsync(int id);
         Task<SMSGateway> GetDefaultProviderAsync();

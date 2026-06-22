@@ -17,17 +17,16 @@ namespace YangOne.Web.TagHelpers
 
         [HtmlAttributeName("source")]
         public ModelExpression Source { get; set; }
-        public override void Process(TagHelperContext context, TagHelperOutput output)
+        public override async Task ProcessAsync(TagHelperContext context, TagHelperOutput output)
         {
-
-         
             if (Source != null)
             {
                 Text = Source.Model.ToString();
             }
             else
             {
-                Text = output.GetChildContentAsync().Result.GetContent();
+                var childContent = await output.GetChildContentAsync();
+                Text = childContent.GetContent();
             }
 
             string result = CommonMark.CommonMarkConverter.Convert(Text);

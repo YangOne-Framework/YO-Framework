@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Yang One Framework. All rights reserved.
 // Licensed under the MIT License. See LICENSE in the project root for license information.
+using System.Data.Common;
 using System.IO.Compression;
 using System.Reflection;
 using System.Runtime.Loader;
@@ -9,6 +10,8 @@ using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using YangOne.Extensions;
+using Dapper;
+using YangOne.Data;
 using YangOne.Log;
 
 namespace YangOne.Web.Module
@@ -304,17 +307,24 @@ namespace YangOne.Web.Module
             if (moduleInfo == null)
                 return ModuleOperationResult.Fail(moduleName, string.Empty, ModuleLifecycleState.Failed, "Module was not found.");
 
+            var moduleKey = moduleInfo.ModuleKey ?? moduleInfo.Name;
             var version = moduleInfo.ActiveVersion ?? moduleInfo.Version;
-            var module = _moduleContainer.Modules.FirstOrDefault(x => x.Name.Equals(moduleName, StringComparison.OrdinalIgnoreCase));
-            if (module != null)
-                module.IsInstalled = false;
 
-            await _moduleService.UpdateStateAsync(moduleInfo.ModuleKey ?? moduleInfo.Name, version, ModuleLifecycleState.PendingDisable, ModuleRuntimeState.Stopping, ModuleOperationType.Disable.ToString(), null, false, userId);
-            await _moduleService.DeactivateManifestRegistrationAsync(moduleInfo.ModuleKey ?? moduleInfo.Name, version, userId);
-            await _moduleService.UpdateStateAsync(moduleInfo.ModuleKey ?? moduleInfo.Name, version, ModuleLifecycleState.Disabled, ModuleRuntimeState.Stopped, ModuleOperationType.Disable.ToString(), null, false, userId);
-            await WriteStateFileAsync(moduleInfo.ModuleKey ?? moduleInfo.Name, version, ModuleLifecycleState.Disabled, ModuleRuntimeState.Stopped, string.Empty);
-            await _moduleService.AddOperationAsync(moduleInfo.ModuleKey ?? moduleInfo.Name, version, ModuleOperationType.Disable, ModuleOperationStatus.Succeeded, ModuleLifecycleState.Disabled, ModuleRuntimeState.Stopped, "Module disabled.", null, null, userId);
-            return ModuleOperationResult.Success(moduleInfo.ModuleKey ?? moduleInfo.Name, version, ModuleLifecycleState.Disabled, "Module disabled.");
+            var dependents = await FindDependentModulesAsync(moduleKey);
+            if (dependents.Any())
+            {
+                var names = string.Join(", ", dependents.Select(x => $"'{x}'"));
+                return ModuleOperationResult.Fail(moduleKey, version, ModuleLifecycleState.Failed, $"Cannot disable: the following modules depend on '{moduleKey}': {names}. Disable them first.");
+            }
+
+            _moduleContainer.Remove(moduleKey);
+
+            await _moduleService.UpdateStateAsync(moduleKey, version, ModuleLifecycleState.PendingDisable, ModuleRuntimeState.Stopping, ModuleOperationType.Disable.ToString(), null, false, userId);
+            await _moduleService.DeactivateManifestRegistrationAsync(moduleKey, version, userId);
+            await _moduleService.UpdateStateAsync(moduleKey, version, ModuleLifecycleState.Disabled, ModuleRuntimeState.Stopped, ModuleOperationType.Disable.ToString(), null, false, userId);
+            await WriteStateFileAsync(moduleKey, version, ModuleLifecycleState.Disabled, ModuleRuntimeState.Stopped, string.Empty);
+            await _moduleService.AddOperationAsync(moduleKey, version, ModuleOperationType.Disable, ModuleOperationStatus.Succeeded, ModuleLifecycleState.Disabled, ModuleRuntimeState.Stopped, "Module disabled.", null, null, userId);
+            return ModuleOperationResult.Success(moduleKey, version, ModuleLifecycleState.Disabled, "Module disabled.");
         }
 
         public async Task<ModuleOperationResult> PingAsync(string moduleName)
@@ -442,6 +452,13 @@ namespace YangOne.Web.Module
             var versionPath = GetVersionPath(moduleKey, version);
             var manifest = ReadManifest(versionPath);
 
+            var dependents = await FindDependentModulesAsync(moduleKey);
+            if (dependents.Any())
+            {
+                var names = string.Join(", ", dependents.Select(x => $"'{x}'"));
+                return ModuleOperationResult.Fail(moduleKey, version, ModuleLifecycleState.Failed, $"Cannot uninstall: the following modules depend on '{moduleKey}': {names}. Uninstall them first.");
+            }
+
             await _moduleService.UpdateStateAsync(moduleKey, version, ModuleLifecycleState.PendingUninstall, ModuleRuntimeState.Stopping, ModuleOperationType.Uninstall.ToString(), null, false, userId);
             await _moduleService.AddOperationAsync(moduleKey, version, ModuleOperationType.Uninstall, ModuleOperationStatus.Started, ModuleLifecycleState.PendingUninstall, ModuleRuntimeState.Stopping, "Module uninstall pending.", manifest, null, userId);
             await _moduleService.UpdateStateAsync(moduleKey, version, ModuleLifecycleState.Uninstalling, ModuleRuntimeState.Stopping, ModuleOperationType.Uninstall.ToString(), null, false, userId);
@@ -457,14 +474,15 @@ namespace YangOne.Web.Module
                 }
             }
 
-            var module = _moduleContainer.Modules.FirstOrDefault(x => x.Name.Equals(moduleKey, StringComparison.OrdinalIgnoreCase));
-            if (module != null)
-                module.IsInstalled = false;
+            _moduleContainer.Remove(moduleKey);
 
             await _moduleService.Uninstall(moduleKey);
             await _moduleService.DeactivateManifestRegistrationAsync(moduleKey, version, userId);
             await WriteStateFileAsync(moduleKey, version, ModuleLifecycleState.Uninstalled, ModuleRuntimeState.Stopped, string.Empty);
             await _moduleService.AddOperationAsync(moduleKey, version, ModuleOperationType.Uninstall, ModuleOperationStatus.Succeeded, ModuleLifecycleState.Uninstalled, ModuleRuntimeState.Stopped, purgeData ? "Module uninstalled and data purge scripts completed." : "Module uninstalled without purging data.", manifest, null, userId);
+
+            CleanModuleDirectory(moduleKey);
+
             return ModuleOperationResult.Success(moduleKey, version, ModuleLifecycleState.Uninstalled, purgeData ? "Module uninstalled and data purge scripts completed." : "Module uninstalled without purging data.");
         }
 
@@ -952,15 +970,20 @@ namespace YangOne.Web.Module
             }
         }
 
-        private static bool HasLoadedDifferentVersionOfAssembly(string assemblyPath)
+        private bool HasLoadedDifferentVersionOfAssembly(string assemblyPath)
         {
             if (!File.Exists(assemblyPath))
                 return false;
 
             var requestedAssemblyName = AssemblyName.GetAssemblyName(assemblyPath);
-            return AssemblyLoadContext.Default.Assemblies.Any(x =>
+            var conflict = AssemblyLoadContext.Default.Assemblies.FirstOrDefault(x =>
                 string.Equals(x.GetName().Name, requestedAssemblyName.Name, StringComparison.OrdinalIgnoreCase)
                 && !string.Equals(x.GetName().FullName, requestedAssemblyName.FullName, StringComparison.OrdinalIgnoreCase));
+            if (conflict != null)
+            {
+                _logger.Log(LogType.Warn, () => $"Version conflict: module assembly '{requestedAssemblyName.FullName}' cannot be loaded because '{conflict.GetName().FullName}' is already loaded. Restart the application to load the new version.");
+            }
+            return conflict != null;
         }
 
         private Assembly LoadAssemblyIfNeeded(string assemblyPath)
@@ -1140,6 +1163,36 @@ namespace YangOne.Web.Module
             expected = expected.Replace("sha256:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
             actual = actual.Replace("sha256:", string.Empty, StringComparison.OrdinalIgnoreCase).Trim();
             return expected.Equals(actual, StringComparison.OrdinalIgnoreCase);
+        }
+
+        private async Task<IEnumerable<string>> FindDependentModulesAsync(string moduleName)
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                return await db.QueryAsync<string>(@"
+SELECT DISTINCT d.ModuleName
+FROM dbo.ModuleDependency d
+INNER JOIN dbo.Module m ON m.Name = d.ModuleName OR m.ModuleKey = d.ModuleName
+WHERE d.DependencyModuleName = @ModuleName
+  AND m.IsInstalled = 1",
+                    new { ModuleName = moduleName });
+            }
+        }
+
+        private void CleanModuleDirectory(string moduleId)
+        {
+            try
+            {
+                var root = GetModuleRoot(moduleId);
+                if (Directory.Exists(root))
+                    Directory.Delete(root, true);
+            }
+            catch (Exception ex)
+            {
+                _logger.Log(LogType.Warn, () => $"Failed to clean up module directory for '{moduleId}'.", ex);
+            }
         }
     }
 }

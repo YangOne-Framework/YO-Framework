@@ -23,7 +23,7 @@ namespace YangOne.Identity
     {
         public void Register(IServiceCollection serviceCollection, IConfiguration configuration)
         {
-            IdentityModelEventSource.ShowPII = true;
+            IdentityModelEventSource.ShowPII = false;
             serviceCollection.TryAddTransient<IUserDeviceService, UserDeviceService>();
             serviceCollection.ConfigureIdentityCryptography(configuration.GetSection("DapperIdentityCryptography"));
 
@@ -59,7 +59,7 @@ namespace YangOne.Identity
                 options.CookieManager = new CookieManager();
                 options.Cookie.Domain = configuration["YangOneAppConfig:CookieDomain"];
                 options.Cookie.SameSite = SameSiteMode.Lax;
-                options.Cookie.HttpOnly = false;
+                options.Cookie.HttpOnly = true;
                 options.ExpireTimeSpan = TimeSpan.FromDays(30);
                 options.DataProtectionProvider = DataProtectionProvider.Create(new DirectoryInfo(configuration["YangOneAppConfig:DataProtectionKeyPath"]));
 

@@ -24,6 +24,7 @@ using YangOne.Extensions;
 using YangOne.IdentityServer.Model;
 using YangOne.IdentityServer.Service;
 using YangOne.Web;
+using YangOne.Web.Middleware;
 using Hangfire;
 using YangOne.Web.API;
 
@@ -313,7 +314,7 @@ namespace YOApp
                     opts.IncludeErrorDetails = true;
                     opts.TokenValidationParameters = new TokenValidationParameters
                     {
-                        ValidateAudience = false,
+                        ValidateAudience = true,
                         RoleClaimType = "role",//to support   [Authorize(Roles = "SuperUser")]
 
                     };
@@ -386,17 +387,11 @@ namespace YOApp
                 app.UseHttpsRedirection();
             }
 
-            if (env.IsDevelopment())
+            app.UseGlobalExceptionHandling();
+
+            if (!env.IsDevelopment() && !disableHttpsRedirection)
             {
-                app.UseDeveloperExceptionPage();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Error");
-                if (!disableHttpsRedirection)
-                {
-                    app.UseHsts();
-                }
+                app.UseHsts();
             }
             app.UseCookiePolicy();
             app.UseSession();

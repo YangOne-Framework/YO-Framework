@@ -51,13 +51,14 @@ public class AccountController : Controller
     private readonly IConfiguration _configuration;
     private readonly IWebHostEnvironment _hostingEnvironment;
     private readonly IEmailServiceProviderService _emailServiceProviderService;
+    private readonly ISMSService _smsService;
     private IEmailSender _emailSender;
     private readonly ISettingService _settingService;
     private readonly IOTPService _otpService;
     private readonly ICacheService _cacheService;
     private readonly IEmailTemplateService _emailTemplateService;
     private readonly IUnSubscriptionService _unSubscriptionService;
-    private readonly ISmsSender _smsSender;
+    private ISmsSender _smsSender;
     private readonly ILogger _logger;
     private readonly ILoginHistoryService _loginHistoryService;
     private readonly IUserDeviceService _deviceService;
@@ -95,16 +96,15 @@ public class AccountController : Controller
         _configuration = configuration;
         _hostingEnvironment = hostingEnvironment;
         _emailServiceProviderService = emailServiceProviderService;
+        _smsService = smsService;
         _logger = logger;
         _loginHistoryService = loginHistoryService;
         _deviceService = deviceService;
-        _emailSender = emailServiceProviderService.GetDefaultEmailSender().Result ?? null;
         _settingService = settingService;
         _otpService = otpService;
         _cacheService = cacheService;
         _emailTemplateService = emailTemplateService;
         _unSubscriptionService = unSubscriptionService;
-        _smsSender = smsService.GetDefaultSmsSender().Result ?? null;
     }
 
     [HttpGet]
@@ -418,6 +418,7 @@ public class AccountController : Controller
 
                         if (dattime.AddSeconds(2) > DateTime.Now || dattime.AddSeconds(60) < DateTime.Now)
                         {
+                            _smsSender ??= await _smsService.GetDefaultSmsSender();
                             await _smsSender.SendSmsAsync($"{user.PhoneNumber}",
                                 $"{otp} is your  verification code.");
                             return Json(new { Code = 200, Message = _localeResourceProvider.Get("Account.SMS.SMSSentSuccessfully"), Data = true });
