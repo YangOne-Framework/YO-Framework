@@ -86,7 +86,7 @@ namespace YOApp
             //    "MyStrongPassword123!",
             //    X509KeyStorageFlags.MachineKeySet);
 
-            var encryptionCertificatePath = Path.Combine(hostingEnvironment.ContentRootPath,"app_data","certs","encryption.pfx");
+            var encryptionCertificatePath = Path.Combine(hostingEnvironment.ContentRootPath, "app_data", "certs", "encryption.pfx");
             var encryptionCertificatePassword = "MyStrongPassword123!";
             var encryptionCert = X509CertificateLoader.LoadPkcs12FromFile(
                 encryptionCertificatePath,
@@ -433,7 +433,7 @@ namespace YOApp
             app.UseYOCore(env, serviceProvider);
             app.UseYOWeb(env, false);
             app.UseRateLimiter();
-           
+
             app.UseEndpoints(endpoints =>
             {
                 var fOption = config.GetValue<string>("YangOneAppConfig:Framework");
@@ -471,7 +471,7 @@ namespace YOApp
 
         }
     }
-   
+
 }
 
 

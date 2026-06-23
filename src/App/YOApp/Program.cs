@@ -28,13 +28,17 @@ config.AddEnvironmentVariables();
 builder.Services.TryAddSingleton<ConfigChangeEvent, YangOneConfigChangeEvent>();
 Startup.ConfigureServices(builder.Services, config, env);
 
-builder.Services.AddYangOneBackgroundJobs(options =>
+var isInstalled = config["YangOneAppConfig:IsInstalled"]?.ToLower() != "false";
+if (isInstalled)
 {
-    options.Provider = BackgroundJobProvider.Hangfire;
-    options.HangfireConnectionString = builder.Configuration.GetConnectionString("JobConnection");
-    options.HangfireUseInMemoryStorage = false;
-    options.WorkerCount = Environment.ProcessorCount * 2;
-});
+    builder.Services.AddYangOneBackgroundJobs(options =>
+    {
+        options.Provider = BackgroundJobProvider.Hangfire;
+        options.HangfireConnectionString = builder.Configuration.GetConnectionString("JobConnection");
+        options.HangfireUseInMemoryStorage = false;
+        options.WorkerCount = Environment.ProcessorCount * 2;
+    });
+}
 
 //builder.AddIdentityServer(builder.Configuration);
 var app = builder.Build();

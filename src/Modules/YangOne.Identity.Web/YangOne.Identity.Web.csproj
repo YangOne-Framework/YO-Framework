@@ -1,5 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+	<PropertyGroup>
+		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+		<RazorCompileOnBuild>true</RazorCompileOnBuild>
+		<RazorCompileOnPublish>true</RazorCompileOnPublish>
+	</PropertyGroup>
 
 	<ItemGroup>
 		<None Remove="Views\Account\Accessdenied.cshtml" />

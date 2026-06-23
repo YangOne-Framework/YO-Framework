@@ -23,11 +23,11 @@
 		<None Remove="Components\VideoPicker\Default.cshtml" />
 	</ItemGroup>
 	<ItemGroup>
-	  <Content Include="Areas\Views\Admin\Index.cshtml">
+	  <EmbeddedResource Include="Areas\Admin\Views\Admin\Index.cshtml">
 	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Content>
+	  </EmbeddedResource>
 	</ItemGroup>
 
 
