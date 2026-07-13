@@ -1,5 +1,4 @@
-﻿// Copyright (c) Yang One Framework. All rights reserved.
-// Licensed under the MIT License. See LICENSE in the project root for license information.
+﻿using System;
 using System.Data.Common;
 using Dapper;
 using YangOne.Web.Layout;
@@ -10,205 +9,428 @@ using YangOne.Data;
 using YangOne.Data.Extension;
 using YangOne.Extensions;
 using YangOne.Web.Model;
-namespace YangOne.Web
+
+namespace YangOne.Web;
+
+public class PageService : IPageService
 {
-    /// <summary>
-    /// Default implementation of <see cref="IPageService"/> providing full page management including CRUD, layout, and SEO.
-    /// </summary>
-    public class PageService : IPageService
+    private readonly IWebHostEnvironment _hostingEnvironment;
+    private readonly ILayoutRenderer _layoutRenderer;
+    private readonly ISeoService _seoService;
+    private readonly ICacheService _cacheService;
+
+    public PageService(IWebHostEnvironment hostingEnvironment, ILayoutRenderer layoutRenderer, ISeoService seoService
+        , ICacheService cacheService)
     {
-        private readonly IWebHostEnvironment _hostingEnvironment;
-        private readonly ILayoutRenderer _layoutRenderer;
-        private readonly ISeoService _seoService;
-        private readonly ICacheService _cacheService;
+        _hostingEnvironment = hostingEnvironment;
+        _layoutRenderer = layoutRenderer;
+        _seoService = seoService;
+        _cacheService = cacheService;
+    }
+    public CrudService<Page> CrudService { get; set; } = new CrudService<Page>();
 
-        public PageService(IWebHostEnvironment hostingEnvironment, ILayoutRenderer layoutRenderer, ISeoService seoService
-            , ICacheService cacheService)
+    // ========== Legacy Page Methods ==========
+
+    public async Task<bool> CheckPageExist(string url)
+    {
+        var dbFactory = DbFactoryProvider.GetFactory();
+        using (var db = (DbConnection)dbFactory.GetConnection())
         {
-            _hostingEnvironment = hostingEnvironment;
-            _layoutRenderer = layoutRenderer;
-            _seoService = seoService;
-            _cacheService = cacheService;
+            await db.OpenAsync();
+            var result = await db.QueryAsync<int>("Select 1 from Page Where IsActive=@isActive and IsDeleted= @isDeleted and URL=@URL", new { isActive = true, isDeleted = false, URL = url });
+            return result != null && (result.SingleOrDefault() == 1 ? true : false);
         }
-        public CrudService<Page> CrudService { get; set; } = new CrudService<Page>();
+    }
 
-        public async Task<bool> CheckPageExist(string url)
+    public string GetPageNamespaces(bool includeMasterLayout)
+    {
+        string viewImportsPath = Path.Combine(_hostingEnvironment.ContentRootPath, "Views\\_ViewImports.cshtml");
+        string viewStartPath = Path.Combine(_hostingEnvironment.ContentRootPath, "Views\\_ViewStart.cshtml");
+
+        if (File.Exists(viewImportsPath))
         {
-            var dbFactory = DbFactoryProvider.GetFactory();
-            using (var db = (DbConnection)dbFactory.GetConnection())
+            string fileContent = File.ReadAllText(viewImportsPath);
+            if (includeMasterLayout)
             {
-                await db.OpenAsync();
-                var result = await db.QueryAsync<int>("Select 1 from Page Where IsActive=@isActive and IsDeleted= @isDeleted and URL=@URL", new { isActive = true, isDeleted = false, URL = url });
-                return result != null && (result.SingleOrDefault() == 1 ? true : false);
-            }
-        }
-
-        public string GetPageNamespaces(bool includeMasterLayout)
-        {
-            string viewImportsPath = Path.Combine(_hostingEnvironment.ContentRootPath, "Views\\_ViewImports.cshtml");
-            string viewStartPath = Path.Combine(_hostingEnvironment.ContentRootPath, "Views\\_ViewStart.cshtml");
-
-            if (File.Exists(viewImportsPath))
-            {
-                string fileContent = File.ReadAllText(viewImportsPath);
-                if (includeMasterLayout)
+                if (File.Exists(viewStartPath))
                 {
-
-                    if (File.Exists(viewStartPath))
-                    {
-                        fileContent += "\n";
-                           fileContent += File.ReadAllText(viewStartPath);
-                    }
+                    fileContent += "\n";
+                    fileContent += File.ReadAllText(viewStartPath);
                 }
-                return fileContent;
             }
-            return "";
+            return fileContent;
         }
-        public async Task<PageViewModel> Get(int pageId)
+        return "";
+    }
+
+    public async Task<PageViewModel> Get(int pageId)
+    {
+        var dbFactory = DbFactoryProvider.GetFactory();
+        using (var db = (DbConnection)dbFactory.GetConnection())
         {
-            var dbFactory = DbFactoryProvider.GetFactory();
-            using (var db = (DbConnection)dbFactory.GetConnection())
+            await db.OpenAsync();
+            var result =
+                await db.QueryFirstAsync<PageViewModel>(
+                    "select p.PageId,p.Name,p.Url,p.UseMasterLayout,p.IsBackend,p.IsActive,p.IsPublished,s.SEOId,s.MetaDescription,s.MetaTitle,s.Image from Page as p left join Seo as s on p.PageId=s.PageId and s.SeoType='page' where  p.IsDeleted = @IsDeleted and p.PageId = @PageId",
+                    new { IsDeleted = false, PageId = pageId });
+            return result;
+        }
+    }
+
+    public async Task<bool> Save(PageViewModel model)
+    {
+        try
+        {
+            var dbfactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbfactory.GetConnection())
             {
                 await db.OpenAsync();
-                var result =
-                    await db.QueryFirstAsync<PageViewModel>(
-                        "select p.PageId,p.Name,p.Url,p.UseMasterLayout,p.IsBackend,p.IsActive,p.IsPublished,s.SEOId,s.MetaDescription,s.MetaTitle,s.Image from Page as p left join Seo as s on p.PageId=s.PageId and s.SeoType='page' where  p.IsDeleted = @IsDeleted and p.PageId = @PageId",
-                        new { IsDeleted = false, PageId = pageId });
-                return result;
-            }
-        }
-        public async Task<bool> Save(PageViewModel model)
-        {
-            try
-            {
-                var dbfactory = DbFactoryProvider.GetFactory();
-                using (var db = (DbConnection)dbfactory.GetConnection())
+                using (var tran = db.BeginTransaction())
                 {
-                    await db.OpenAsync();
-                    using (var tran = db.BeginTransaction())
+                    try
                     {
-                        try
+                        if (model.PageId == 0)
                         {
-                            if (model.PageId == 0)
+                            var seo = model.To<SEO>();
+                            seo.Url = model.Url;
+                            seo.PageName = model.Name;
+                            var page = new Page()
                             {
-                                var seo = model.To<SEO>();
-                                seo.Url = model.Url;
-                                seo.PageName = model.Name;
-                                var page = new Page()
-                                {
-                                    PageId = model.PageId,
-                                    Name = model.Name,
-                                    Url = model.Url,
-                                    IsActive = model.IsActive,
-                                    IsPublished = model.IsPublished,
-                                    UseMasterLayout = model.UseMasterLayout
-                                };
-                                page.AutoFill();
-                                int pageId = await CrudService.InsertAsync<int>(db, page, tran, 30);
-                                seo.AutoFill();
-                                seo.PageId = pageId;
-                                seo.Url = model.Url.StartsWith("/") ? model.Url : "/" + model.Url;
-                                int seoId = await _seoService.Seo.InsertAsync<int>(db, seo, tran, 30);
-                                //return newProductId;
-                                model.PageId = pageId;
-                            }
+                                PageId = model.PageId,
+                                Name = model.Name,
+                                Url = model.Url,
+                                IsActive = model.IsActive,
+                                IsPublished = model.IsPublished,
+                                UseMasterLayout = model.UseMasterLayout
+                            };
+                            page.AutoFill();
+                            int pageId = await CrudService.InsertAsync<int>(db, page, tran, 30);
+                            seo.AutoFill();
+                            seo.PageId = pageId;
+                            seo.Url = model.Url.StartsWith("/") ? model.Url : "/" + model.Url;
+                            int seoId = await _seoService.Seo.InsertAsync<int>(db, seo, tran, 30);
+                            model.PageId = pageId;
+                        }
+                        else
+                        {
+                            var page = new Page()
+                            {
+                                PageId = model.PageId,
+                                Name = model.Name,
+                                Url = model.Url,
+                                IsActive = model.IsActive,
+                                IsPublished = model.IsPublished,
+                                UseMasterLayout = model.UseMasterLayout
+                            };
+                            page.AutoFill();
+                            await CrudService.UpdateAsync(db, page, tran, 30);
+                            var seo = model.To<SEO>();
+                            seo.Url = model.Url.StartsWith("/") ? model.Url : "/" + model.Url;
+                            seo.LastUrl = model.Url != model.OldUrl ? model.OldUrl : model.Url;
+                            seo.AutoFill();
+                            seo.PageId = (int)model.PageId;
+                            seo.PageName = page.Name;
+                            if (seo.SEOId == 0)
+                                await _seoService.Seo.InsertAsync<int>(db, seo, tran, 30);
                             else
-                            {
-                                var page = new Page()
-                                {
-                                    PageId = model.PageId,
-                                    Name = model.Name,
-                                    Url = model.Url,
-                                    IsActive = model.IsActive,
-                                    IsPublished = model.IsPublished,
-                                    UseMasterLayout = model.UseMasterLayout
-                                };
-                                page.AutoFill();
-                                await CrudService.UpdateAsync(db, page, tran, 30);
-                                var seo = model.To<SEO>();
-                                seo.Url = model.Url.StartsWith("/") ? model.Url : "/" + model.Url;
-                                seo.LastUrl = model.Url != model.OldUrl ? model.OldUrl : model.Url;
-                                seo.AutoFill();
-                                seo.PageId = (int)model.PageId;
-                                seo.PageName = page.Name;
-                                if (seo.SEOId == 0)
-                                    await _seoService.Seo.InsertAsync<int>(db, seo, tran, 30);
-                                else
-                                    await _seoService.Seo.UpdateAsync(db, seo, tran, 30);
-                            }
-                           
-                            tran.Commit();
+                                await _seoService.Seo.UpdateAsync(db, seo, tran, 30);
                         }
-                        catch (Exception ex)
-                        {
-                            tran.Rollback();
-                            throw;
-                        }
+
+                        tran.Commit();
                     }
-                    return true;
+                    catch (Exception ex)
+                    {
+                        tran.Rollback();
+                        throw;
+                    }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw;
+                return true;
             }
         }
-        public async Task<bool> SavePageLayout(LayoutContent content)
+        catch (Exception ex)
         {
-            var renderedContent = _layoutRenderer.Render(content, LayoutGridSystem.BootStrap);
-            var jsonContent = JsonConvert.SerializeObject(content);
+            throw;
+        }
+    }
+
+    public async Task<bool> SavePageLayout(LayoutContent content)
+    {
+        var renderedContent = _layoutRenderer.Render(content, LayoutGridSystem.BootStrap);
+        var jsonContent = JsonConvert.SerializeObject(content);
+
+        var dbFactory = DbFactoryProvider.GetFactory();
+        using (var db = (DbConnection)dbFactory.GetConnection())
+        {
+            await db.OpenAsync();
+            var result =
+                await db.ExecuteAsync(
+                    "Update Page Set Content=@Content,ContentConfig=@ContentConfig Where PageId=@PageId",
+                    new { Content = renderedContent, ContentConfig = jsonContent, PageId = content.PageId });
+            return true;
+        }
+    }
+
+    public async Task<bool> DeletePageAsync(long pageId)
+    {
+        var page = await CrudService.GetAsync(pageId);
+        if (page.Url.ToLower() == "landing")
+        {
+            throw new Exception("unable to use this url.enter another url.");
+        }
+        var dbFactory = DbFactoryProvider.GetFactory();
+        using (var db = (DbConnection)dbFactory.GetConnection())
+        {
+            await db.OpenAsync();
+            var result = await db.ExecuteAsync("Update Page Set IsDeleted=@IsDeleted, IsActive=@IsActive Where PageId=@PageId", new { IsActive = false, IsDeleted = true, PageId = pageId });
+            var seoresult = await db.ExecuteAsync("Update Seo Set IsDeleted=@IsDeleted, IsActive=@IsActive Where  Url=@Url", new { IsActive = false, IsDeleted = true, Url = page.Url });
+            return true;
+        }
+    }
+
+    public async Task<bool> MakeLandingPage(long pageId)
+    {
+        var page = await CrudService.GetAsync(pageId);
+        var dbFactory = DbFactoryProvider.GetFactory();
+        using (var db = (DbConnection)dbFactory.GetConnection())
+        {
+            await db.OpenAsync();
+            var result = await db.ExecuteAsync(" Update Page set Url=@RandomUrl Where Url='landing'; " +
+                                               " Update Page set Url='landing',IsDeleted=false, IsActive=true,Ispublished=Ispublished " +
+                                               " Where PageId=@PageId", new
+                                               {
+                                                   RandomUrl = "landing-" + new Random().Next(5000, 99999),
+                                                   IsDeleted = false,
+                                                   Ispublished = true,
+                                                   PageId = pageId
+                                               });
+            return true;
+        }
+    }
+
+    // ========== CMS Studio Page Methods ==========
+
+    public async Task<CmsPageResult> CmsGetBySlug(string slug, string status = "published")
+    {
+        try
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                var data = await db.QueryFirstOrDefaultAsync<Page>(
+                    "usp_CmsPage_GetBySlug",
+                    new { Slug = slug, Status = status },
+                    commandType: System.Data.CommandType.StoredProcedure);
+
+                return new CmsPageResult
+                {
+                    Success = data != null,
+                    Message = data != null ? "Page found" : "Page not found",
+                    Data = data
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            return new CmsPageResult { Success = false, Message = ex.Message };
+        }
+    }
+
+    public async Task<CmsPageResult> CmsGetByPageGUID(string pageGuid)
+    {
+        try
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                var data = await db.QueryFirstOrDefaultAsync<Page>(
+                    "usp_CmsPage_GetByPageGUID",
+                    new { PageGUID = pageGuid },
+                    commandType: System.Data.CommandType.StoredProcedure);
+
+                return new CmsPageResult
+                {
+                    Success = data != null,
+                    Message = data != null ? "Page found" : "Page not found",
+                    Data = data
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            return new CmsPageResult { Success = false, Message = ex.Message };
+        }
+    }
+
+    public async Task<CmsPageListResult> CmsGetListAsync(int offset = 1, int limit = 20, string status = "all", string search = "", string culture = "")
+    {
+        try
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                var data = (await db.QueryAsync<Page>(
+                    "usp_CmsPage_List",
+                    new { Offset = offset, Limit = limit, Status = status, Search = search, Culture = culture },
+                    commandType: System.Data.CommandType.StoredProcedure)).ToList();
+
+                var rowTotal = data.FirstOrDefault()?.RowTotal ?? 0;
+
+                return new CmsPageListResult
+                {
+                    Success = true,
+                    Message = "Success",
+                    Data = data,
+                    RowTotal = rowTotal
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            return new CmsPageListResult { Success = false, Message = ex.Message, Data = Enumerable.Empty<Page>() };
+        }
+    }
+
+    public async Task<CmsPageResult> CmsSaveAsync(CmsPageSaveRequest request)
+    {
+        try
+        {
+            var pageGuid = string.IsNullOrEmpty(request.PageId)
+                ? Guid.NewGuid().ToString()
+                : request.PageId;
 
             var dbFactory = DbFactoryProvider.GetFactory();
             using (var db = (DbConnection)dbFactory.GetConnection())
             {
                 await db.OpenAsync();
-                var result =
-                    await db.ExecuteAsync(
-                        "Update Page Set Content=@Content,ContentConfig=@ContentConfig Where PageId=@PageId",
-                        new { Content = renderedContent, ContentConfig = jsonContent, PageId = content.PageId });
-                return true;
+                // Only build ContentConfigDraft when actual content fields are provided
+                var hasContent = request.Sections != null || request.Components != null
+                    || request.MasterLayoutConfig != null || request.SeoSettings != null
+                    || request.PageSettings != null;
+
+                var contentConfigDraftJson = hasContent ? JsonConvert.SerializeObject(new
+                {
+                    masterLayoutConfig = DeserializeJson<object>(request.MasterLayoutConfig),
+                    seo = DeserializeJson<object>(request.SeoSettings),
+                    pageSettings = DeserializeJson<object>(request.PageSettings),
+                    sections = DeserializeJson<object>(request.Sections),
+                    components = DeserializeJson<object>(request.Components)
+                }) : null;
+
+                var result = await db.QueryFirstAsync(
+                    "usp_CmsPage_Save",
+                    new
+                    {
+                        PageGUID = pageGuid,
+                        Name = request.Title,
+                        Slug = request.Slug,
+                        Url = "/" + request.Slug.TrimStart('/'),
+                        Status = request.Status ?? "draft",
+                        PageType = "cms",
+                        MasterLayoutId = request.MasterLayoutId,
+                        ContentConfig = contentConfigDraftJson ?? "{}",
+                        ContentConfigDraft = contentConfigDraftJson,
+                        Version = request.Version,
+                        PublishedAt = request.PublishedAt,
+                        Culture = request.Culture ?? "en-US",
+                        UpdatedBy = 0
+                    },
+                    commandType: System.Data.CommandType.StoredProcedure);
+
+                string action = result.Action;
+                long pageId = Convert.ToInt64(result.PageId);
+
+                var page = await CrudService.GetAsync(pageId);
+
+                return new CmsPageResult
+                {
+                    Success = true,
+                    Message = action == "inserted" ? "Page created" : "Page updated",
+                    Data = page,
+                    Action = action
+                };
             }
         }
-        public async Task<bool> DeletePageAsync(long pageId)
+        catch (Exception ex)
         {
-            var page = await CrudService.GetAsync(pageId);
-            if (page.Url.ToLower() == "landing")
-            {
-                throw new Exception("unable to use this url.enter another url.");
-            }
+            return new CmsPageResult { Success = false, Message = ex.Message };
+        }
+    }
+
+    public async Task<CmsPageResult> CmsPublishAsync(string pageGuid)
+    {
+        try
+        {
             var dbFactory = DbFactoryProvider.GetFactory();
             using (var db = (DbConnection)dbFactory.GetConnection())
             {
                 await db.OpenAsync();
-                var result = await db.ExecuteAsync("Update Page Set IsDeleted=@IsDeleted, IsActive=@IsActive Where PageId=@PageId", new { IsActive = false, IsDeleted = true, PageId = pageId });
-                var seoresult = await db.ExecuteAsync("Update Seo Set IsDeleted=@IsDeleted, IsActive=@IsActive Where  Url=@Url", new { IsActive = false, IsDeleted = true, Url = page.Url });
-                return true;
+                var result = await db.QueryFirstAsync(
+                    "usp_CmsPage_Publish",
+                    new { PageGUID = pageGuid, UpdatedBy = 0 },
+                    commandType: System.Data.CommandType.StoredProcedure);
+
+                if (result.Action == "not_found")
+                    return new CmsPageResult { Success = false, Message = "Page not found" };
+
+                var page = await CrudService.GetAsync((long)result.PageId);
+                return new CmsPageResult { Success = true, Message = "Page published", Data = page, Action = "published" };
             }
-
         }
-
-        public async Task<bool> MakeLandingPage(long pageId)
+        catch (Exception ex)
         {
-            var page = await CrudService.GetAsync(pageId);
+            return new CmsPageResult { Success = false, Message = ex.Message };
+        }
+    }
+
+    public async Task<bool> CmsDeleteAsync(string pageGuid)
+    {
+        try
+        {
             var dbFactory = DbFactoryProvider.GetFactory();
             using (var db = (DbConnection)dbFactory.GetConnection())
             {
                 await db.OpenAsync();
-                var result = await db.ExecuteAsync(" Update Page set Url=@RandomUrl Where Url='landing'; " +
-                                                   " Update Page set Url='landing',IsDeleted=false, IsActive=true,Ispublished=Ispublished " +
-                                                   " Where PageId=@PageId", new
-                                                   {
-                                                       RandomUrl = "landing-" + new Random().Next(5000, 99999),
-                                                       IsDeleted = false,
-                                                       Ispublished = true,
-                                                       PageId = pageId
-                                                   });
-                return true;
+                var result = await db.QueryFirstAsync(
+                    "usp_CmsPage_Delete",
+                    new { PageGUID = pageGuid, DeletedBy = 0 },
+                    commandType: System.Data.CommandType.StoredProcedure);
+                return result.Action == "deleted";
             }
         }
+        catch
+        {
+            return false;
+        }
+    }
 
-       
-               
+    public async Task<bool> CmsCheckSlugExist(string slug, string excludePageGuid = null)
+    {
+        try
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                var sql = "SELECT 1 FROM dbo.Page WHERE Slug = @Slug AND IsDeleted = 0";
+                if (!string.IsNullOrEmpty(excludePageGuid))
+                    sql += " AND PageGUID != @ExcludePageGUID";
+                var result = await db.QueryAsync<int>(sql, new { Slug = slug, ExcludePageGUID = excludePageGuid });
+                return result.Any();
+            }
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static T DeserializeJson<T>(string json) where T : new()
+    {
+        if (string.IsNullOrEmpty(json)) return new T();
+        try { return JsonConvert.DeserializeObject<T>(json); }
+        catch { return new T(); }
     }
 }
-

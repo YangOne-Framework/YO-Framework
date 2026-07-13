@@ -1,0 +1,33 @@
+
+/* Banner Slide Animations */
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-30px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes zoomIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes zoomInImage {
+  from { transform: scale(1); }
+  to { transform: scale(1.1); }
+}
+
+.animate-slide-up { animation: slideUp 0.8s ease-out forwards; }
+.animate-fade-in-left { animation: slideRight 0.8s ease-out forwards; }
+.animate-zoom-in { animation: zoomIn 0.8s ease-out forwards; }
+.animate-zoom-in-image { animation: zoomInImage 10s ease-out forwards; }
+
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+
+/* Scrollbar */
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }

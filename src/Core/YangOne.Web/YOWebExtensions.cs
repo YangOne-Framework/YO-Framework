@@ -80,6 +80,7 @@ namespace YangOne.Web
             services.TryAddSingleton<ISeoService, SeoService>();
             services.TryAddSingleton<IPageService, PageService>();
             services.AddSingleton<IAuditService, AuditService>();
+            services.AddSingleton<IMasterLayoutService, MasterLayoutService>();
             services.AddScoped<IYangOneConfigurationManager, YOConfigurationManager>();
             services.AddSingleton<IScriptRunner, SQLScriptRunner>();
             services.AddSingleton<IModuleService, ModuleService>();
