@@ -1,40 +1,32 @@
--- ============================================================
--- Stored Procedure: usp_MasterLayout_Save
--- Description: Insert or update a master layout (upsert by LayoutGUID)
--- ============================================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'dbo.usp_MasterLayout_Save') AND type in (N'P', N'PC'))
-    DROP PROCEDURE dbo.usp_MasterLayout_Save
-GO
-
-CREATE PROCEDURE dbo.usp_MasterLayout_Save
-    @LayoutGUID     NVARCHAR(128),
-    @Name           NVARCHAR(256),
-    @Description    NVARCHAR(max) = NULL,
-    @HasHeader      BIT = 1,
-    @HasFooter      BIT = 1,
-    @Sidebar        NVARCHAR(20) = 'none',
-    @IsSystem       BIT = 0,
-    @LayoutConfig   NVARCHAR(max) = NULL,
-    @UpdatedBy      BIGINT = 0
+CREATE OR ALTER PROCEDURE dbo.usp_MasterLayout_Save
+    @MasterLayoutUniqueId     NVARCHAR(128),
+    @Name                       NVARCHAR(256),
+    @Description                NVARCHAR(max) = NULL,
+    @HasHeader                  BIT = 1,
+    @HasFooter                  BIT = 1,
+    @Sidebar                    NVARCHAR(20) = 'none',
+    @IsSystem                   BIT = 0,
+    @LayoutConfig               NVARCHAR(max) = NULL,
+    @UpdatedBy                  BIGINT = 0
 AS
 BEGIN
     SET NOCOUNT ON;
 
     DECLARE @ExistingId BIGINT;
 
-    SELECT @ExistingId = LayoutId
+    SELECT @ExistingId = MasterLayoutID
     FROM dbo.MasterLayout
-    WHERE LayoutGUID = @LayoutGUID AND IsDeleted = 0;
+    WHERE MasterLayoutUniqueId = @MasterLayoutUniqueId AND IsDeleted = 0;
 
     IF @ExistingId IS NULL
     BEGIN
         INSERT INTO dbo.MasterLayout (
-            LayoutGUID, Name, Description,
+            MasterLayoutUniqueId, Name, Description,
             HasHeader, HasFooter, Sidebar, IsSystem,
             LayoutConfig,
             AddedBy, UpdatedBy
         ) VALUES (
-            @LayoutGUID, @Name, @Description,
+            @MasterLayoutUniqueId, @Name, @Description,
             @HasHeader, @HasFooter, @Sidebar, @IsSystem,
             @LayoutConfig,
             @UpdatedBy, @UpdatedBy
@@ -54,9 +46,8 @@ BEGIN
             LayoutConfig  = @LayoutConfig,
             UpdatedOn     = GETDATE(),
             UpdatedBy     = @UpdatedBy
-        WHERE LayoutId = @ExistingId;
+        WHERE MasterLayoutID = @ExistingId;
 
-        SELECT @ExistingId AS LayoutId, 'updated' AS Action;
+        SELECT @ExistingId AS MasterLayoutID, 'updated' AS Action;
     END
 END
-GO

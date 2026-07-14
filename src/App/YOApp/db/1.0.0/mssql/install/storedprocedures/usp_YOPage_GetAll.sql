@@ -1,12 +1,4 @@
--- ============================================================
--- Stored Procedure: usp_CmsPage_List
--- Description: List CMS pages from dbo.Page with pagination
--- ============================================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'dbo.usp_CmsPage_List') AND type in (N'P', N'PC'))
-    DROP PROCEDURE dbo.usp_CmsPage_List
-GO
-
-CREATE PROCEDURE dbo.usp_CmsPage_List
+CREATE OR ALTER PROCEDURE dbo.usp_YOPage_GetAllActive
     @Offset         INT = 1,
     @Limit          INT = 20,
     @Status         NVARCHAR(20) = 'all',
@@ -21,7 +13,7 @@ BEGIN
     ;WITH Filtered AS (
         SELECT
             p.PageId,
-            p.PageGUID,
+            p.PageUniqueId,
             p.Name,
             p.Url,
             p.Slug,
@@ -57,4 +49,3 @@ BEGIN
     OFFSET @Skip ROWS
     FETCH NEXT @Limit ROWS ONLY;
 END
-GO

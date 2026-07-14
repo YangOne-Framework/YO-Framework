@@ -1,16 +1,6 @@
--- ============================================================
--- Stored Procedure: usp_CmsPage_Save
--- Description: Insert or update a CMS page in dbo.Page (upsert by PageGUID)
---              ContentConfig is only set on INSERT (initial creation).
---              Subsequent saves go to ContentConfigDraft.
---              Use usp_CmsPage_Publish to promote draft to published.
--- ============================================================
-IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'dbo.usp_CmsPage_Save') AND type in (N'P', N'PC'))
-    DROP PROCEDURE dbo.usp_CmsPage_Save
-GO
 
-CREATE PROCEDURE dbo.usp_CmsPage_Save
-    @PageGUID           NVARCHAR(128),
+CREATE OR ALTER PROCEDURE dbo.usp_YOPage_Save
+    @PageUniqueId           NVARCHAR(128),
     @Name               NVARCHAR(256),
     @Slug               NVARCHAR(512),
     @Url                NVARCHAR(256),
@@ -31,19 +21,19 @@ BEGIN
 
     SELECT @ExistingId = PageId
     FROM dbo.Page
-    WHERE PageGUID = @PageGUID AND IsDeleted = 0;
+    WHERE PageUniqueId = @PageUniqueId AND IsDeleted = 0;
 
     IF @ExistingId IS NULL
     BEGIN
         INSERT INTO dbo.Page (
-            PageGUID, Name, Slug, Url,
+            PageUniqueId, Name, Slug, Url,
             [Status], PageType, MasterLayoutId,
             ContentConfig, ContentConfigDraft,
             [Version], PublishedAt, LastModified,
             UseMasterLayout, IsPublished, Culture,
             IsActive, AddedBy, UpdatedBy
         ) VALUES (
-            @PageGUID, @Name, @Slug, @Url,
+            @PageUniqueId, @Name, @Slug, @Url,
             @Status, @PageType, @MasterLayoutId,
             @ContentConfig, @ContentConfigDraft,
             @Version, @PublishedAt, GETDATE(),
@@ -77,4 +67,3 @@ BEGIN
         SELECT @ExistingId AS PageId, 'updated' AS Action;
     END
 END
-GO
