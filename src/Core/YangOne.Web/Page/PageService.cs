@@ -209,7 +209,7 @@ public class PageService : IPageService
 
     // ========== CMS Studio Page Methods ==========
 
-    public async Task<CmsPageResult> CmsGetBySlug(string slug, string status = "published")
+    public async Task<CmsPageResult> GetBySlug(string slug, string status = "published")
     {
         try
         {
@@ -218,7 +218,7 @@ public class PageService : IPageService
             {
                 await db.OpenAsync();
                 var data = await db.QueryFirstOrDefaultAsync<Page>(
-                    "usp_CmsPage_GetBySlug",
+                    "usp_YOPage_GetBySlug",
                     new { Slug = slug, Status = status },
                     commandType: System.Data.CommandType.StoredProcedure);
 
@@ -236,7 +236,7 @@ public class PageService : IPageService
         }
     }
 
-    public async Task<CmsPageResult> CmsGetByPageGUID(string pageGuid)
+    public async Task<CmsPageResult> GetByPageUniqueId(string pageUniqueId)
     {
         try
         {
@@ -245,8 +245,8 @@ public class PageService : IPageService
             {
                 await db.OpenAsync();
                 var data = await db.QueryFirstOrDefaultAsync<Page>(
-                    "usp_CmsPage_GetByPageGUID",
-                    new { PageGUID = pageGuid },
+                    "usp_YOPage_GetByPageId",
+                    new { PageUniqueId = pageUniqueId },
                     commandType: System.Data.CommandType.StoredProcedure);
 
                 return new CmsPageResult
@@ -263,7 +263,7 @@ public class PageService : IPageService
         }
     }
 
-    public async Task<CmsPageListResult> CmsGetListAsync(int offset = 1, int limit = 20, string status = "all", string search = "", string culture = "")
+    public async Task<CmsPageListResult> GetAllActive(int offset = 1, int limit = 20, string status = "all", string search = "", string culture = "")
     {
         try
         {
@@ -272,7 +272,7 @@ public class PageService : IPageService
             {
                 await db.OpenAsync();
                 var data = (await db.QueryAsync<Page>(
-                    "usp_CmsPage_List",
+                    "usp_YOPage_GetAllActive",
                     new { Offset = offset, Limit = limit, Status = status, Search = search, Culture = culture },
                     commandType: System.Data.CommandType.StoredProcedure)).ToList();
 
@@ -293,11 +293,11 @@ public class PageService : IPageService
         }
     }
 
-    public async Task<CmsPageResult> CmsSaveAsync(CmsPageSaveRequest request)
+    public async Task<CmsPageResult> Save(CmsPageSaveRequest request)
     {
         try
         {
-            var pageGuid = string.IsNullOrEmpty(request.PageId)
+            var pageUniqueId = string.IsNullOrEmpty(request.PageId)
                 ? Guid.NewGuid().ToString()
                 : request.PageId;
 
@@ -320,10 +320,10 @@ public class PageService : IPageService
                 }) : null;
 
                 var result = await db.QueryFirstAsync(
-                    "usp_CmsPage_Save",
+                    "usp_YOPage_Save",
                     new
                     {
-                        PageGUID = pageGuid,
+                        PageUniqueId = pageUniqueId,
                         Name = request.Title,
                         Slug = request.Slug,
                         Url = "/" + request.Slug.TrimStart('/'),
@@ -335,6 +335,8 @@ public class PageService : IPageService
                         Version = request.Version,
                         PublishedAt = request.PublishedAt,
                         Culture = request.Culture ?? "en-US",
+                        TemplateType = request.TemplateType ?? "page",
+                        YOThemeId = request.YOThemeId,
                         UpdatedBy = 0
                     },
                     commandType: System.Data.CommandType.StoredProcedure);
@@ -359,7 +361,7 @@ public class PageService : IPageService
         }
     }
 
-    public async Task<CmsPageResult> CmsPublishAsync(string pageGuid)
+    public async Task<CmsPageResult> Publish(string pageUniqueId)
     {
         try
         {
@@ -368,8 +370,8 @@ public class PageService : IPageService
             {
                 await db.OpenAsync();
                 var result = await db.QueryFirstAsync(
-                    "usp_CmsPage_Publish",
-                    new { PageGUID = pageGuid, UpdatedBy = 0 },
+                    "usp_YOPage_Publish",
+                    new { PageUniqueId = pageUniqueId, UpdatedBy = 0 },
                     commandType: System.Data.CommandType.StoredProcedure);
 
                 if (result.Action == "not_found")
@@ -385,7 +387,7 @@ public class PageService : IPageService
         }
     }
 
-    public async Task<bool> CmsDeleteAsync(string pageGuid)
+    public async Task<bool> Delete(string pageUniqueId)
     {
         try
         {
@@ -394,8 +396,8 @@ public class PageService : IPageService
             {
                 await db.OpenAsync();
                 var result = await db.QueryFirstAsync(
-                    "usp_CmsPage_Delete",
-                    new { PageGUID = pageGuid, DeletedBy = 0 },
+                    "usp_YOPage_Delete",
+                    new { PageUniqueId = pageUniqueId, DeletedBy = 0 },
                     commandType: System.Data.CommandType.StoredProcedure);
                 return result.Action == "deleted";
             }
@@ -406,7 +408,7 @@ public class PageService : IPageService
         }
     }
 
-    public async Task<bool> CmsCheckSlugExist(string slug, string excludePageGuid = null)
+    public async Task<bool> CheckSlugExist(string slug, string excludePageUniqueId = null)
     {
         try
         {
@@ -415,9 +417,9 @@ public class PageService : IPageService
             {
                 await db.OpenAsync();
                 var sql = "SELECT 1 FROM dbo.Page WHERE Slug = @Slug AND IsDeleted = 0";
-                if (!string.IsNullOrEmpty(excludePageGuid))
-                    sql += " AND PageGUID != @ExcludePageGUID";
-                var result = await db.QueryAsync<int>(sql, new { Slug = slug, ExcludePageGUID = excludePageGuid });
+                if (!string.IsNullOrEmpty(excludePageUniqueId))
+                    sql += " AND PageUniqueId != @ExcludePageUniqueId";
+                var result = await db.QueryAsync<int>(sql, new { Slug = slug, ExcludePageUniqueId = excludePageUniqueId });
                 return result.Any();
             }
         }

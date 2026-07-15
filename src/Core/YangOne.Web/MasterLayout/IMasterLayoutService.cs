@@ -4,9 +4,9 @@ public interface IMasterLayoutService
 {
     Task<MasterLayoutResult> GetListAsync();
     Task<MasterLayoutResult> GetListLightAsync();
-    Task<MasterLayoutResult> GetByGuidAsync(string layoutGuid);
+    Task<MasterLayoutResult> GetByIdAsync(string layoutUniqueId);
     Task<MasterLayoutResult> SaveAsync(MasterLayoutSaveRequest request);
-    Task<MasterLayoutResult> DeleteAsync(string layoutGuid);
+    Task<MasterLayoutResult> DeleteAsync(string layoutUniqueId);
 }
 
 public class MasterLayoutResult
@@ -20,7 +20,7 @@ public class MasterLayoutResult
 
 public class MasterLayoutSaveRequest
 {
-    public string LayoutGUID { get; set; }
+    public string MasterLayoutUniqueId { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public bool HasHeader { get; set; } = true;
@@ -28,4 +28,5 @@ public class MasterLayoutSaveRequest
     public string Sidebar { get; set; } = "none";
     public bool IsSystem { get; set; }
     public string LayoutConfig { get; set; }
+    public long? YOThemeId { get; set; }
 }

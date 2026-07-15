@@ -52,9 +52,9 @@ export const yoPageAPI = createApi({
       invalidatesTags: ["YoPage"],
     }),
 
-    checkYoPageSlug: builder.query<ApiResponse<boolean>, { slug: string; excludePageGuid?: string }>({
-      query: ({ slug, excludePageGuid }) => ({
-        url: API.YO_PAGE.CHECK_SLUG(slug, excludePageGuid),
+    checkYoPageSlug: builder.query<ApiResponse<boolean>, { slug: string; excludePageUniqueId?: string }>({
+      query: ({ slug, excludePageUniqueId }) => ({
+        url: API.YO_PAGE.CHECK_SLUG(slug, excludePageUniqueId),
         method: "GET",
       }),
     }),

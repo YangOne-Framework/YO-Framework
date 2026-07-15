@@ -3,7 +3,7 @@ import { baseQueryWithAuth } from "../../config/apiConfig";
 import { API } from "../../config/apiUrls";
 
 interface MasterLayoutDto {
-  LayoutGUID: string;
+  MasterLayoutUniqueId: string;
   Name: string;
   Description: string;
   HasHeader: boolean;
@@ -14,6 +14,7 @@ interface MasterLayoutDto {
   IsActive: boolean;
   AddedOn: string;
   RowTotal: number;
+  YOThemeId?: number | null;
 }
 
 interface MasterLayoutListResponse {
@@ -29,7 +30,7 @@ interface MasterLayoutApiResponse {
 }
 
 export interface MasterLayoutSaveRequest {
-  LayoutGUID: string;
+  MasterLayoutUniqueId: string;
   Name: string;
   Description: string;
   HasHeader: boolean;
@@ -37,6 +38,7 @@ export interface MasterLayoutSaveRequest {
   Sidebar: string;
   IsSystem: boolean;
   LayoutConfig: string;
+  YOThemeId?: number | null;
 }
 
 export const layoutAPI = createApi({

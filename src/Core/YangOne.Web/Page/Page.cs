@@ -27,7 +27,7 @@ public class Page
     public string ContentConfigDraft { get; set; }
 
     // CMS Studio columns
-    public string PageGUID { get; set; }
+    public string PageUniqueId { get; set; }
 
     public string PageType { get; set; }
 
@@ -44,6 +44,10 @@ public class Page
     // Legacy columns
     public bool UseMasterLayout { get; set; }
     public bool IsPublished { get; set; }
+
+    public long? YOThemeId { get; set; }
+
+    public string TemplateType { get; set; }
 
     [AutoFill(false)]
     public bool IsBackend { get; set; }

@@ -162,6 +162,7 @@ export const sunavItems: NavItem[] = [
             { name: _t('Nav.ComponentBuilder'), path: "/admin/componentbuilder", pro: false },
             { name: "CMS Pages", path: "/admin/yopage", pro: false, new: true },
             { name: "Master Layouts", path: "/admin/layout", pro: false, new: true },
+            { name: "Themes", path: "/admin/theme", pro: false, new: true },
         ],
     },
     {

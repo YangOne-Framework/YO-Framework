@@ -1,11 +1,12 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { ComponentPalette } from "./editor/ComponentPalette";
 import { CanvasEditor } from "./editor/CanvasEditor";
 import { EditorToolbar } from "./editor/EditorToolbar";
 import { PropertiesPanel } from "./editor/PropertiesPanel";
 import { editorStore } from "../../../store/editorStore";
-import { localStorageDb } from "../../../services/localStorageDb";
+import { useGetYoPageByIdQuery } from "../../../redux/cmspage/cmsPageAPI";
+import { mapPageDtoToYoPage } from "../../../services/localStorageDb";
 import { useGetActiveHtmlComponentsQuery } from "../../../redux/htmlbuilder/htmlBuilderAPI";
 import { registerDynamicDefinition } from "../../../registry/componentRegistry";
 import { toYoDefinition } from "../../../registry/htmlComponentRegistry";
@@ -15,6 +16,12 @@ export default function YoPageBuilder() {
   const navigate = useNavigate();
   const pageId = searchParams.get("id");
   const { data: htmlComponentsData } = useGetActiveHtmlComponentsQuery({ offset: 1, limit: 200, query: "" });
+  const { data: pageApi } = useGetYoPageByIdQuery(pageId!, { skip: !pageId });
+
+  const pageData = useMemo(() => {
+    if (!pageApi?.Data) return null;
+    return mapPageDtoToYoPage(pageApi.Data as any);
+  }, [pageApi]);
 
   useEffect(() => {
     if (htmlComponentsData?.Data) {
@@ -26,12 +33,10 @@ export default function YoPageBuilder() {
   }, [htmlComponentsData]);
 
   useEffect(() => {
-    if (pageId) {
-      localStorageDb.getPage(pageId).then(page => {
-        if (page) editorStore.loadPage(page);
-      });
+    if (pageData) {
+      editorStore.loadPage(pageData);
     }
-  }, [pageId]);
+  }, [pageData]);
 
   const handleNavigate = useCallback((view: string) => {
     if (view === "pages") navigate("/admin/yopage");

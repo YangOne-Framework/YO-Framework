@@ -1,7 +1,10 @@
 using System.Collections.Concurrent;
+using System.Data.Common;
+using Dapper;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 using Newtonsoft.Json;
+using YangOne.Data;
 
 namespace YangOne.Web;
 
@@ -10,6 +13,7 @@ public static class PublicPageCache
     private static readonly ConcurrentDictionary<string, CancellationTokenSource> _invalidators = new();
     private const string PAGE_TAG = "tag_public_page";
     private const string LAYOUT_TAG = "tag_public_layout";
+    private const string THEME_TAG = "tag_public_theme";
     private const int CACHE_HOURS = 4;
 
     private static string PageKey(string slug) => $"public_page_{slug.ToLowerInvariant()}";
@@ -23,18 +27,17 @@ public static class PublicPageCache
     {
         var pageCts = _invalidators.GetOrAdd(PAGE_TAG, _ => new CancellationTokenSource());
         var layoutCts = _invalidators.GetOrAdd(LAYOUT_TAG, _ => new CancellationTokenSource());
+        var themeCts = _invalidators.GetOrAdd(THEME_TAG, _ => new CancellationTokenSource());
 
         var options = new MemoryCacheEntryOptions()
             .SetAbsoluteExpiration(TimeSpan.FromHours(CACHE_HOURS))
             .AddExpirationToken(new CancellationChangeToken(pageCts.Token))
-            .AddExpirationToken(new CancellationChangeToken(layoutCts.Token));
+            .AddExpirationToken(new CancellationChangeToken(layoutCts.Token))
+            .AddExpirationToken(new CancellationChangeToken(themeCts.Token));
 
         cache.Set(PageKey(slug), response, options);
     }
 
-    /// <summary>
-    /// Call when a page is saved/published – clears public page cache.
-    /// </summary>
     public static void InvalidatePage()
     {
         if (_invalidators.TryRemove(PAGE_TAG, out var cts))
@@ -43,9 +46,6 @@ public static class PublicPageCache
         }
     }
 
-    /// <summary>
-    /// Call when a layout is saved – clears ALL public page caches.
-    /// </summary>
     public static void InvalidateLayout()
     {
         if (_invalidators.TryRemove(LAYOUT_TAG, out var cts))
@@ -54,10 +54,14 @@ public static class PublicPageCache
         }
     }
 
-    /// <summary>
-    /// Builds a PublicPageResponse from a Page entry and caches it immediately.
-    /// Used after publish so the public API returns cached data on next request.
-    /// </summary>
+    public static void InvalidateTheme()
+    {
+        if (_invalidators.TryRemove(THEME_TAG, out var cts))
+        {
+            cts.Cancel();
+        }
+    }
+
     public static async Task<PublicPageResponse> BuildAndCache(IMemoryCache cache, Page entry, IMasterLayoutService layoutService)
     {
         var slug = entry.Slug ?? entry.Url?.TrimStart('/');
@@ -66,14 +70,49 @@ public static class PublicPageCache
         MasterLayout masterLayout = null;
         if (!string.IsNullOrEmpty(entry.MasterLayoutId) && entry.MasterLayoutId != "none")
         {
-            var layoutResult = await layoutService.GetByGuidAsync(entry.MasterLayoutId);
+            var layoutResult = await layoutService.GetByIdAsync(entry.MasterLayoutId);
             if (layoutResult.Success)
                 masterLayout = layoutResult.Data;
         }
 
+        // Load theme config if page has a theme
+        object themeConfig = null;
+        var yoThemeId = entry.YOThemeId;
+        if (yoThemeId == null || yoThemeId <= 0)
+        {
+            // Fall back to active theme
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                var active = await db.QueryFirstOrDefaultAsync<YOTheme>(
+                    "usp_YOTheme_GetActive",
+                    commandType: System.Data.CommandType.StoredProcedure);
+                if (active != null)
+                {
+                    yoThemeId = active.YOThemeId;
+                    themeConfig = TryParseConfig(active.Config);
+                }
+            }
+        }
+        else
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using (var db = (DbConnection)dbFactory.GetConnection())
+            {
+                await db.OpenAsync();
+                var theme = await db.QueryFirstOrDefaultAsync<YOTheme>(
+                    "usp_YOTheme_Get",
+                    new { YOThemeUniqueId = (string)null, YOThemeId = yoThemeId },
+                    commandType: System.Data.CommandType.StoredProcedure);
+                if (theme != null)
+                    themeConfig = TryParseConfig(theme.Config);
+            }
+        }
+
         var response = new PublicPageResponse
         {
-            PageId = entry.PageGUID,
+            PageId = entry.PageUniqueId,
             Title = entry.Name,
             Slug = slug,
             Status = entry.Status ?? (entry.IsPublished ? "published" : "draft"),
@@ -94,13 +133,22 @@ public static class PublicPageCache
                 : new Dictionary<string, object>(),
             Version = entry.Version,
             PublishedAt = entry.PublishedAt,
-            UpdatedAt = entry.LastModified
+            UpdatedAt = entry.LastModified,
+            TemplateType = entry.TemplateType ?? "page",
+            YOThemeId = yoThemeId,
+            ThemeConfig = themeConfig
         };
 
         if (!string.IsNullOrEmpty(slug))
             Set(cache, slug, response);
 
         return response;
+    }
+
+    private static object TryParseConfig(string configJson)
+    {
+        if (string.IsNullOrEmpty(configJson)) return null;
+        return configJson;
     }
 
     private static T DeserializeJson<T>(string json) where T : new()

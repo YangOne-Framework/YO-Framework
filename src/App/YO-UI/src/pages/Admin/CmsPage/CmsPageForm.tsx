@@ -3,24 +3,29 @@ import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router";
 import { useSaveYoPageMutation, useGetYoPageByIdQuery, useCheckYoPageSlugQuery } from "../../../redux/cmspage/cmsPageAPI";
 import { useGetMasterLayoutsQuery } from "../../../redux/layout/layoutAPI";
+import { useGetThemeListQuery } from "../../../redux/theme/themeAPI";
 import toaster from "../../../components/toster";
 import InputField from "../../../components/form/input/InputField";
 import ComponentCard from "../../../components/common/ComponentCard";
 
 interface YoPageFormData {
-  pageGUID: string;
+  pageUniqueId: string;
   name: string;
   slug: string;
   status: string;
   masterLayoutId: string;
+  yoThemeId: number | null;
+  templateType: string;
 }
 
 const defaultValues: YoPageFormData = {
-  pageGUID: "",
+  pageUniqueId: "",
   name: "",
   slug: "",
   status: "draft",
   masterLayoutId: "none",
+  yoThemeId: null,
+  templateType: "page",
 };
 
 const YoPageForm = () => {
@@ -52,9 +57,11 @@ const YoPageForm = () => {
   const { data: layoutsData } = useGetMasterLayoutsQuery({ offset: 1, limit: 200, query: "" });
   const layouts = ((layoutsData as any)?.Data ?? (layoutsData as any)?.data ?? []) as any[];
 
+  const { data: themes = [] } = useGetThemeListQuery({ search: "", limit: 100 });
+
   const slugToCheck = currentSlug && currentSlug !== lastLoadedSlug ? currentSlug : "";
   const { data: slugCheckData, isFetching: slugChecking } = useCheckYoPageSlugQuery(
-    { slug: slugToCheck, excludePageGuid: isEditMode ? pageId : undefined },
+    { slug: slugToCheck, excludePageUniqueId: isEditMode ? pageId : undefined },
     { skip: !slugToCheck },
   );
   const slugExists = slugToCheck ? (slugCheckData as any)?.Data ?? false : false;
@@ -76,11 +83,13 @@ const YoPageForm = () => {
       const loadedSlug = dto.Slug ?? "";
       setLastLoadedSlug(loadedSlug);
       reset({
-        pageGUID: dto.PageGUID ?? "",
+        pageUniqueId: dto.PageUniqueId ?? "",
         name: dto.Name ?? "",
         slug: loadedSlug,
         status: dto.Status ?? "draft",
         masterLayoutId: dto.MasterLayoutId ?? "none",
+        yoThemeId: dto.YOThemeId ?? null,
+        templateType: dto.TemplateType ?? "page",
       });
     }
   }, [pageData, isSuccess, reset]);
@@ -99,6 +108,8 @@ const YoPageForm = () => {
         Status: data.status,
         MasterLayoutId: data.masterLayoutId === "none" ? null : data.masterLayoutId,
         Version: 1,
+        YOThemeId: data.yoThemeId,
+        TemplateType: data.templateType || "page",
       } as any).unwrap();
       toaster.success(isEditMode ? "Page updated" : "Page created");
       navigate("/admin/yopage");
@@ -181,10 +192,43 @@ const YoPageForm = () => {
                 >
                   <option value="none">No layout</option>
                   {layouts.map((layout: any) => (
-                    <option key={layout.LayoutGUID} value={layout.LayoutGUID}>
+                    <option key={layout.MasterLayoutUniqueId} value={layout.MasterLayoutUniqueId}>
                       {layout.Name}
                     </option>
                   ))}
+                </select>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="w-full px-2.5">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Theme
+                </label>
+                <select
+                  {...register("yoThemeId", { setValueAs: (v) => (v === "" ? null : Number(v)) })}
+                  className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-700 dark:text-white/90 dark:bg-gray-900"
+                >
+                  <option value="">Site default</option>
+                  {themes.map((t: any) => (
+                    <option key={t.YOThemeId} value={t.YOThemeId}>
+                      {t.Name}{t.IsActive ? " (active)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="relative">
+              <div className="w-full px-2.5">
+                <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
+                  Template Type
+                </label>
+                <select
+                  {...register("templateType")}
+                  className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-700 dark:text-white/90 dark:bg-gray-900"
+                >
+                  <option value="page">Page</option>
+                  <option value="blog">Blog</option>
+                  <option value="landing">Landing</option>
                 </select>
               </div>
             </div>

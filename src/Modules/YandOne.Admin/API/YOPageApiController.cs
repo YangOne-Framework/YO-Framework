@@ -36,7 +36,7 @@ public class YOPageApiController : BaseApiController
     {
         try
         {
-            var result = await _pageService.CmsGetListAsync(offset, limit, status, search, culture);
+            var result = await _pageService.GetAllActive(offset, limit, status, search, culture);
             if (!result.Success)
                 return ErrorResponse<IEnumerable<Page>>(501, result.Message);
 
@@ -50,12 +50,12 @@ public class YOPageApiController : BaseApiController
         }
     }
 
-    [HttpGet("{pageGuid}")]
-    public async Task<ActionResult<ApiResponse<Page>>> GetPage(string pageGuid)
+    [HttpGet("{pageUniqueId}")]
+    public async Task<ActionResult<ApiResponse<Page>>> GetPage(string pageUniqueId)
     {
         try
         {
-            var result = await _pageService.CmsGetByPageGUID(pageGuid);
+            var result = await _pageService.GetByPageUniqueId(pageUniqueId);
             if (!result.Success || result.Data == null)
                 return ErrorResponse<Page>(404, "Page not found");
 
@@ -76,7 +76,7 @@ public class YOPageApiController : BaseApiController
             if (!ModelState.IsValid)
                 return ErrorResponse<Page>(600, "Invalid request");
 
-            var result = await _pageService.CmsSaveAsync(request);
+            var result = await _pageService.Save(request);
             if (!result.Success)
                 return ErrorResponse<Page>(501, result.Message);
 
@@ -94,7 +94,7 @@ public class YOPageApiController : BaseApiController
     {
         try
         {
-            var result = await _pageService.CmsPublishAsync(request.PageId);
+            var result = await _pageService.Publish(request.PageId);
             if (!result.Success)
                 return ErrorResponse<Page>(404, result.Message);
 
@@ -112,12 +112,12 @@ public class YOPageApiController : BaseApiController
         }
     }
 
-    [HttpDelete("{pageGuid}")]
-    public async Task<ActionResult<ApiResponse<bool>>> DeletePage(string pageGuid)
+    [HttpDelete("{pageUniqueId}")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeletePage(string pageUniqueId)
     {
         try
         {
-            var result = await _pageService.CmsDeleteAsync(pageGuid);
+            var result = await _pageService.Delete(pageUniqueId);
             if (!result)
                 return ErrorResponse<bool>(404, "Page not found");
 
@@ -133,11 +133,11 @@ public class YOPageApiController : BaseApiController
     [HttpGet("check-slug")]
     public async Task<ActionResult<ApiResponse<bool>>> CheckSlug(
         [FromQuery] string slug,
-        [FromQuery] string excludePageGuid = "")
+        [FromQuery] string excludePageUniqueId = "")
     {
         try
         {
-            var exists = await _pageService.CmsCheckSlugExist(slug, excludePageGuid);
+            var exists = await _pageService.CheckSlugExist(slug, excludePageUniqueId);
             return SuccessResponse("OK", exists);
         }
         catch (Exception e)
@@ -187,12 +187,12 @@ public class YOPageApiController : BaseApiController
     }
 
     
-    [HttpGet("layout/{layoutGuid}")]
-    public async Task<ActionResult<ApiResponse<MasterLayout>>> GetLayout(string layoutGuid)
+    [HttpGet("layout/{layoutUniqueId}")]
+    public async Task<ActionResult<ApiResponse<MasterLayout>>> GetLayout(string layoutUniqueId)
     {
         try
         {
-            var result = await _masterLayoutService.GetByGuidAsync(layoutGuid);
+            var result = await _masterLayoutService.GetByIdAsync(layoutUniqueId);
             if (!result.Success || result.Data == null)
                 return ErrorResponse<MasterLayout>(404, "Layout not found");
 
@@ -227,12 +227,12 @@ public class YOPageApiController : BaseApiController
         }
     }
 
-    [HttpDelete("layout/{layoutGuid}")]
-    public async Task<ActionResult<ApiResponse<bool>>> DeleteLayout(string layoutGuid)
+    [HttpDelete("layout/{layoutUniqueId}")]
+    public async Task<ActionResult<ApiResponse<bool>>> DeleteLayout(string layoutUniqueId)
     {
         try
         {
-            var result = await _masterLayoutService.DeleteAsync(layoutGuid);
+            var result = await _masterLayoutService.DeleteAsync(layoutUniqueId);
             if (!result.Success)
                 return ErrorResponse<bool>(404, result.Message);
 

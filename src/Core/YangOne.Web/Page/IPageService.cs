@@ -17,13 +17,13 @@ public interface IPageService
     Task<bool> MakeLandingPage(long pageId);
 
     // CMS Studio page methods
-    Task<CmsPageResult> CmsGetBySlug(string slug, string status = "published");
-    Task<CmsPageResult> CmsGetByPageGUID(string pageGuid);
-    Task<CmsPageListResult> CmsGetListAsync(int offset = 1, int limit = 20, string status = "all", string search = "", string culture = "");
-    Task<CmsPageResult> CmsSaveAsync(CmsPageSaveRequest request);
-    Task<CmsPageResult> CmsPublishAsync(string pageGuid);
-    Task<bool> CmsDeleteAsync(string pageGuid);
-    Task<bool> CmsCheckSlugExist(string slug, string excludePageGuid = null);
+    Task<CmsPageResult> GetBySlug(string slug, string status = "published");
+    Task<CmsPageResult> GetByPageUniqueId(string pageUniqueId);
+    Task<CmsPageListResult> GetAllActive(int offset = 1, int limit = 20, string status = "all", string search = "", string culture = "");
+    Task<CmsPageResult> Save(CmsPageSaveRequest request);
+    Task<CmsPageResult> Publish(string pageUniqueId);
+    Task<bool> Delete(string pageUniqueId);
+    Task<bool> CheckSlugExist(string slug, string excludePageUniqueId = null);
 }
 
 public class CmsPageResult
@@ -57,4 +57,6 @@ public class CmsPageSaveRequest
     public int Version { get; set; }
     public DateTime? PublishedAt { get; set; }
     public string Culture { get; set; }
+    public string TemplateType { get; set; }
+    public long? YOThemeId { get; set; }
 }

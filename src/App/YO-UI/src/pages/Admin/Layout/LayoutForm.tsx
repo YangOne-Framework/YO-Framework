@@ -2,12 +2,13 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation, useNavigate } from "react-router";
 import { useSaveMasterLayoutMutation, useGetMasterLayoutByIdQuery } from "../../../redux/layout/layoutAPI";
+import { useGetThemeListQuery } from "../../../redux/theme/themeAPI";
 import toaster from "../../../components/toster";
 import InputField from "../../../components/form/input/InputField";
 import ComponentCard from "../../../components/common/ComponentCard";
 
 interface LayoutFormData {
-  LayoutGUID: string;
+  MasterLayoutUniqueId: string;
   Name: string;
   Description: string;
   HasHeader: boolean;
@@ -15,10 +16,11 @@ interface LayoutFormData {
   Sidebar: string;
   IsSystem: boolean;
   LayoutConfig: string;
+  YOThemeId: number | null;
 }
 
 const defaultValues: LayoutFormData = {
-  LayoutGUID: "",
+  MasterLayoutUniqueId: "",
   Name: "",
   Description: "",
   HasHeader: true,
@@ -26,6 +28,7 @@ const defaultValues: LayoutFormData = {
   Sidebar: "none",
   IsSystem: false,
   LayoutConfig: "{}",
+  YOThemeId: null,
 };
 
 const LayoutForm = () => {
@@ -44,6 +47,7 @@ const LayoutForm = () => {
   } = useForm<LayoutFormData>({ defaultValues });
 
   const { data: layoutData, isSuccess } = useGetMasterLayoutByIdQuery(layoutGuid, { skip: !isEditMode || !layoutGuid });
+  const { data: themes = [] } = useGetThemeListQuery({ search: "", limit: 100 });
 
   const [saveLayout, { isLoading: saving }] = useSaveMasterLayoutMutation();
 
@@ -63,7 +67,7 @@ const LayoutForm = () => {
       const dto: any = (layoutData as any).Data ?? (layoutData as any).data;
       if (!dto) return;
       reset({
-        LayoutGUID: dto.LayoutGUID,
+        MasterLayoutUniqueId: dto.MasterLayoutUniqueId,
         Name: dto.Name,
         Description: dto.Description ?? "",
         HasHeader: dto.HasHeader,
@@ -71,6 +75,7 @@ const LayoutForm = () => {
         Sidebar: dto.Sidebar || "none",
         IsSystem: dto.IsSystem,
         LayoutConfig: dto.LayoutConfig ?? "{}",
+        YOThemeId: dto.YOThemeId ?? null,
       });
     }
   }, [layoutData, isSuccess, reset]);
@@ -79,7 +84,7 @@ const LayoutForm = () => {
     try {
       await saveLayout({
         ...data,
-        LayoutGUID: isEditMode ? layoutGuid : "",
+        MasterLayoutUniqueId: isEditMode ? layoutGuid : "",
       } as any).unwrap();
       toaster.success(isEditMode ? "Layout updated" : "Layout created");
       navigate("/admin/layout");
@@ -117,13 +122,25 @@ const LayoutForm = () => {
               <input type="checkbox" className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-500" {...register("HasFooter")} />
               Show Footer
             </label>
-            <div className="sm:col-span-2">
+            <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1.5">Sidebar</label>
               <select {...register("Sidebar")}
                 className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-700 dark:text-white/90 dark:bg-gray-900">
                 <option value="none">No sidebar</option>
                 <option value="left">Left sidebar</option>
                 <option value="right">Right sidebar</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-1.5">Theme</label>
+              <select {...register("YOThemeId", { setValueAs: (v) => (v === "" ? null : Number(v)) })}
+                className="w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-700 dark:text-white/90 dark:bg-gray-900">
+                <option value="">Site default</option>
+                {themes.map((t: any) => (
+                  <option key={t.YOThemeId} value={t.YOThemeId}>
+                    {t.Name}{t.IsActive ? " (active)" : ""}
+                  </option>
+                ))}
               </select>
             </div>
           </div>

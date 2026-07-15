@@ -109,6 +109,15 @@ const LayoutList = () => {
       ),
     },
     {
+      key: "YOThemeId",
+      label: "Theme",
+      render: (row: any) => (
+        <span className="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
+          {row.YOThemeId ? "Assigned" : "Default"}
+        </span>
+      ),
+    },
+    {
       key: "IsSystem",
       label: "System",
       render: (row: any) => (
@@ -124,14 +133,14 @@ const LayoutList = () => {
         <div className="flex items-center gap-2">
           <button
             title="Edit Design"
-            onClick={() => navigate(`/admin/layout/design?id=${row.LayoutGUID}`)}
+            onClick={() => navigate(`/admin/layout/design?id=${row.MasterLayoutUniqueId}`)}
             className="border p-2 rounded-md border-gray-300 dark:border-strokedark text-brand-600 cursor-pointer hover:bg-brand-50 dark:hover:bg-brand-900/20"
           >
             <MdDesignServices size={20} />
           </button>
           <button
             title="Edit Settings"
-            onClick={() => navigate(`/admin/layout/edit?id=${row.LayoutGUID}`)}
+            onClick={() => navigate(`/admin/layout/edit?id=${row.MasterLayoutUniqueId}`)}
             className="border p-2 rounded-md border-gray-300 dark:border-strokedark text-base cursor-pointer hover:text-primary"
           >
             <MdOutlineEdit size={20} />
@@ -139,7 +148,7 @@ const LayoutList = () => {
           {!row.IsSystem && (
             <button
               title="Delete"
-              onClick={() => handleDelete(row.LayoutGUID)}
+              onClick={() => handleDelete(row.MasterLayoutUniqueId)}
               className="border p-2 rounded-md border-gray-300 dark:border-strokedark text-red-500 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20"
               disabled={deleting}
             >

@@ -213,6 +213,21 @@ export const API = {
     DELETE: (id: number | string) => `/api/v1/html-component/${id}`,
   },
 
+  YOTHEME: {
+    LIST: "/api/v1/yotheme/list",
+    GET: (guid: string) => `/api/v1/yotheme/get/${guid}`,
+    ACTIVE: "/api/v1/yotheme/active",
+    SAVE: "/api/v1/yotheme/save",
+    ACTIVATE: "/api/v1/yotheme/activate",
+    DELETE: "/api/v1/yotheme/delete",
+    OVERRIDES: (themeId: number) => `/api/v1/yotheme/overrides/${themeId}`,
+    OVERRIDES_SAVE: "/api/v1/yotheme/overrides/save",
+    OVERRIDES_CLEAR: (themeId: number) => `/api/v1/yotheme/overrides/clear/${themeId}`,
+    EXPORT: (guid: string) => `/api/v1/yotheme/export/${guid}`,
+    IMPORT: "/api/v1/yotheme/import",
+    ASSIGNMENTS: (themeId: number) => `/api/v1/yotheme/assignments/${themeId}`,
+  },
+
   OPENIDICT: {
     CLIENT_ALL: "/api/v1/openiddict/client/all",
     CLIENT_SAVE: "/api/v1/openiddict/client/save",
@@ -296,8 +311,8 @@ export const API = {
     SAVE: "/api/v1/page/save",
     PUBLISH: "/api/v1/page/publish",
     DELETE: (pageId: string) => `/api/v1/page/${pageId}`,
-    CHECK_SLUG: (slug: string, excludePageGuid?: string) =>
-      `/api/v1/page/check-slug?slug=${encodeURIComponent(slug)}${excludePageGuid ? `&excludePageGuid=${excludePageGuid}` : ""}`,
+    CHECK_SLUG: (slug: string, excludePageUniqueId?: string) =>
+      `/api/v1/page/check-slug?slug=${encodeURIComponent(slug)}${excludePageUniqueId ? `&excludePageUniqueId=${excludePageUniqueId}` : ""}`,
     LAYOUT_LIST: "/api/v1/page/layout/list",
     LAYOUT_LIST_LIGHT: "/api/v1/page/layout/list-light",
     LAYOUT_BY_ID: (layoutGuid: string) => `/api/v1/page/layout/${layoutGuid}`,

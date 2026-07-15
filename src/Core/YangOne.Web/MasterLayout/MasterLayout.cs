@@ -8,10 +8,10 @@ namespace YangOne.Web;
 public class MasterLayout
 {
     [Key]
-    public long LayoutId { get; set; }
+    public long MasterLayoutId { get; set; }
 
     [Required]
-    public string LayoutGUID { get; set; }
+    public string MasterLayoutUniqueId { get; set; }
 
     [Required]
     public string Name { get; set; }
@@ -27,6 +27,8 @@ public class MasterLayout
     public bool IsSystem { get; set; }
 
     public string LayoutConfig { get; set; }
+
+    public long? YOThemeId { get; set; }
 
     public bool IsActive { get; set; }
 

@@ -11,6 +11,7 @@ import { llmProviderAPI } from "./aibot/llmProviderAPI";
 import { moderationAPI } from "./aibot/moderationAPI";
 import { systemPromptAPI } from "./aibot/systemPromptAPI";
 import { themeAPI } from "./aibot/themeAPI";
+import { yoThemeAPI } from "./theme/themeAPI";
 import { supportAPI } from "./admin/SupportTicketAPI";
 import { settingAPI } from "./setting/settingAPI";
 import { mediaLibraryAPI } from "./setting/medialibraryAPI";
@@ -44,6 +45,7 @@ export const store = configureStore({
     [moderationAPI.reducerPath]: moderationAPI.reducer,
     [systemPromptAPI.reducerPath]: systemPromptAPI.reducer,
     [themeAPI.reducerPath]: themeAPI.reducer,
+    [yoThemeAPI.reducerPath]: yoThemeAPI.reducer,
     [supportAPI.reducerPath]: supportAPI.reducer,
     [settingAPI.reducerPath]: settingAPI.reducer,
     [mediaLibraryAPI.reducerPath]: mediaLibraryAPI.reducer,
@@ -76,6 +78,7 @@ export const store = configureStore({
       moderationAPI.middleware,
       systemPromptAPI.middleware,
       themeAPI.middleware,
+      yoThemeAPI.middleware,
       supportAPI.middleware,
       settingAPI.middleware,
       mediaLibraryAPI.middleware,

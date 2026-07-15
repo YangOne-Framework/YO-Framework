@@ -35,7 +35,7 @@ public class PublicPageController : BaseApiController
             if (PublicPageCache.TryGet(_cache, slug, out var cached))
                 return SuccessResponse("Success (cached)", cached);
 
-            var result = await _pageService.CmsGetBySlug(slug, "published");
+            var result = await _pageService.GetBySlug(slug, "published");
             if (!result.Success || result.Data == null)
                 return ErrorResponse<PublicPageResponse>(404, "Page not found");
 
@@ -84,6 +84,9 @@ public class PublicPageResponse
     public int Version { get; set; }
     public DateTime? PublishedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    public string TemplateType { get; set; }
+    public long? YOThemeId { get; set; }
+    public object ThemeConfig { get; set; }
 }
 
 public class SeoDto

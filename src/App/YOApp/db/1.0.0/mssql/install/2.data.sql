@@ -294,6 +294,13 @@ INSERT INTO [dbo].[Menu]
 SELECT 'Content Studio','','/admin/content/studio','manage_search','',0,@menuId,1,1,'en-US',1,1,1,0,GETUTCDATE(),1,0,NULL,NULL,0;
 
 INSERT INTO [dbo].[Menu]
+SELECT 'Layout','','/admin/layout','manage_search','',0,@menuId,1,1,'en-US',1,1,1,0,GETUTCDATE(),1,0,NULL,NULL,0;
+
+INSERT INTO [dbo].[Menu]
+SELECT 'Theme','','/admin/theme','manage_search','',0,@menuId,1,1,'en-US',1,1,1,0,GETUTCDATE(),1,0,NULL,NULL,0;
+
+
+INSERT INTO [dbo].[Menu]
 SELECT 'SEO Management','','/admin/seo','manage_search','',0,@menuId,1,1,'en-US',1,1,1,0,GETUTCDATE(),1,0,NULL,NULL,0;
 
 INSERT INTO [dbo].[Menu]

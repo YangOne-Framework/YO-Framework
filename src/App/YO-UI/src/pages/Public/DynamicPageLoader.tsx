@@ -4,8 +4,9 @@ import DynamicPage from "./DynamicPage";
 import NotFound from "../OtherPage/NotFound";
 import { useGetPublicPageBySlugQuery } from "../../redux/publicPage/publicPageAPI";
 import { mapLayoutDtoToDefinition } from "../../services/localStorageDb";
+import { parseThemeConfig } from "../../context/YOThemeContext";
 import type { PublicPageResponse } from "../../types/yoPageApiTypes";
-import type { YoPage, YoComponentInstance, YoComponentStyle, MasterLayoutConfig, MasterLayoutDefinition, SeoSettings } from "../../types/yoPageTypes";
+import type { YoPage, YoComponentInstance, MasterLayoutDefinition, SeoSettings } from "../../types/yoPageTypes";
 
 function pascalToCamel(str: string): string {
   return str.charAt(0).toLowerCase() + str.slice(1);
@@ -38,7 +39,7 @@ function mapPublicPageToYoPage(dto: PublicPageResponse): YoPage {
     slug: (d.slug ?? d.Slug ?? "") as string,
     status: (d.status ?? d.Status ?? "published") as YoPage["status"],
     masterLayoutId: (d.masterLayoutId ?? d.MasterLayoutId ?? null) as string | null,
-    masterLayoutConfig: deepCamelCase(d.masterLayoutConfig ?? d.MasterLayoutConfig ?? {}) as MasterLayoutConfig,
+    masterLayoutConfig: deepCamelCase(d.masterLayoutConfig ?? d.MasterLayoutConfig ?? {}) as any,
     masterLayout,
     seo: deepCamelCase(d.seo ?? d.Seo ?? {}) as SeoSettings,
     settings: deepCamelCase(d.settings ?? d.Settings ?? {}) as YoPage["settings"],
@@ -48,6 +49,9 @@ function mapPublicPageToYoPage(dto: PublicPageResponse): YoPage {
     createdAt: (d.createdAt ?? d.CreatedAt ?? new Date().toISOString()) as string,
     updatedAt: (d.updatedAt ?? d.UpdatedAt ?? new Date().toISOString()) as string,
     publishedAt: (d.publishedAt ?? d.PublishedAt ?? null) as string | null,
+    templateType: (d.templateType ?? d.TemplateType ?? "page") as string,
+    yoThemeId: (d.yoThemeId ?? d.YOThemeId ?? null) as number | null,
+    themeConfig: parseThemeConfig(d.themeConfig ?? d.ThemeConfig ?? null),
   };
 }
 

@@ -91,9 +91,9 @@ const YoPageList = () => {
       key: "Name",
       label: "Title",
       render: (row: any) => (
-        isGuidValid(row.PageGUID) ? (
+        isGuidValid(row.PageUniqueId) ? (
           <Link
-            to={`/admin/yopage/edit?id=${row.PageGUID}`}
+            to={`/admin/yopage/edit?id=${row.PageUniqueId}`}
             className="flex items-center gap-2 group-hover:text-primary pr-2"
           >
             {row.Name || "N/A"}
@@ -140,32 +140,32 @@ const YoPageList = () => {
         <div className="flex items-center gap-2">
           <button
             title="Open Builder"
-            onClick={() => navigate(`/admin/yopage/builder?id=${row.PageGUID}`)}
-            disabled={!isGuidValid(row.PageGUID)}
+            onClick={() => navigate(`/admin/yopage/builder?id=${row.PageUniqueId}`)}
+            disabled={!isGuidValid(row.PageUniqueId)}
             className="border p-2 rounded-md border-gray-300 dark:border-strokedark text-brand-600 cursor-pointer hover:bg-brand-50 dark:hover:bg-brand-900/20 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <MdDesignServices size={20} />
           </button>
           <button
             title="Preview"
-            onClick={() => navigate(`/admin/yopage/preview?id=${row.PageGUID}`)}
-            disabled={!isGuidValid(row.PageGUID)}
+            onClick={() => navigate(`/admin/yopage/preview?id=${row.PageUniqueId}`)}
+            disabled={!isGuidValid(row.PageUniqueId)}
             className="border p-2 rounded-md border-gray-300 dark:border-strokedark text-base cursor-pointer hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <MdOutlinePreview size={20} />
           </button>
           <button
             title="Edit"
-            onClick={() => navigate(`/admin/yopage/edit?id=${row.PageGUID}`)}
-            disabled={!isGuidValid(row.PageGUID)}
+            onClick={() => navigate(`/admin/yopage/edit?id=${row.PageUniqueId}`)}
+            disabled={!isGuidValid(row.PageUniqueId)}
             className="border p-2 rounded-md border-gray-300 dark:border-strokedark text-base cursor-pointer hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <MdOutlineEdit size={20} />
           </button>
           <button
             title="Delete"
-            onClick={() => handleDelete(row.PageGUID)}
-            disabled={deleting || !isGuidValid(row.PageGUID)}
+            onClick={() => handleDelete(row.PageUniqueId)}
+            disabled={deleting || !isGuidValid(row.PageUniqueId)}
             className="border p-2 rounded-md border-gray-300 dark:border-strokedark text-red-500 cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-30 disabled:cursor-not-allowed"
           >
             <MdDeleteOutline size={20} />

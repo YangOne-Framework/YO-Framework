@@ -7,10 +7,12 @@ import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
 import LanguageSwitcher from "../components/header/LanguageSwitcher";
+import { useGetActiveThemeQuery } from "../redux/theme/themeAPI";
 
 const AppHeader: React.FC = () => {
   const { t } = useTranslation();
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
+  const { data: activeTheme } = useGetActiveThemeQuery();
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 
@@ -161,7 +163,16 @@ const AppHeader: React.FC = () => {
           <div className="flex items-center gap-2 2xsm:gap-3">
             {/* <!-- Dark Mode Toggler --> */}
             <ThemeToggleButton />
-            {/* <!-- Dark Mode Toggler --> */}
+            {activeTheme && (
+              <Link
+                to="/admin/theme"
+                className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-indigo-50 text-indigo-700 text-xs font-medium hover:bg-indigo-100 transition dark:bg-indigo-900/30 dark:text-indigo-300"
+                title={`Active theme: ${activeTheme.Name}`}
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-500" />
+                {activeTheme.Name}
+              </Link>
+            )}
             <LanguageSwitcher />
             <NotificationDropdown />
             {/* <!-- Notification Menu Area --> */}

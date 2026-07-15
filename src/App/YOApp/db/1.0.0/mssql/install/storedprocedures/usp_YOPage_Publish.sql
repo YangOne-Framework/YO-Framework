@@ -1,4 +1,4 @@
-CREATE OR ALTER PROCEDURE dbo.usp_CmsPage_Publish
+CREATE OR ALTER PROCEDURE dbo.usp_YOPage_Publish
     @PageUniqueId   NVARCHAR(128),
     @UpdatedBy      BIGINT = 0
 AS

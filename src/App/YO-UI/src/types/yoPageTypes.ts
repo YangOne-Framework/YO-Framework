@@ -135,6 +135,9 @@ export interface YoPage {
   createdAt: string;
   updatedAt: string;
   publishedAt?: string;
+  templateType?: string;
+  yoThemeId?: number | null;
+  themeConfig?: unknown | null;
 }
 
 export interface YoPageVersion {

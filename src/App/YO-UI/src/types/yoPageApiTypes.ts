@@ -1,7 +1,7 @@
 import { ApiResponse } from "./common";
 
 export interface YoPageDto {
-  PageGUID: string;
+  PageUniqueId: string;
   Name: string;
   Slug: string;
   Status: string;
@@ -19,6 +19,8 @@ export interface YoPageDto {
   UpdatedOn: string | null;
   UpdatedBy: number;
   RowTotal: number;
+  YOThemeId?: number | null;
+  TemplateType?: string;
 }
 
 export interface YoPageListResponse {
@@ -38,6 +40,8 @@ export interface YoPageSaveRequest {
   Version: number;
   PublishedAt?: string | null;
   Culture?: string;
+  YOThemeId?: number | null;
+  TemplateType?: string;
 }
 
 export interface YoPagePublishRequest {
@@ -91,4 +95,7 @@ export interface PublicPageResponse {
   Version: number;
   PublishedAt: string | null;
   UpdatedAt: string | null;
+  TemplateType?: string;
+  YOThemeId?: number | null;
+  ThemeConfig?: unknown | null;
 }

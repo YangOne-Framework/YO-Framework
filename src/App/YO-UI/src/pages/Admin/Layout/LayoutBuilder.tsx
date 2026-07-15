@@ -1,11 +1,12 @@
-import { useEffect, useCallback } from "react";
+import { useEffect, useMemo, useCallback } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import { ComponentPalette } from "../CmsPage/editor/ComponentPalette";
 import { CanvasEditor } from "../CmsPage/editor/CanvasEditor";
 import { PropertiesPanel } from "../CmsPage/editor/PropertiesPanel";
 import { EditorToolbar } from "../CmsPage/editor/EditorToolbar";
 import { editorStore, createEmptyPage } from "../../../store/editorStore";
-import { localStorageDb } from "../../../services/localStorageDb";
+import { mapLayoutDtoToDefinition } from "../../../services/localStorageDb";
+import { useGetMasterLayoutByIdQuery } from "../../../redux/layout/layoutAPI";
 import { componentRegistry } from "../../../registry/componentRegistry";
 import type { YoSection, MasterLayoutDefinition, YoComponentInstance, LayoutZoneMap } from "../../../types/yoPageTypes";
 
@@ -118,24 +119,26 @@ export default function LayoutBuilder() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const layoutId = searchParams.get("id");
+  const { data: layoutApi } = useGetMasterLayoutByIdQuery(layoutId!, { skip: !layoutId });
+
+  const layout = useMemo(() => {
+    if (!layoutApi?.Data) return null;
+    return mapLayoutDtoToDefinition(layoutApi.Data as any);
+  }, [layoutApi]);
 
   useEffect(() => {
-    if (!layoutId) return;
-    (async () => {
-      const layout = await localStorageDb.getMasterLayout(layoutId);
-      if (!layout) return;
+    if (!layout) return;
 
-      const { sections, components } = buildLayoutSections(layout);
-      const page = createEmptyPage();
-      page.title = `Layout: ${layout.name}`;
-      page.slug = `layout-${layout.id}`;
-      page.masterLayoutId = "none";
-      page.sections = sections;
-      page.components = components;
-      editorStore.loadPage(page);
-      editorStore.setEditingLayout(layoutId);
-    })();
-  }, [layoutId]);
+    const { sections, components } = buildLayoutSections(layout);
+    const page = createEmptyPage();
+    page.title = `Layout: ${layout.name}`;
+    page.slug = `layout-${layout.id}`;
+    page.masterLayoutId = "none";
+    page.sections = sections;
+    page.components = components;
+    editorStore.loadPage(page);
+    editorStore.setEditingLayout(layoutId!);
+  }, [layout, layoutId]);
 
   const handleNavigate = useCallback((view: string) => {
     if (view === "layouts" || view === "pages") navigate("/admin/layout");

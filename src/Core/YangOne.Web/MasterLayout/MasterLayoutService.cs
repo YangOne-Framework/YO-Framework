@@ -26,7 +26,7 @@ public class MasterLayoutService : IMasterLayoutService
             {
                 await db.OpenAsync();
                 var data = (await db.QueryAsync<MasterLayout>(
-                    "usp_MasterLayout_List",
+                    "usp_MasterLayout_GetAllActive",
                     commandType: System.Data.CommandType.StoredProcedure)).ToList();
 
                 return new MasterLayoutResult
@@ -53,7 +53,7 @@ public class MasterLayoutService : IMasterLayoutService
             {
                 await db.OpenAsync();
                 var data = (await db.QueryAsync<MasterLayout>(
-                    "usp_MasterLayout_ListLight",
+                    "usp_MasterLayout_GetAllActive",
                     commandType: System.Data.CommandType.StoredProcedure)).ToList();
 
                 return new MasterLayoutResult
@@ -71,7 +71,7 @@ public class MasterLayoutService : IMasterLayoutService
         }
     }
 
-    public async Task<MasterLayoutResult> GetByGuidAsync(string layoutGuid)
+    public async Task<MasterLayoutResult> GetByIdAsync(string layoutUniqueId)
     {
         try
         {
@@ -80,8 +80,8 @@ public class MasterLayoutService : IMasterLayoutService
             {
                 await db.OpenAsync();
                 var data = await db.QueryFirstOrDefaultAsync<MasterLayout>(
-                    "usp_MasterLayout_Get",
-                    new { LayoutGUID = layoutGuid },
+                    "usp_MasterLayout_GetById",
+                    new { MasterLayoutUniqueId = layoutUniqueId },
                     commandType: System.Data.CommandType.StoredProcedure);
 
                 if (data == null)
@@ -114,7 +114,7 @@ public class MasterLayoutService : IMasterLayoutService
                     "usp_MasterLayout_Save",
                     new
                     {
-                        LayoutGUID = request.LayoutGUID,
+                        MasterLayoutUniqueId = request.MasterLayoutUniqueId,
                         Name = request.Name,
                         Description = request.Description,
                         HasHeader = request.HasHeader,
@@ -122,6 +122,7 @@ public class MasterLayoutService : IMasterLayoutService
                         Sidebar = request.Sidebar,
                         IsSystem = request.IsSystem,
                         LayoutConfig = request.LayoutConfig,
+                        YOThemeId = request.YOThemeId,
                         UpdatedBy = 0
                     },
                     commandType: System.Data.CommandType.StoredProcedure);
@@ -146,7 +147,7 @@ public class MasterLayoutService : IMasterLayoutService
         }
     }
 
-    public async Task<MasterLayoutResult> DeleteAsync(string layoutGuid)
+    public async Task<MasterLayoutResult> DeleteAsync(string layoutUniqueId)
     {
         try
         {
@@ -156,7 +157,7 @@ public class MasterLayoutService : IMasterLayoutService
                 await db.OpenAsync();
                 var result = await db.QueryFirstAsync(
                     "usp_MasterLayout_Delete",
-                    new { LayoutGUID = layoutGuid, DeletedBy = 0 },
+                    new { MasterLayoutUniqueId = layoutUniqueId, DeletedBy = 0 },
                     commandType: System.Data.CommandType.StoredProcedure);
 
                 string action = result.Action;

@@ -168,7 +168,7 @@ export const localStorageDb = {
     const zones = layout.zones ?? { header: [], sidebar: [], footer: [] };
     const allIds = [...zones.header, ...zones.sidebar, ...zones.footer];
     const payload: Record<string, unknown> = {
-      layoutGUID: layout.id,
+      masterLayoutUniqueId: layout.id,
       name: layout.name,
       description: layout.description ?? '',
       hasHeader: layout.hasHeader,
@@ -213,12 +213,17 @@ export const localStorageDb = {
   }
 };
 
-function mapPageDtoToYoPage(dto: Record<string, unknown>): YoPage {
+export function mapPageDtoToYoPage(dto: Record<string, unknown>): YoPage {
   const contentConfig = safeJsonParse(dto.contentConfigDraft ?? dto.ContentConfigDraft ?? dto.contentConfig ?? dto.ContentConfig, {}) as Record<string, unknown>;
-  const rawLayoutConfig = contentConfig.masterLayoutConfig as MasterLayoutConfig | undefined;
+
+  const rawLayoutConfig = (
+    safeJsonParse(dto.MasterLayoutConfig ?? dto.masterLayoutConfig, null) ??
+    contentConfig.masterLayoutConfig ??
+    null
+  ) as MasterLayoutConfig | null;
 
   return {
-    id: (dto.pageGUID ?? dto.PageGUID ?? dto.pageId ?? dto.PageId ?? '') as string,
+    id: (dto.pageUniqueId ?? dto.PageUniqueId ?? dto.pageId ?? dto.PageId ?? '') as string,
     title: (dto.name ?? dto.Name ?? dto.title ?? '') as string,
     slug: (dto.slug ?? dto.Slug ?? dto.url ?? dto.Url ?? '') as string,
     status: (dto.status ?? dto.Status ?? (dto.isPublished || dto.IsPublished ? 'published' : 'draft')) as YoPage['status'],
@@ -236,6 +241,8 @@ function mapPageDtoToYoPage(dto: Record<string, unknown>): YoPage {
     createdAt: (dto.addedOn ?? dto.AddedOn ?? new Date().toISOString()) as string,
     updatedAt: (dto.lastModified ?? dto.LastModified ?? dto.updatedOn ?? dto.UpdatedOn ?? new Date().toISOString()) as string,
     publishedAt: (dto.publishedAt ?? dto.PublishedAt ?? null) as string | null,
+    templateType: (dto.templateType ?? dto.TemplateType ?? 'page') as string,
+    yoThemeId: (dto.yoThemeId ?? dto.YOThemeId ?? null) as number | null,
   };
 }
 
@@ -284,7 +291,7 @@ export function mapLayoutDtoToDefinition(dto: Record<string, unknown>): MasterLa
   const config = safeJsonParse(dto.LayoutConfig ?? dto.layoutConfig, {}) as Record<string, unknown>;
   const zones = config.zones as LayoutZoneMap | undefined;
   return {
-    id: (dto.LayoutGUID ?? dto.layoutGUID ?? '') as string,
+    id: (dto.MasterLayoutUniqueId ?? dto.masterLayoutUniqueId ?? '') as string,
     name: (dto.Name ?? dto.name ?? '') as string,
     description: (dto.Description ?? dto.description ?? '') as string,
     hasHeader: (dto.HasHeader ?? dto.hasHeader ?? true) as boolean,

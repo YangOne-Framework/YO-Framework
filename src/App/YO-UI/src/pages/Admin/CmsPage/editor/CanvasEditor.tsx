@@ -1,16 +1,30 @@
 import type React from 'react';
+import { useMemo } from 'react';
 import { componentDefinitions } from '../../../../registry/componentRegistry';
 import { layoutPresets } from '../../../../registry/layoutPresets';
 import { editorStore } from '../../../../store/editorStore';
 import { useEditorStore } from '../../../../store/useEditorStore';
-import type { YoColumn, YoSection, DeviceMode } from '../../../../types/yoPageTypes';
-import { responsiveColumnClasses } from '../../../../utils/style';
+import { YOThemeProvider, buildTokenCss, parseThemeConfig } from '../../../../context/YOThemeContext';
+import { useGetActiveThemeQuery } from '../../../../redux/theme/themeAPI';
 import { ComponentRenderer } from '../../../../renderer/ComponentRenderer';
+import { responsiveColumnClasses } from '../../../../utils/style';
+import type { YoColumn, YoSection, DeviceMode } from '../../../../types/yoPageTypes';
 
 const LAYOUT_ZONE_IDS = ['layout-header', 'layout-sidebar', 'layout-footer'] as const;
 
 export function CanvasEditor() {
   const { page, selectedComponentId, activeDevice, editingLayout } = useEditorStore();
+  const { data: activeTheme } = useGetActiveThemeQuery();
+
+  const themeConfig = useMemo(() => {
+    if (!activeTheme?.Config) return null;
+    return parseThemeConfig(activeTheme.Config);
+  }, [activeTheme]);
+
+  const cssVars = useMemo(() => {
+    if (!themeConfig?.tokens) return "";
+    return buildTokenCss(themeConfig.tokens);
+  }, [themeConfig]);
 
   const renderedSections: React.ReactNode[] = [];
   for (let i = 0; i < page.sections.length; i++) {
@@ -24,7 +38,7 @@ export function CanvasEditor() {
     }
   }
 
-  return (
+  const canvas = (
     <main className="relative h-full overflow-y-auto bg-gray-100 p-6 dark:bg-gray-950">
       <div className="relative mx-auto space-y-5 transition-all duration-300 rounded-2xl shadow-theme-md" style={{ maxWidth: activeDevice === 'mobile' ? '430px' : activeDevice === 'tablet' ? '820px' : '1180px', backgroundColor: page.settings.backgroundColor ?? '#ffffff', minHeight: '90%' }}>
         <CanvasHeader />
@@ -33,6 +47,15 @@ export function CanvasEditor() {
         {page.sections.length > 0 && !editingLayout && <BottomAddSection />}
       </div>
     </main>
+  );
+
+  if (!themeConfig) return canvas;
+
+  return (
+    <YOThemeProvider themeConfig={themeConfig}>
+      <style>{`:root { ${cssVars} }`}</style>
+      {canvas}
+    </YOThemeProvider>
   );
 }
 
