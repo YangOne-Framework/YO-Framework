@@ -172,6 +172,7 @@ CREATE TABLE dbo.LocaleResource
     Value													nvarchar (4000) not null,
     GroupName												nvarchar(256)
 );
+
 CREATE INDEX idx_localization
 	ON dbo.LocaleResource (Culture, GroupName);
 
@@ -365,10 +366,233 @@ CREATE TABLE dbo.ModuleSetting
 CREATE UNIQUE INDEX IX_ModuleSetting_Unique
 	ON dbo.ModuleSetting (ModuleName, ModuleVersion, SettingKey);
 
+CREATE TABLE dbo.YOTheme
+(
+	YOThemeId               								int identity(1,1) primary key,
+	YOThemeUniqueId         								nvarchar(256) NOT NULL,
+	Name                    								nvarchar(256) NOT NULL,
+	Slug                    								nvarchar(256) NOT NULL,
+	[Version]               								nvarchar(20) NOT NULL,
+	Author                  								nvarchar(256) NULL,
+	Description             								NVARCHAR(1000) NULL,
+	Tags                    								nvarchar(500) NULL,
+	Screenshot              								nvarchar(500) NULL,
+	Config                  								nvarchar(max) NULL,	
+	IsSystem                								bit NOT NULL DEFAULT 0,
+	ParentYOThemeId         								int NULL,
+	PackagePath             								nvarchar(1024) NULL,
+	PackageHash             								nvarchar(128) NULL,
+	IsActive												bit not null default(1),
+	IsDeleted                               				bit NOT NULL Default(0),
+	AddedOn                                 				datetime NOT NULL Default(getdate()),
+	AddedBy                                 				bigint not null default(0),
+	DeletedBy												bigint not null default(0),
+	DeletedOn                               				datetime,
+	UpdatedOn                               				datetime ,
+	UpdatedBy                               				bigint not null default(0)
+);
+
+
+CREATE INDEX IX_YOTheme_Slug ON dbo.YOTheme(Slug) WHERE IsDeleted = 0;
+CREATE INDEX IX_YOTheme_IsActive ON dbo.YOTheme(IsActive) WHERE IsActive = 1 AND IsDeleted = 0;
+
+
+
+CREATE TABLE dbo.YOThemeOverride
+(
+	YOThemeOverrideId       								int identity(1,1) primary key,
+	YOThemeId               								int NOT NULL references dbo.YOTheme(YOThemeId),
+	KeyPath                 								nvarchar(500) NOT NULL,
+	Value                   								nvarchar(MAX) NOT NULL,
+	AddedOn                                 				datetime NOT NULL Default(getdate()),
+	AddedBy                                 				bigint not null default(0),
+);
+CREATE INDEX IX_YOThemeOverride_ThemeId ON dbo.YOThemeOverride(YOThemeId);
+
+
+CREATE TABLE dbo.YOThemeAsset
+(
+	YOThemeAssetId          								int identity(1,1) primary key,
+	YOThemeId               								int NOT NULL references dbo.YOTheme(YOThemeId),
+	AssetPath               								nvarchar(500) NOT NULL,
+	AssetType               								nvarchar(50) NOT NULL,
+	FileSize                								bigint NOT NULL,
+	FileHash                								nvarchar(128) NULL,
+	AddedOn                 								datetime NOT NULL Default(getdate())
+);
+ INSERT INTO dbo.YOTheme (
+        YOThemeUniqueId, Name, Slug, [Version], Author,
+        Description, Tags, Config, IsActive, IsSystem, AddedBy
+    ) VALUES (
+        'YO-DEFAULT-THEME',
+        'YO Default',
+        'yo-default',
+        '1.0.0',
+        'YangOne Framework',
+        'System default theme with clean responsive layout.',
+        'default,system',
+        N'{
+  "tokens": {
+    "colors": {
+      "primary":   { "default": "#2563eb", "dark": "#3b82f6" },
+      "secondary": { "default": "#7c3aed", "dark": "#8b5cf6" },
+      "accent":    { "default": "#f59e0b", "dark": "#fbbf24" },
+      "bg":        { "default": "#ffffff", "dark": "#0f172a" },
+      "text":      { "default": "#1e293b", "dark": "#e2e8f0" },
+      "border":    { "default": "#e2e8f0", "dark": "#334155" },
+      "muted":     { "default": "#f8fafc", "dark": "#1e293a" }
+    },
+    "fonts": {
+      "heading": { "family": "Inter", "source": "google", "weights": [400,600,700] },
+      "body":    { "family": "Inter", "source": "google", "weights": [400,500] }
+    },
+    "spacing": { "0": "0", "1": "0.25rem", "2": "0.5rem", "3": "0.75rem", "4": "1rem", "5": "1.25rem", "6": "1.5rem", "8": "2rem", "10": "2.5rem", "12": "3rem", "16": "4rem", "20": "5rem", "24": "6rem" },
+    "border-radius": { "sm": "0.25rem", "md": "0.5rem", "lg": "1rem", "full": "9999px" },
+    "shadows": {
+      "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+      "md": "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+      "lg": "0 10px 15px -3px rgb(0 0 0 / 0.1)"
+    }
+  },
+  "components": {
+    "button": {
+      "variant": "primary",
+      "paddingX": "1.25rem",
+      "paddingY": "0.625rem",
+      "borderRadius": "var(--radius-md, 0.5rem)",
+      "shadow": "var(--shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.05))",
+      "transition": "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+      "variants": {
+        "primary":  { "classes": "yo-btn yo-btn-primary" },
+        "secondary":{ "classes": "yo-btn yo-btn-secondary" },
+        "outline":  { "classes": "yo-btn yo-btn-outline" },
+        "text":     { "classes": "yo-btn yo-btn-text" }
+      }
+    },
+    "card": {
+      "variant": "default",
+      "padding": "1.5rem",
+      "borderRadius": "var(--radius-lg, 0.75rem)",
+      "shadow": "var(--shadow-md)",
+      "variants": {
+        "default":  { "classes": "yo-card" },
+        "elevated": { "classes": "yo-card yo-card-hover" },
+        "bordered": { "classes": "yo-card border-2" },
+        "flat":     { "classes": "yo-card !shadow-none" }
+      }
+    },
+    "badge": {
+      "variant": "primary",
+      "variants": {
+        "primary":  { "classes": "yo-badge yo-badge-primary" },
+        "secondary":{ "classes": "yo-badge yo-badge-secondary" },
+        "accent":   { "classes": "yo-badge yo-badge-accent" },
+        "success":  { "classes": "yo-badge yo-badge-success" },
+        "danger":   { "classes": "yo-badge yo-badge-danger" }
+      }
+    },
+    "input": {
+      "variant": "default",
+      "borderRadius": "var(--radius-md, 0.5rem)",
+      "padding": "0.625rem 0.875rem",
+      "variants": {
+        "default":  { "classes": "yo-input" },
+        "filled":   { "classes": "yo-input bg-[var(--yo-muted)]" },
+        "underlined":{ "classes": "yo-input !border-0 !border-b-2 !rounded-none" }
+      }
+    },
+    "alert": {
+      "variant": "info",
+      "variants": {
+        "info":    { "classes": "yo-alert yo-alert-info" },
+        "success": { "classes": "yo-alert yo-alert-success" },
+        "warning": { "classes": "yo-alert yo-alert-warning" },
+        "error":   { "classes": "yo-alert yo-alert-error" }
+      }
+    },
+    "navbar": {
+      "variant": "default",
+      "variants": {
+        "default": { "classes": "yo-navbar" },
+        "dark":    { "classes": "yo-navbar !bg-[var(--yo-text)] !text-[var(--yo-bg)]" }
+      }
+    },
+    "sidebar": {
+      "variant": "default",
+      "variants": {
+        "default": { "classes": "yo-sidebar" },
+        "clean":   { "classes": "yo-sidebar !border-0" }
+      }
+    },
+    "table": {
+      "variant": "default",
+      "variants": {
+        "default":  { "classes": "yo-table-container yo-table" },
+        "striped":  { "classes": "yo-table-container yo-table [&_.yo-table-row:nth-child(even)]:bg-black/5" },
+        "bordered": { "classes": "yo-table-container yo-table !border-2" }
+      }
+    },
+    "footer": {
+      "variant": "default",
+      "variants": {
+        "default":  { "classes": "yo-footer" },
+        "minimal":  { "classes": "yo-footer !py-8" },
+        "columns":  { "classes": "yo-footer grid grid-cols-1 sm:grid-cols-4 gap-6" }
+      }
+    }
+  },
+  "structure": {
+    "layoutType": "sidebar-right",
+    "layoutTypes": {
+      "sidebar-right": { "shell": "SidebarRightShell" },
+      "sidebar-left":  { "shell": "SidebarLeftShell" },
+      "topnav":        { "shell": "TopNavShell" },
+      "minimal":       { "shell": "MinimalShell" }
+    }
+  },
+  "customizer": {
+    "controls": {
+      "colors": {
+        "primary":   { "type": "color", "label": "Primary Color" },
+        "secondary": { "type": "color", "label": "Secondary Color" },
+        "bg":        { "type": "color", "label": "Background" },
+        "text":      { "type": "color", "label": "Text Color" }
+      },
+      "fonts": {
+        "heading": { "type": "font", "label": "Heading Font" },
+        "body":    { "type": "font", "label": "Body Font" }
+      },
+      "components": {
+        "button": {
+          "type": "select", "label": "Button Style",
+          "options": [
+            { "value": "pill", "label": "Pill" },
+            { "value": "sharp", "label": "Sharp" },
+            { "value": "elevated", "label": "Elevated" }
+          ]
+        },
+        "card": {
+          "type": "select", "label": "Card Style",
+          "options": [
+            { "value": "shadow", "label": "Shadow" },
+            { "value": "bordered", "label": "Bordered" },
+            { "value": "flat", "label": "Flat" }
+          ]
+        }
+      }
+    }
+  }
+}',
+        1, 1, 0
+    );
+
+CREATE INDEX IX_YOThemeAsset_ThemeId ON dbo.YOThemeAsset(YOThemeId);
+
 CREATE TABLE dbo.MasterLayout
 (
-	MasterLayoutId											bigint primary key identity(1,1) not null,
+	MasterLayoutId											int primary key identity(1,1) not null,
 	MasterLayoutUniqueId									nvarchar(128) not null,
+	YOThemeId 												int NULL REFERENCES dbo.YOTheme(YOThemeId),
 	Name													nvarchar(256) not null,
 	Description												nvarchar(max),
 	HasHeader												bit not null default(1),
@@ -415,20 +639,23 @@ VALUES
 
 CREATE TABLE dbo.Page
 (
-	PageId													bigint primary key identity(1,1) not null,
+	PageId													int primary key identity(1,1) not null,
 	PageUniqueId											nvarchar(128),
+	YOThemeId 												int NULL REFERENCES dbo.YOTheme(YOThemeId),
+	MasterLayoutId											nvarchar(128),
 	Name													nvarchar(256) NOT NULL,
 	URL														nvarchar(256),
 	Slug													nvarchar(512),
 	PageType												nvarchar(20) not null default('legacy'),
-	Status												nvarchar(20),
-	MasterLayoutId											nvarchar(128),
-	Version												int not null default(1),
+	Status													nvarchar(20),	
+	Version													int not null default(1),
 	PublishedAt												datetime,
 	Content													nvarchar(max) NULL,
 	ContentConfig											nvarchar(max) null,
 	ContentConfigDraft										nvarchar(max),
 	UseMasterLayout											bit default(0) not null,
+	TemplateType 											NVARCHAR(100) NOT NULL DEFAULT 'page',
+	ThemeOverrideJson 										NVARCHAR(MAX),
 	IsPublished												bit default(0) not null,
 	IsBackend												bit default(0) not null,
 	Culture													nvarchar(10) not null,
@@ -657,8 +884,8 @@ CREATE TABLE dbo.SMSGatewaySetting
 Create Table dbo.SMSLog
 (
 	SMSLogId												bigint primary key identity(1,1) not null,
-	From													nvarchar(256),
-	To													nvarchar(256),	
+	[From]													nvarchar(256),
+	[To]													nvarchar(256),	
 	Body													nvarchar(max),	
 	IsSent													bit default(0),
 	IsDelivered												bit default(0),
@@ -698,12 +925,12 @@ CREATE TABLE dbo.EmailServiceProviderSetting
 Create Table dbo.EmailLog
 (
 	EmailLogId												bigint primary key identity(1,1) not null,
-	From													nvarchar(256),
-	To													nvarchar(256),
-	Subject												nvarchar(500),
+	[From]													nvarchar(256),
+	[To]													nvarchar(256),
+	Subject													nvarchar(500),
 	Body													nvarchar(max),
-	CC													nvarchar(2000),
-	BCC													nvarchar(2000),
+	CC														nvarchar(2000),
+	BCC														nvarchar(2000),
 	IsSent													bit default(0),
 	IsDelivered												bit default(0),
 	SentDate												datetime default(getutcdate()),
@@ -1063,23 +1290,23 @@ CREATE TABLE dbo.Timezone
 CREATE TABLE dbo.TimezoneAdjustmentRule
 (
 	Id 														int NOT NULL primary key,
-	TimezoneId 												int NULL,
-	RuleNo 													int NULL,
-	DateStart 												datetime2(7) NULL,
-	DateEnd 												datetime2(7) NULL,
-	DaylightTransitionStartIsFixedDateRule 					bit NULL,
-	DaylightTransitionStartMonth 							int NULL,
-	DaylightTransitionStartDay 								int NULL,
-	DaylightTransitionStartWeek 							int NULL,
-	DaylightTransitionStartDayOfWeek 						int NULL,
-	DaylightTransitionStartTimeOfDay 						time(7) NULL,
-	DaylightTransitionEndIsFixedDateRule 					bit NULL,
-	DaylightTransitionEndMonth 								int NULL,
-	DaylightTransitionEndDay 								int NULL,
-	DaylightTransitionEndWeek 								int NULL,
-	DaylightTransitionEndDayOfWeek 							int NULL,
-	DaylightTransitionEndTimeOfDay 							time(7) NULL,
-	DaylightDeltaSec 										int NULL
+	TimezoneId 												int,
+	RuleNo 													int,
+	DateStart 												datetime2(7),
+	DateEnd 												datetime2(7),
+	DaylightTransitionStartIsFixedDateRule 					bit,
+	DaylightTransitionStartMonth 							int,
+	DaylightTransitionStartDay 								int,
+	DaylightTransitionStartWeek 							int,
+	DaylightTransitionStartDayOfWeek 						int,
+	DaylightTransitionStartTimeOfDay 						time(7),
+	DaylightTransitionEndIsFixedDateRule 					bit,
+	DaylightTransitionEndMonth 								int,
+	DaylightTransitionEndDay 								int,
+	DaylightTransitionEndWeek 								int,
+	DaylightTransitionEndDayOfWeek 							int,
+	DaylightTransitionEndTimeOfDay 							time(7),
+	DaylightDeltaSec 										int
 
 )
 
