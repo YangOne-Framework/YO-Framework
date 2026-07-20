@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { YoRendererProps } from '../../types/yoPageTypes';
 import { componentInlineStyle, componentStyleClasses } from '../../utils/style';
 
@@ -5,79 +6,102 @@ function wrapperClasses(base: string, style: YoRendererProps['style']) {
   return `${base} ${componentStyleClasses(style)}`;
 }
 
+/* ── Typography ──────────────────────────────────────────── */
 export function HeadingRenderer({ config, style }: YoRendererProps) {
   const text = String(config.text ?? 'Heading');
   const level = String(config.level ?? 'h2');
-  const className = wrapperClasses('font-bold tracking-tight', style);
+  const headingClass =
+    level === 'h1' ? 'yo-heading-1'
+      : level === 'h3' || level === 'h4' ? 'yo-heading-3'
+        : 'yo-heading-2';
+  const className = wrapperClasses(headingClass, style);
   const inlineStyle = componentInlineStyle(style);
-  if (level === 'h1') return <h1 className={`${className} text-5xl`} style={inlineStyle}>{text}</h1>;
-  if (level === 'h3') return <h3 className={`${className} text-2xl`} style={inlineStyle}>{text}</h3>;
-  if (level === 'h4') return <h4 className={`${className} text-xl`} style={inlineStyle}>{text}</h4>;
-  return <h2 className={`${className} text-3xl`} style={inlineStyle}>{text}</h2>;
+  if (level === 'h1') return <h1 className={className} style={inlineStyle}>{text}</h1>;
+  if (level === 'h3') return <h3 className={className} style={inlineStyle}>{text}</h3>;
+  if (level === 'h4') return <h4 className={className} style={inlineStyle}>{text}</h4>;
+  return <h2 className={className} style={inlineStyle}>{text}</h2>;
 }
 
 export function TextRenderer({ config, style }: YoRendererProps) {
   return (
     <div
-      className={wrapperClasses('prose prose-gray max-w-none leading-7', style)}
+      className={wrapperClasses('yo-body prose-headings:font-[var(--font-heading)] max-w-none leading-7', style)}
       style={componentInlineStyle(style)}
       dangerouslySetInnerHTML={{ __html: String(config.body ?? 'Write your content here.') }}
     />
   );
 }
 
+/* ── Button ──────────────────────────────────────────────── */
 export function ButtonRenderer({ config, style }: YoRendererProps) {
   const variant = String(config.variant ?? 'primary');
-  const variantClass = variant === 'secondary'
-    ? 'bg-white text-gray-900 border border-gray-300 hover:bg-gray-50'
-    : variant === 'ghost'
-      ? 'bg-transparent text-gray-900 hover:bg-gray-100'
-      : 'bg-gray-900 text-white hover:bg-gray-800';
+  const variantClass =
+    variant === 'secondary' ? 'yo-btn yo-btn-secondary'
+      : variant === 'ghost' ? 'yo-btn yo-btn-text'
+        : 'yo-btn yo-btn-primary';
   return (
     <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
-      <a href={String(config.url ?? '#')}
-        className={`inline-flex items-center justify-center rounded-lg px-5 py-3 text-sm font-medium transition ${variantClass}`}>
+      <a href={String(config.url ?? '#')} className={`${variantClass} no-underline`}>
         {String(config.label ?? 'Click here')}
       </a>
     </div>
   );
 }
 
+/* ── Image ───────────────────────────────────────────────── */
 export function ImageRenderer({ config, style }: YoRendererProps) {
   const src = String(config.src || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1200&auto=format&fit=crop');
   const alt = String(config.alt ?? 'Content image');
   const objectFit = String(config.objectFit ?? 'cover');
   return (
     <figure className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
-      <img src={src} alt={alt} className={`w-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'} rounded-lg`} />
-      {config.caption ? <figcaption className="mt-2 text-sm text-gray-500">{String(config.caption)}</figcaption> : null}
+      <img src={src} alt={alt} className={`w-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'} rounded-[var(--radius-lg,0.75rem)]`} />
+      {config.caption ? <figcaption className="mt-2 text-sm" style={{ color: 'var(--yo-muted)' }}>{String(config.caption)}</figcaption> : null}
     </figure>
   );
 }
 
+/* ── Hero ────────────────────────────────────────────────── */
 export function HeroRenderer({ config, style }: YoRendererProps) {
   const backgroundImage = String(config.backgroundImage ?? '');
+  const hasImage = Boolean(backgroundImage);
+
+  const heroStyle: CSSProperties = {
+    ...componentInlineStyle(style),
+    backgroundColor: 'var(--yo-card, #ffffff)',
+    color: 'var(--yo-cardForeground, var(--yo-text))',
+    border: '1px solid var(--yo-border)',
+    fontFamily: 'var(--font-body, system-ui, sans-serif)',
+    padding: 'var(--spacing-20, 5rem) var(--spacing-8, 2rem)',
+  };
+
+  const titleClass = hasImage ? 'text-5xl font-bold tracking-tight text-white' : 'yo-heading-1';
+  const subColor = hasImage ? '#cbd5e1' : 'var(--yo-muted)';
+  const eyebrowColor = hasImage ? '#e2e8f0' : 'var(--yo-primary)';
+
+  if (hasImage) {
+    heroStyle.backgroundImage = `linear-gradient(rgba(2,6,23,.6),rgba(2,6,23,.6)), url(${backgroundImage})`;
+    heroStyle.backgroundColor = 'transparent';
+    heroStyle.border = 'none';
+    heroStyle.backgroundSize = 'cover';
+    heroStyle.backgroundPosition = 'center';
+  }
+
   return (
-    <section className={wrapperClasses('relative overflow-hidden rounded-2xl bg-gray-900 px-8 py-20 text-white', style)}
-      style={{
-        ...componentInlineStyle(style),
-        backgroundImage: backgroundImage ? `linear-gradient(rgba(2,6,23,.62),rgba(2,6,23,.62)), url(${backgroundImage})` : undefined,
-        backgroundSize: 'cover', backgroundPosition: 'center'
-      }}>
+    <section className={wrapperClasses('relative overflow-hidden rounded-2xl', style)} style={heroStyle}>
       <div className="max-w-3xl">
-        <p className="mb-4 text-sm font-semibold uppercase tracking-wider text-gray-400">{String(config.eyebrow ?? 'CMS Studio')}</p>
-        <h1 className="text-5xl font-bold tracking-tight">{String(config.title ?? 'Build dynamic pages visually')}</h1>
-        <p className="mt-5 text-lg leading-8 text-gray-300">{String(config.subtitle ?? 'Drag components, configure content, apply animations, and publish structured JSON pages.')}</p>
+        <p className="mb-4 text-sm font-semibold uppercase tracking-wider" style={{ color: eyebrowColor }}>{String(config.eyebrow ?? 'CMS Studio')}</p>
+        <h1 className={titleClass}>{String(config.title ?? 'Build dynamic pages visually')}</h1>
+        <p className="mt-5 text-lg leading-8" style={{ color: subColor }}>{String(config.subtitle ?? 'Drag components, configure content, apply animations, and publish structured JSON pages.')}</p>
         <div className="mt-8">
-          <a href={String(config.ctaUrl ?? '#')} className="inline-flex rounded-lg bg-white px-5 py-3 text-sm font-medium text-gray-900 hover:bg-gray-100 transition">
-            {String(config.ctaLabel ?? 'Get Started')}
-          </a>
+          <a href={String(config.ctaUrl ?? '#')} className="yo-btn yo-btn-primary no-underline">{String(config.ctaLabel ?? 'Get Started')}</a>
         </div>
       </div>
     </section>
   );
 }
 
+/* ── Card Grid ───────────────────────────────────────────── */
 export function CardGridRenderer({ config, style }: YoRendererProps) {
   const rawItems = Array.isArray(config.items) ? config.items : [];
   const items = rawItems.length > 0 ? rawItems : [
@@ -89,10 +113,12 @@ export function CardGridRenderer({ config, style }: YoRendererProps) {
     <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
       <div className="grid gap-4 md:grid-cols-3">
         {items.map((item: any, index: number) => (
-          <div key={index} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-sm">
-            <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100 text-sm font-bold text-gray-700">{index + 1}</div>
-            <h3 className="text-lg font-semibold text-gray-900">{String(item.title ?? 'Card')}</h3>
-            <p className="mt-2 text-sm leading-6 text-gray-600">{String(item.body ?? '')}</p>
+          <div key={index} className="yo-card yo-card-hover">
+            <div className="yo-card-body">
+              <div className="yo-badge yo-badge-primary mb-3">{index + 1}</div>
+              <h3 className="text-lg font-semibold" style={{ color: 'var(--yo-text)' }}>{String(item.title ?? 'Card')}</h3>
+              <p className="mt-2 text-sm leading-6" style={{ color: 'var(--yo-muted)' }}>{String(item.body ?? '')}</p>
+            </div>
           </div>
         ))}
       </div>
@@ -100,26 +126,28 @@ export function CardGridRenderer({ config, style }: YoRendererProps) {
   );
 }
 
+/* ── Spacer ──────────────────────────────────────────────── */
 export function SpacerRenderer({ config, style }: YoRendererProps) {
   const height = Number(config.height ?? 48);
   return <div className={componentStyleClasses(style)} style={{ ...componentInlineStyle(style), height }} />;
 }
 
-function MenuItem({ item, dark, depth = 0 }: { item: any; dark: boolean; depth?: number }) {
+/* ── Navigation Menu ────────────────────────────────────── */
+function MenuItem({ item, depth = 0 }: { item: any; depth?: number }) {
   const hasChildren = item.children && Array.isArray(item.children) && item.children.length > 0;
   return (
     <li className="relative group">
       <a href={item.url ?? '#'}
-        className={`block whitespace-nowrap px-3 py-2 text-sm font-medium transition rounded-lg ${dark ? 'text-gray-300 hover:bg-white/10 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
+        className="block whitespace-nowrap px-3 py-2 text-sm font-medium rounded-lg text-[var(--yo-muted)] transition hover:bg-[color-mix(in_srgb,var(--yo-text)_8%,transparent)] hover:text-[var(--yo-text)]">
         {item.label ?? 'Link'}
-        {hasChildren && <span className="ml-1 inline-block text-xs">{'\u25BE'}</span>}
+        {hasChildren && <span className="ml-1 inline-block text-xs">{'▼'}</span>}
       </a>
       {hasChildren && (
-        <ul className={`absolute left-0 top-full z-50 hidden min-w-44 space-y-1 rounded-xl border p-2 shadow-lg group-hover:block ${dark ? 'border-white/10 bg-gray-900' : 'border-gray-200 bg-white'}`}>
+        <ul className="absolute left-0 top-full z-50 hidden min-w-44 space-y-1 rounded-xl border p-2 shadow-lg group-hover:block bg-[var(--yo-card)] border-[var(--yo-border)]">
           {item.children.map((child: any, ci: number) => (
             <li key={ci}>
               <a href={child.url ?? '#'}
-                className={`block rounded-lg px-3 py-2 text-sm font-medium transition ${dark ? 'text-gray-300 hover:bg-white/10 hover:text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
+                className="block rounded-lg px-3 py-2 text-sm font-medium transition text-[var(--yo-muted)] hover:bg-[color-mix(in_srgb,var(--yo-text)_8%,transparent)] hover:text-[var(--yo-text)]">
                 {child.label ?? 'Link'}
               </a>
             </li>
@@ -130,6 +158,7 @@ function MenuItem({ item, dark, depth = 0 }: { item: any; dark: boolean; depth?:
   );
 }
 
+/* ── Layout: Header ──────────────────────────────────────── */
 export function LayoutHeaderRenderer({ config, style }: YoRendererProps) {
   const logoUrl = String(config.logoUrl ?? '');
   const logoAlt = String(config.logoAlt ?? 'Logo');
@@ -139,43 +168,33 @@ export function LayoutHeaderRenderer({ config, style }: YoRendererProps) {
   const ctaLabel = String(config.ctaLabel ?? '');
   const ctaUrl = String(config.ctaUrl ?? '#');
   const ctaVariant = String(config.ctaVariant ?? 'primary');
-  const headerStyle = String(config.headerStyle ?? 'glass');
-  const dark = headerStyle === 'dark';
-  const glass = headerStyle === 'glass';
-  const headerClass = dark
-    ? 'border-b border-white/10 bg-gray-900 text-white'
-    : glass
-      ? 'sticky top-0 z-20 border-b border-white/70 bg-white/75 text-gray-900 backdrop-blur-xl'
-      : 'border-b border-gray-200 bg-white text-gray-900';
-  const btnClass = ctaVariant === 'outline'
-    ? (dark ? 'border border-white/30 text-white hover:bg-white/10' : 'border border-gray-300 text-gray-900 hover:bg-gray-50')
+  const ctaClass = ctaVariant === 'outline'
+    ? 'yo-btn yo-btn-outline'
     : ctaVariant === 'ghost'
-      ? (dark ? 'text-gray-300 hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100')
-      : (dark ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800');
+      ? 'yo-btn yo-btn-text'
+      : 'yo-btn yo-btn-primary';
   return (
     <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
-      <header className={headerClass}>
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-6 py-4">
-          <div className="flex items-center gap-3">
+      <header className="yo-navbar sticky top-0 z-20 backdrop-blur-xl bg-[color-mix(in_srgb,var(--yo-card)_88%,transparent)]">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-5">
+          <div className="yo-navbar-brand flex items-center gap-3">
             {logoUrl ? (
               <img src={logoUrl} alt={logoAlt} className="h-9 w-auto rounded" />
             ) : (
-              <>
-                <div className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold ${dark ? 'bg-white text-gray-900' : 'bg-gray-900 text-white'}`}>{brandName.slice(0, 1).toUpperCase()}</div>
-                <div className="font-bold tracking-tight">{brandName}</div>
-              </>
+              <>{brandName}</>
             )}
           </div>
-          <nav className={`hidden gap-1 text-sm font-medium md:flex`}>
-            <ul className="flex items-center gap-1">{nav.map((item: any, i: number) => <MenuItem key={i} item={item} dark={dark} />)}</ul>
+          <nav className="hidden gap-1 text-sm font-medium md:flex">
+            <ul className="flex items-center gap-1">{nav.map((item: any, i: number) => <MenuItem key={i} item={item} />)}</ul>
           </nav>
-          {ctaLabel ? <a href={ctaUrl} className={`rounded-lg px-4 py-2 text-sm font-medium transition ${btnClass}`}>{ctaLabel}</a> : <span />}
+          {ctaLabel ? <a href={ctaUrl} className={`${ctaClass} no-underline`}>{ctaLabel}</a> : <span />}
         </div>
       </header>
     </div>
   );
 }
 
+/* ── Layout: Footer ──────────────────────────────────────── */
 export function LayoutFooterRenderer({ config, style }: YoRendererProps) {
   const logoUrl = String(config.logoUrl ?? '');
   const logoAlt = String(config.logoAlt ?? 'Logo');
@@ -187,36 +206,36 @@ export function LayoutFooterRenderer({ config, style }: YoRendererProps) {
   const rawSocials = typeof config.socialLinks === 'string' ? safeJsonParse(config.socialLinks) : config.socialLinks;
   const socialLinks = Array.isArray(rawSocials) ? rawSocials : [];
   const footerText = String(config.footerText ?? '');
-  const displayText = footerText || `\u00A9 ${new Date().getFullYear()} ${brandName}`;
+  const displayText = footerText || `© ${new Date().getFullYear()} ${brandName}`;
 
   const justify = position === 'left' ? 'justify-start' : position === 'right' ? 'justify-end' : 'justify-center';
   const textAlign = position === 'left' ? 'text-left' : position === 'right' ? 'text-right' : 'text-center';
 
   return (
     <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
-      <footer className="border-t border-gray-200 bg-white px-6 py-10">
+      <footer className="yo-footer">
         <div className={`mx-auto flex max-w-7xl flex-col items-center gap-8 ${textAlign} md:flex-row md:flex-wrap md:${justify} md:items-start`}>
           <div className="max-w-sm space-y-3">
-            {logoUrl ? <img src={logoUrl} alt={logoAlt} className="h-9 w-auto rounded" /> : <div className="font-bold text-gray-900">{brandName}</div>}
-            {description && <p className="text-sm leading-6 text-gray-500">{description}</p>}
+            {logoUrl ? <img src={logoUrl} alt={logoAlt} className="h-9 w-auto rounded" /> : <div className="font-bold text-[var(--yo-text)]">{brandName}</div>}
+            {description && <p className="text-sm leading-6" style={{ color: 'var(--yo-muted)' }}>{description}</p>}
           </div>
           {quickLinks.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Quick Links</p>
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--yo-text)' }}>Quick Links</p>
               <ul className="space-y-1.5">
                 {quickLinks.map((link: any, i: number) => (
-                  <li key={i}><a href={link.url ?? '#'} className="text-sm text-gray-500 hover:text-gray-900 transition">{link.label ?? 'Link'}</a></li>
+                  <li key={i}><a href={link.url ?? '#'} className="yo-footer-link">{link.label ?? 'Link'}</a></li>
                 ))}
               </ul>
             </div>
           )}
           {socialLinks.filter((s: any) => s.enabled !== false).length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Follow Us</p>
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--yo-text)' }}>Follow Us</p>
               <div className="flex flex-wrap gap-2">
                 {socialLinks.filter((s: any) => s.enabled !== false).map((s: any, i: number) => (
                   <a key={i} href={s.url ?? '#'} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition">
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--yo-border)] bg-[color-mix(in_srgb,var(--yo-text)_4%,transparent)] px-3 py-1.5 text-sm text-[var(--yo-text)] hover:bg-[color-mix(in_srgb,var(--yo-text)_8%,transparent)] transition">
                     <SocialIcon platform={s.platform} />
                     {s.platform ?? 'Link'}
                   </a>
@@ -225,29 +244,31 @@ export function LayoutFooterRenderer({ config, style }: YoRendererProps) {
             </div>
           )}
         </div>
-        <div className={`mx-auto mt-8 max-w-7xl border-t border-gray-100 pt-6 ${textAlign}`}>
-          <p className="text-sm text-gray-400">{displayText}</p>
+        <div className={`mx-auto mt-8 max-w-7xl border-t pt-6 border-[var(--yo-border)] ${textAlign}`}>
+          <p className="text-sm" style={{ color: 'var(--yo-muted)' }}>{displayText}</p>
         </div>
       </footer>
     </div>
   );
 }
 
+/* ── Layout: Sidebar ─────────────────────────────────────── */
 export function LayoutSidebarRenderer({ config, style }: YoRendererProps) {
   const items = Array.isArray(config.items) ? config.items : ['Overview', 'Components', 'Layouts'];
   const title = String(config.title ?? 'Navigation');
   return (
     <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
-      <aside className="rounded-xl border border-gray-200 bg-white p-5 text-sm text-gray-600 shadow-theme-sm">
-        <div className="font-bold text-gray-900">{title}</div>
+      <aside className="yo-sidebar h-full">
+        <div className="font-bold text-[var(--yo-sidebarForeground,var(--yo-text))]">{title}</div>
         <ul className="mt-4 space-y-2 font-medium">
-          {items.map((item: any, i: number) => <li key={i}>{String(item?.label ?? item ?? '')}</li>)}
+          {items.map((item: any, i: number) => <li key={i} className="yo-sidebar-item">{String(item?.label ?? item ?? '')}</li>)}
         </ul>
       </aside>
     </div>
   );
 }
 
+/* ── HTML Component ──────────────────────────────────────── */
 const SOCIAL_ICONS: Record<string, string> = {
   Twitter: "M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z",
   GitHub: "M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0112 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z",
@@ -264,6 +285,22 @@ function SocialIcon({ platform, className = "h-4 w-4" }: { platform: string; cla
   const path = SOCIAL_ICONS[platform];
   if (!path) return <span className="text-xs font-medium">{platform.slice(0, 2)}</span>;
   return <svg className={className} viewBox="0 0 24 24" fill="currentColor"><path d={path} /></svg>;
+}
+
+export function HtmlComponentRenderer({ config, style }: YoRendererProps) {
+  const template = config.__htmlTemplate as string ?? '';
+  if (!template) {
+    return <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
+      <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-400 dark:border-gray-600 dark:bg-gray-800">HTML Component</div>
+    </div>;
+  }
+
+  const rendered = renderHtmlTemplate(template, config);
+  return (
+    <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
+      <div dangerouslySetInnerHTML={{ __html: rendered }} />
+    </div>
+  );
 }
 
 function safeJsonParse(value: string): unknown {
@@ -291,20 +328,4 @@ function renderHtmlTemplate(template: string, config: Record<string, unknown>): 
   });
 
   return html;
-}
-
-export function HtmlComponentRenderer({ config, style }: YoRendererProps) {
-  const template = config.__htmlTemplate as string ?? '';
-  if (!template) {
-    return <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
-      <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 text-center text-sm text-gray-400 dark:border-gray-600 dark:bg-gray-800">HTML Component</div>
-    </div>;
-  }
-
-  const rendered = renderHtmlTemplate(template, config);
-  return (
-    <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
-      <div dangerouslySetInnerHTML={{ __html: rendered }} />
-    </div>
-  );
 }

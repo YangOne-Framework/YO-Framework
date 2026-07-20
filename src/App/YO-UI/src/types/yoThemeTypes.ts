@@ -34,6 +34,12 @@ export interface ThemeTokens {
   spacing: Record<string, string>;
   'border-radius': Record<string, string>;
   shadows: Record<string, string>;
+  /** Global motion tokens — drive transition duration/easing across components */
+  motion?: { duration?: string; easing?: string; reduced?: boolean };
+  /** Global focus-ring standardization for ADA compliance */
+  focus?: { width?: string; color?: string; offset?: string };
+  /** Fluid modular scale for inherently responsive typography/spacing */
+  fluid?: { base?: string; ratio?: number; min?: number; max?: number };
 }
 
 export interface FontConfig {
@@ -45,6 +51,14 @@ export interface FontConfig {
 export interface ComponentVariantConfig {
   variant: string;
   variants: Record<string, { classes: string; [key: string]: unknown }>;
+  /** Style customization consumed by buildTokenCss to compile standard .yo-* classes */
+  paddingX?: string;
+  paddingY?: string;
+  padding?: string;
+  borderRadius?: string;
+  shadow?: string;
+  transition?: string;
+  [key: string]: unknown;
 }
 
 export interface ThemeStructure {

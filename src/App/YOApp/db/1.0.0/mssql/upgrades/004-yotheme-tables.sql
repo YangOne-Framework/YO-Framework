@@ -142,7 +142,7 @@ BEGIN
       "heading": { "family": "Inter", "source": "google", "weights": [400,600,700] },
       "body":    { "family": "Inter", "source": "google", "weights": [400,500] }
     },
-    "spacing": { "section-padding": "4rem", "container-max": "1280px", "gap": "1.5rem" },
+    "spacing": { "0": "0", "1": "0.25rem", "2": "0.5rem", "3": "0.75rem", "4": "1rem", "5": "1.25rem", "6": "1.5rem", "8": "2rem", "10": "2.5rem", "12": "3rem", "16": "4rem", "20": "5rem", "24": "6rem" },
     "border-radius": { "sm": "0.25rem", "md": "0.5rem", "lg": "1rem", "full": "9999px" },
     "shadows": {
       "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
@@ -152,19 +152,88 @@ BEGIN
   },
   "components": {
     "button": {
-      "variant": "pill",
+      "variant": "primary",
+      "paddingX": "1.25rem",
+      "paddingY": "0.625rem",
+      "borderRadius": "var(--radius-md, 0.5rem)",
+      "shadow": "var(--shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.05))",
+      "transition": "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
       "variants": {
-        "pill":     { "classes": "rounded-full px-6 py-3 shadow-md hover:shadow-lg transition-all" },
-        "sharp":    { "classes": "rounded-none px-4 py-2 border-2 border-primary transition-all" },
-        "elevated": { "classes": "rounded-lg px-5 py-3 shadow-xl hover:-translate-y-1 transition-all" }
+        "primary":  { "classes": "yo-btn yo-btn-primary" },
+        "secondary":{ "classes": "yo-btn yo-btn-secondary" },
+        "outline":  { "classes": "yo-btn yo-btn-outline" },
+        "text":     { "classes": "yo-btn yo-btn-text" }
       }
     },
     "card": {
-      "variant": "shadow",
+      "variant": "default",
+      "padding": "1.5rem",
+      "borderRadius": "var(--radius-lg, 0.75rem)",
+      "shadow": "var(--shadow-md)",
       "variants": {
-        "shadow":   { "classes": "rounded-xl shadow-lg overflow-hidden" },
-        "bordered": { "classes": "rounded-lg border-2 overflow-hidden" },
-        "flat":     { "classes": "rounded-none overflow-hidden" }
+        "default":  { "classes": "yo-card" },
+        "elevated": { "classes": "yo-card yo-card-hover" },
+        "bordered": { "classes": "yo-card border-2" },
+        "flat":     { "classes": "yo-card !shadow-none" }
+      }
+    },
+    "badge": {
+      "variant": "primary",
+      "variants": {
+        "primary":  { "classes": "yo-badge yo-badge-primary" },
+        "secondary":{ "classes": "yo-badge yo-badge-secondary" },
+        "accent":   { "classes": "yo-badge yo-badge-accent" },
+        "success":  { "classes": "yo-badge yo-badge-success" },
+        "danger":   { "classes": "yo-badge yo-badge-danger" }
+      }
+    },
+    "input": {
+      "variant": "default",
+      "borderRadius": "var(--radius-md, 0.5rem)",
+      "padding": "0.625rem 0.875rem",
+      "variants": {
+        "default":  { "classes": "yo-input" },
+        "filled":   { "classes": "yo-input bg-[var(--yo-muted)]" },
+        "underlined":{ "classes": "yo-input !border-0 !border-b-2 !rounded-none" }
+      }
+    },
+    "alert": {
+      "variant": "info",
+      "variants": {
+        "info":    { "classes": "yo-alert yo-alert-info" },
+        "success": { "classes": "yo-alert yo-alert-success" },
+        "warning": { "classes": "yo-alert yo-alert-warning" },
+        "error":   { "classes": "yo-alert yo-alert-error" }
+      }
+    },
+    "navbar": {
+      "variant": "default",
+      "variants": {
+        "default": { "classes": "yo-navbar" },
+        "dark":    { "classes": "yo-navbar !bg-[var(--yo-text)] !text-[var(--yo-bg)]" }
+      }
+    },
+    "sidebar": {
+      "variant": "default",
+      "variants": {
+        "default": { "classes": "yo-sidebar" },
+        "clean":   { "classes": "yo-sidebar !border-0" }
+      }
+    },
+    "table": {
+      "variant": "default",
+      "variants": {
+        "default":  { "classes": "yo-table-container yo-table" },
+        "striped":  { "classes": "yo-table-container yo-table [&_.yo-table-row:nth-child(even)]:bg-black/5" },
+        "bordered": { "classes": "yo-table-container yo-table !border-2" }
+      }
+    },
+    "footer": {
+      "variant": "default",
+      "variants": {
+        "default":  { "classes": "yo-footer" },
+        "minimal":  { "classes": "yo-footer !py-8" },
+        "columns":  { "classes": "yo-footer grid grid-cols-1 sm:grid-cols-4 gap-6" }
       }
     }
   },

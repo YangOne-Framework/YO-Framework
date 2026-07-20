@@ -75,6 +75,7 @@ import LayoutForm from "../pages/Admin/Layout/LayoutForm";
 import LayoutBuilder from "../pages/Admin/Layout/LayoutBuilder";
 import ModuleManagement from "../pages/Admin/Module/ModuleManagement";
 import DynamicPageLoader from "../pages/Public/DynamicPageLoader";
+import PreviewPageLoader from "../pages/Public/PreviewPageLoader";
 import ThemeManager from "../pages/Admin/Theme/ThemeManager";
 import ThemeDetail from "../pages/Admin/Theme/ThemeDetail";
 import ThemeEditor from "../pages/Admin/Theme/ThemeEditor";
@@ -99,6 +100,10 @@ const appRoutes: RouteObject[] = [
   {
     path: "/access-denied",
     element: <AccessDenied />
+  },
+  {
+    path: "/preview/:slug",
+    element: <PreviewPageLoader />,
   }
 
 ];

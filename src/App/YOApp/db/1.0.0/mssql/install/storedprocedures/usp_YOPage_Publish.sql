@@ -1,30 +1,51 @@
-CREATE OR ALTER PROCEDURE dbo.usp_YOPage_Publish
-    @PageUniqueId   NVARCHAR(128),
-    @UpdatedBy      BIGINT = 0
+CREATE OR ALTER PROCEDURE dbo.usp_YOTheme_Save
+    @YOThemeUniqueId    NVARCHAR(128),
+    @Name               NVARCHAR(200),
+    @Slug               NVARCHAR(200),
+    @Version            NVARCHAR(20),
+    @Author             NVARCHAR(200) = NULL,
+    @Description        NVARCHAR(1000) = NULL,
+    @Tags               NVARCHAR(500) = NULL,
+    @Screenshot         NVARCHAR(500) = NULL,
+    @Config             NVARCHAR(MAX) = NULL,
+    @IsSystem           BIT = 0,
+    @ParentYOThemeId    BIGINT = NULL,
+    @PackagePath        NVARCHAR(1024) = NULL,
+    @PackageHash        NVARCHAR(128) = NULL,
+    @UpdatedBy          BIGINT = 0
 AS
 BEGIN
     SET NOCOUNT ON;
+    DECLARE @ExistingId BIGINT;
 
-    UPDATE dbo.Page
-    SET
-        ContentConfig = COALESCE(ContentConfigDraft, ContentConfig),
-        [Status]      = 'published',
-        IsPublished   = 1,
-        [Version]     = [Version] + 1,
-        PublishedAt   = GETDATE(),
-        LastModified  = GETDATE(),
-        UpdatedOn     = GETDATE(),
-        UpdatedBy     = @UpdatedBy
-    WHERE PageUniqueId = @PageUniqueId
-      AND IsDeleted = 0;
+    SELECT @ExistingId = YOThemeId
+    FROM dbo.YOTheme
+    WHERE YOThemeUniqueId = @YOThemeUniqueId AND IsDeleted = 0;
 
-    IF @@ROWCOUNT = 0
+    IF @ExistingId IS NULL
     BEGIN
-        SELECT NULL AS PageId, 'not_found' AS Action;
-        RETURN;
+        INSERT INTO dbo.YOTheme (
+            YOThemeUniqueId, Name, Slug, [Version],
+            Author, Description, Tags, Screenshot, Config,
+            IsSystem, ParentYOThemeId, PackagePath, PackageHash,
+            AddedBy, UpdatedBy
+        ) VALUES (
+            @YOThemeUniqueId, @Name, @Slug, @Version,
+            @Author, @Description, @Tags, @Screenshot, @Config,
+            @IsSystem, @ParentYOThemeId, @PackagePath, @PackageHash,
+            @UpdatedBy, @UpdatedBy
+        );
+        SELECT SCOPE_IDENTITY() AS YOThemeId, 'inserted' AS Action;
     END
-
-    SELECT PageId, 'published' AS Action
-    FROM dbo.Page
-    WHERE PageUniqueId = @PageUniqueId;
-END
+    ELSE
+    BEGIN
+        UPDATE dbo.YOTheme
+        SET Name = @Name, Slug = @Slug, [Version] = @Version,
+            Author = @Author, Description = @Description, Tags = @Tags,
+            Screenshot = @Screenshot, Config = @Config, IsSystem = @IsSystem,
+            ParentYOThemeId = @ParentYOThemeId, PackagePath = @PackagePath,
+            PackageHash = @PackageHash, UpdatedOn = GETDATE(), UpdatedBy = @UpdatedBy
+        WHERE YOThemeId = @ExistingId;
+        SELECT @ExistingId AS YOThemeId, 'updated' AS Action;
+    END
+END;

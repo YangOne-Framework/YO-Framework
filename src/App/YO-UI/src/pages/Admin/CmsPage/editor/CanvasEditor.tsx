@@ -53,7 +53,7 @@ export function CanvasEditor() {
 
   return (
     <YOThemeProvider themeConfig={themeConfig}>
-      <style>{`:root { ${cssVars} }`}</style>
+      <style>{cssVars}</style>
       {canvas}
     </YOThemeProvider>
   );

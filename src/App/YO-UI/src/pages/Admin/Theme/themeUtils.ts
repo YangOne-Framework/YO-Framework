@@ -1,4 +1,4 @@
-import type { ParsedThemeConfig, ThemeTokens } from "../../../types/yoThemeTypes";
+import type { ParsedThemeConfig, ThemeTokens, ComponentVariantConfig } from "../../../types/yoThemeTypes";
 
 /* ================================================================== */
 /*  Color math                                                        */
@@ -310,4 +310,412 @@ export function applyPresetToConfig(config: ParsedThemeConfig, preset: ThemePres
     },
   };
   return next;
+}
+
+/* ================================================================== */
+/*  Standard Premium Component Library (.yo-* classes)                 */
+/* ================================================================== */
+
+/**
+ * The complete set of platform-standard components. Each maps to the
+ * generated `.yo-*` CSS classes so pages render consistently and admins
+ * can restyle everything from one place — like a sellable premium theme.
+ */
+export const STANDARD_COMPONENTS: Record<string, ComponentVariantConfig> = {
+  button: {
+    variant: "primary",
+    variants: {
+      primary: { classes: "yo-btn yo-btn-primary" },
+      secondary: { classes: "yo-btn yo-btn-secondary" },
+      outline: { classes: "yo-btn yo-btn-outline" },
+      text: { classes: "yo-btn yo-btn-text" },
+    },
+    paddingX: "1.25rem",
+    paddingY: "0.625rem",
+    borderRadius: "var(--radius-md, 0.5rem)",
+    shadow: "var(--shadow-sm, 0 1px 2px 0 rgb(0 0 0 / 0.05))",
+    transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+  },
+  card: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-card" },
+      elevated: { classes: "yo-card yo-card-hover" },
+      bordered: { classes: "yo-card border-2" },
+      flat: { classes: "yo-card !shadow-none" },
+    },
+    padding: "1.5rem",
+    borderRadius: "var(--radius-lg, 0.75rem)",
+    shadow: "var(--shadow-md)",
+  },
+  badge: {
+    variant: "primary",
+    variants: {
+      primary: { classes: "yo-badge yo-badge-primary" },
+      secondary: { classes: "yo-badge yo-badge-secondary" },
+      accent: { classes: "yo-badge yo-badge-accent" },
+      success: { classes: "yo-badge yo-badge-success" },
+      danger: { classes: "yo-badge yo-badge-danger" },
+    },
+  },
+  input: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-input" },
+      filled: { classes: "yo-input bg-[var(--yo-muted)]" },
+      underlined: { classes: "yo-input !border-0 !border-b-2 !rounded-none" },
+    },
+    borderRadius: "var(--radius-md, 0.5rem)",
+    padding: "0.625rem 0.875rem",
+  },
+  alert: {
+    variant: "info",
+    variants: {
+      info: { classes: "yo-alert yo-alert-info" },
+      success: { classes: "yo-alert yo-alert-success" },
+      warning: { classes: "yo-alert yo-alert-warning" },
+      error: { classes: "yo-alert yo-alert-error" },
+    },
+  },
+  navbar: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-navbar" },
+      dark: { classes: "yo-navbar !bg-[var(--yo-text)] !text-[var(--yo-bg)]" },
+    },
+  },
+  sidebar: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-sidebar" },
+      clean: { classes: "yo-sidebar !border-0" },
+    },
+  },
+  table: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-table-container yo-table" },
+      striped: { classes: "yo-table-container yo-table [&_.yo-table-row:nth-child(even)]:bg-black/5" },
+      bordered: { classes: "yo-table-container yo-table !border-2" },
+    },
+  },
+  footer: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-footer" },
+      minimal: { classes: "yo-footer !py-8" },
+      columns: { classes: "yo-footer grid grid-cols-1 sm:grid-cols-4 gap-6" },
+    },
+  },
+  accordion: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-accordion" },
+      flush: { classes: "yo-accordion !border-0" },
+    },
+  },
+  modal: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-modal" },
+      centered: { classes: "yo-modal !items-center" },
+    },
+  },
+  tabs: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-tabs" },
+      pills: { classes: "yo-tabs !gap-1" },
+    },
+  },
+  breadcrumb: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-breadcrumb" },
+    },
+  },
+  avatar: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-avatar" },
+      rounded: { classes: "yo-avatar !rounded-full" },
+    },
+  },
+  switch: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-switch" },
+    },
+  },
+  progress: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-progress" },
+      striped: { classes: "yo-progress !bg-[repeating-linear-gradient(45deg,transparent,transparent_6px,rgba(255,255,255,.3)_6px,rgba(255,255,255,.3)_12px)]" },
+    },
+  },
+  toast: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-toast" },
+      success: { classes: "yo-toast yo-toast-success" },
+    },
+  },
+  tooltip: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-tooltip" },
+    },
+  },
+  pagination: {
+    variant: "default",
+    variants: {
+      default: { classes: "yo-pagination" },
+    },
+  },
+};
+
+/** Merge any missing standard components into a config (non-destructive). */
+export function mergeStandardComponents(config: ParsedThemeConfig): ParsedThemeConfig {
+  const merged: Record<string, ComponentVariantConfig> = { ...STANDARD_COMPONENTS };
+  for (const [k, v] of Object.entries(config.components ?? {})) {
+    merged[k] = v;
+  }
+  return { ...config, components: merged };
+}
+
+/* ================================================================== */
+/*  Code Export & Framework Integration                               */
+/* ================================================================== */
+
+function hexToRgbChannels(hex: string): string {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return "0 0 0";
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `${r} ${g} ${b}`;
+}
+
+/** 1. Runtime-switchable CSS custom properties (rgb + hsl channels). */
+export function buildCssVariablesExport(config: ParsedThemeConfig): string {
+  const t = config.tokens;
+  const lines: string[] = [];
+  for (const [name, val] of Object.entries(t.colors ?? {})) {
+    if (val?.default) {
+      lines.push(`  --yo-${name}: ${val.default};`);
+      lines.push(`  --yo-${name}-rgb: ${hexToRgbChannels(val.default)};`);
+      const [h, s, l] = hexToHsl(val.default);
+      lines.push(`  --yo-${name}-hsl: ${h} ${s}% ${l}%;`);
+    }
+  }
+  if (t.motion?.duration) lines.push(`  --yo-transition-duration: ${t.motion.duration};`);
+  if (t.motion?.easing) lines.push(`  --yo-transition-easing: ${t.motion.easing};`);
+  if (t.focus?.width) lines.push(`  --yo-focus-ring-width: ${t.focus.width};`);
+  if (t.focus?.color) lines.push(`  --yo-focus-ring-color: ${t.focus.color};`);
+  if (t.focus?.offset) lines.push(`  --yo-focus-ring-offset: ${t.focus.offset};`);
+  if (t.fluid?.base) lines.push(`  --yo-fluid-base: ${t.fluid.base};`);
+  if (t.fluid) {
+    const scale = buildFluidScale(t.fluid);
+    for (const [k, v] of Object.entries(scale)) lines.push(`  ${k}: ${v};`);
+  }
+  return `:root {\n${lines.join("\n")}\n}`;
+}
+
+/** 2. tailwind.config.ts that maps tokens to CSS variables. */
+export function buildTailwindConfig(config: ParsedThemeConfig): string {
+  const t = config.tokens;
+  const colorEntries = Object.entries(t.colors ?? {})
+    .filter(([, v]) => v?.default)
+    .map(([name]) => `        "${name}": "rgb(var(--yo-${name}-rgb) / <alpha-value>)",`)
+    .join("\n");
+  const fontEntries = Object.entries(t.fonts ?? {})
+    .map(([name, v]) => `        "${name}": ["${v.family}", "system-ui", "sans-serif"],`)
+    .join("\n");
+  return `import type { Config } from "tailwindcss";
+
+export default {
+  content: ["./src/**/*.{ts,tsx,html}"],
+  theme: {
+    extend: {
+      colors: {
+${colorEntries}
+      },
+      fontFamily: {
+${fontEntries}
+      },
+      borderRadius: {
+${Object.entries(t["border-radius"] ?? {}).map(([n, v]) => `        "${n}": "${v}",`).join("\n")}
+      },
+      boxShadow: {
+${Object.entries(t.shadows ?? {}).map(([n, v]) => `        "${n}": "${v}",`).join("\n")}
+      },
+    },
+  },
+  plugins: [],
+} satisfies Config;
+`;
+}
+
+/** 3. Typed React theme object (drop-in). */
+export function buildReactTheme(config: ParsedThemeConfig): string {
+  const t = config.tokens;
+  const colors = Object.fromEntries(
+    Object.entries(t.colors ?? {}).filter(([, v]) => v?.default).map(([n, v]) => [n, v.default]),
+  );
+  const fonts = Object.fromEntries(Object.entries(t.fonts ?? {}).map(([n, v]) => [n, v.family]));
+  const obj = {
+    colors,
+    fonts,
+    radius: t["border-radius"] ?? {},
+    shadows: t.shadows ?? {},
+    motion: t.motion ?? {},
+    focus: t.focus ?? {},
+  };
+  return `export const theme = ${JSON.stringify(obj, null, 2)} as const;
+
+// Usage: import { theme } from "./theme";
+// style={{ color: theme.colors.primary }}
+`;
+}
+
+/** 4. Multi-tenant scoped stylesheet (data-theme scoping). */
+export function buildMultiTenantCss(config: ParsedThemeConfig, scope = "client-a"): string {
+  const base = buildCssVariablesExport(config);
+  const vars = base.replace(/^:root\s*\{\n?/, "").replace(/\n\}\s*$/, "").trim();
+  return `/* Scope this theme to a tenant without conflicting with others */
+[data-theme="${scope}"] {
+${vars}
+}
+
+/* Example: <html data-theme="${scope}"> or <div data-theme="${scope}"> */
+`;
+}
+
+/** 5. Tailwind CSS v4 native @theme (CSS-first) configuration. */
+export function buildTailwindV4(config: ParsedThemeConfig): string {
+  const t = config.tokens;
+  const colorLines = Object.entries(t.colors ?? {})
+    .filter(([, v]) => v?.default)
+    .map(([name, v]) => `    --color-${name}: ${v.default};`)
+    .join("\n");
+  const fontLines = Object.entries(t.fonts ?? {})
+    .map(([name, v]) => `    --font-${name}: "${v.family}", system-ui, sans-serif;`)
+    .join("\n");
+  const radiusLines = Object.entries(t["border-radius"] ?? {})
+    .map(([n, v]) => `    --radius-${n}: ${v};`)
+    .join("\n");
+  const shadowLines = Object.entries(t.shadows ?? {})
+    .map(([n, v]) => `    --shadow-${n}: ${v};`)
+    .join("\n");
+  return `@import "tailwindcss";
+
+/* Native CSS-first theme — no tailwind.config.js required */
+@theme {
+${colorLines}
+${fontLines}
+${radiusLines}
+${shadowLines}
+}
+
+/* Custom plugin-free utilities map directly to the tokens above */
+@utility btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground, #fff);
+  border-radius: var(--radius-md);
+}
+`;
+}
+
+/** 6. Style Dictionary cross-platform token format. */
+export function buildStyleDictionary(config: ParsedThemeConfig): string {
+  const t = config.tokens;
+  const colors: Record<string, any> = {};
+  for (const [name, v] of Object.entries(t.colors ?? {})) {
+    if (v?.default) colors[name] = { value: v.default, type: "color" };
+  }
+  const sd = {
+    $schema: "https://tr.designtokens.org/format/",
+    name: "YangOne Theme",
+    tokens: {
+      color: colors,
+      font: Object.fromEntries(Object.entries(t.fonts ?? {}).map(([n, v]) => [n, { value: v.family, type: "fontFamily" }])),
+      radius: Object.fromEntries(Object.entries(t["border-radius"] ?? {}).map(([n, v]) => [n, { value: v, type: "dimension" }])),
+      shadow: Object.fromEntries(Object.entries(t.shadows ?? {}).map(([n, v]) => [n, { value: v, type: "shadow" }])),
+    },
+  };
+  return JSON.stringify(sd, null, 2);
+}
+
+/** Build a primitive 50–950 scale from a single base color. */
+export function buildColorScale(base: string, name: string): Record<string, { default: string }> {
+  if (!/^#[0-9a-fA-F]{6}$/.test(base)) return {};
+  const [h, s, l] = hexToHsl(base);
+  const steps = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+  const out: Record<string, { default: string }> = {};
+  for (const step of steps) {
+    let L: number;
+    if (step <= 500) L = 96 - ((500 - step) / 500) * (96 - l);
+    else L = l - ((step - 500) / 450) * (l - 14);
+    const S = Math.max(8, Math.min(100, step <= 100 ? s + 12 : s));
+    out[`${name}-${step}`] = { default: hslToHex(h, S, Math.max(6, Math.min(97, L))) };
+  }
+  return out;
+}
+
+/** Merge a primitive scale into a config's colors. */
+export function applyScaleToConfig(config: ParsedThemeConfig, scale: Record<string, { default: string }>): ParsedThemeConfig {
+  return {
+    ...config,
+    tokens: { ...config.tokens, colors: { ...config.tokens.colors, ...scale } },
+  };
+}
+
+/** Convert hex → rgba() string for opacity-scale previews. */
+export function hexToRgba(hex: string, alpha: number): string {
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return `rgba(0,0,0,${alpha})`;
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/** Build a fluid modular type scale (clamp-based) from fluid tokens. */
+export function buildFluidScale(fluid?: { base?: string; ratio?: number; min?: number; max?: number }): Record<string, string> {
+  const base = parseFloat(fluid?.base ?? "1") || 1;
+  const ratio = fluid?.ratio ?? 1.25;
+  const minVW = fluid?.min ?? 360;
+  const maxVW = fluid?.max ?? 1280;
+  const out: Record<string, string> = {};
+  for (let step = 0; step <= 6; step++) {
+    const minS = base * Math.pow(ratio, step - 2) * 0.85;
+    const maxS = base * Math.pow(ratio, step - 2) * 1.15;
+    const slope = (maxS - minS) / (maxVW - minVW);
+    const intercept = minS - slope * minVW;
+    out[`--yo-fs-${step}`] = `clamp(${minS.toFixed(3)}rem, ${(slope * 100).toFixed(4)}vw + ${intercept.toFixed(3)}rem, ${maxS.toFixed(3)}rem)`;
+  }
+  return out;
+}
+
+/**
+ * Best-effort Figma Variables JSON → color map.
+ * Handles the Figma Variables REST export shape
+ * ({ variables: { id: { name, resolvedValues: { color: { r,g,b,a } } } } }).
+ */
+export function parseFigmaVariables(input: string): Record<string, { default: string }> | null {
+  try {
+    const json = JSON.parse(input);
+    const vars = json?.variables ?? json?.meta?.variables;
+    if (!vars || typeof vars !== "object") return null;
+    const out: Record<string, { default: string }> = {};
+    for (const v of Object.values<any>(vars)) {
+      const name: string = v?.name ?? "";
+      const color = v?.resolvedValues?.color ?? v?.values?.[Object.keys(v.values ?? {})[0]]?.color;
+      if (!color || typeof color.r !== "number") continue;
+      const toHex = (n: number) => Math.round(Math.min(1, Math.max(0, n)) * 255).toString(16).padStart(2, "0");
+      out[name] = { default: `#${toHex(color.r)}${toHex(color.g)}${toHex(color.b)}` };
+    }
+    return Object.keys(out).length ? out : null;
+  } catch {
+    return null;
+  }
 }

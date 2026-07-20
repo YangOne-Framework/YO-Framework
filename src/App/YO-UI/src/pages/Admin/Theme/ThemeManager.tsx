@@ -3,22 +3,90 @@ import { useNavigate } from "react-router-dom";
 import { Package, Upload, Trash2, CheckCircle, Download, Eye } from "lucide-react";
 import {
   useGetThemeListQuery,
+  useGetActiveThemeQuery,
   useActivateThemeMutation,
   useDeleteThemeMutation,
   useImportThemeMutation,
+  useSaveThemeMutation,
 } from "../../../redux/theme/themeAPI";
+import { applyPresetToConfig, generatePalette, scaleRadius, THEME_PRESETS } from "./themeUtils";
+import { parseThemeConfig } from "../../../context/YOThemeContext";
 import toaster from "../../../components/toster";
-import type { YOTheme } from "../../../types/yoThemeTypes";
+import type { YOTheme, ParsedThemeConfig } from "../../../types/yoThemeTypes";
+
+function generateGUID() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+// Minimal valid base config used when no active theme exists yet.
+function buildBaseConfig(): ParsedThemeConfig {
+  const palette = generatePalette("#6366f1", "complementary");
+  const colors: Record<string, { default: string; dark?: string }> = {};
+  for (const k of Object.keys(palette.light)) {
+    colors[k] = { default: palette.light[k], dark: palette.dark[k] ?? palette.light[k] };
+  }
+  return {
+    tokens: {
+      colors,
+      fonts: {
+        heading: { family: "Plus Jakarta Sans", source: "google", weights: [400, 600, 700] },
+        body: { family: "Inter", source: "google", weights: [400, 500, 600] },
+      },
+      spacing: { "0": "0rem", "1": "0.25rem", "2": "0.5rem", "3": "0.75rem", "4": "1rem", "5": "1.25rem", "6": "1.5rem", "8": "2rem", "10": "2.5rem", "12": "3rem", "16": "4rem", "20": "5rem", "24": "6rem" },
+      "border-radius": scaleRadius(0.75),
+      shadows: {
+        sm: "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+        md: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+        lg: "0 10px 15px -3px rgb(0 0 0 / 0.1)",
+        xl: "0 20px 25px -5px rgb(0 0 0 / 0.15)",
+      },
+      motion: { duration: "0.2s", easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
+      focus: { width: "2px", color: "var(--yo-primary)", offset: "2px" },
+      fluid: { base: "1", ratio: 1.25, min: 360, max: 1280 },
+    },
+    components: {},
+    structure: { layoutType: "DefaultShell", layoutTypes: {} },
+    layouts: {},
+    templates: {},
+  };
+}
 
 export default function ThemeManager() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [search, setSearch] = useState("");
   const { data: themes = [], isLoading, refetch } = useGetThemeListQuery({ search, limit: 50 });
+  const { data: activeTheme } = useGetActiveThemeQuery();
   const [activateTheme] = useActivateThemeMutation();
   const [deleteTheme] = useDeleteThemeMutation();
   const [importTheme] = useImportThemeMutation();
+  const [saveTheme] = useSaveThemeMutation();
   const [confirmDelete, setConfirmDelete] = useState<YOTheme | null>(null);
+
+  const handleCreateFromPreset = async (preset: (typeof THEME_PRESETS)[number]) => {
+    const base = activeTheme?.Config ? parseThemeConfig(activeTheme.Config) : buildBaseConfig();
+    const cfg = applyPresetToConfig(base, preset);
+    const guid = generateGUID();
+    try {
+      await saveTheme({
+        YOThemeUniqueId: guid,
+        Name: `${preset.name} Theme`,
+        Slug: `${preset.id}-theme`,
+        Version: "1.0.0",
+        Author: "Admin",
+        Description: `Generated from ${preset.name} preset`,
+        Config: JSON.stringify(cfg, null, 2),
+      }).unwrap();
+      toaster.success(`Created "${preset.name} Theme"`);
+      refetch();
+    } catch {
+      toaster.error("Failed to create theme from preset");
+    }
+  };
 
   const handleActivate = async (theme: YOTheme) => {
     if (theme.IsActive) return;
@@ -88,6 +156,22 @@ export default function ThemeManager() {
             Import Theme
           </button>
         </div>
+      </div>
+
+      {/* New from preset — instant second theme for A/B testing */}
+      <div className="mb-6 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-semibold uppercase tracking-wider text-gray-400">New from preset:</span>
+        {THEME_PRESETS.map((p) => (
+          <button
+            key={p.id}
+            onClick={() => handleCreateFromPreset(p)}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-700 text-xs font-medium hover:border-indigo-400 hover:text-indigo-600 transition"
+            title={`Create "${p.name} Theme"`}
+          >
+            <span className="h-3 w-3 rounded-full" style={{ backgroundColor: p.seed }} />
+            {p.name}
+          </button>
+        ))}
       </div>
 
       {/* Search */}

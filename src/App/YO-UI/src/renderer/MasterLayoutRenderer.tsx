@@ -5,26 +5,19 @@ import { ComponentRenderer } from './ComponentRenderer';
 
 function Header({ config, compact = false }: { config: MasterLayoutConfig; compact?: boolean }) {
   const nav = config.navItems.split(',').map(x => x.trim()).filter(Boolean);
-  const dark = config.headerStyle === 'dark';
-  const glass = config.headerStyle === 'glass';
-  const headerClass = dark
-    ? 'border-b border-white/10 bg-gray-900 text-white'
-    : glass
-      ? 'sticky top-0 z-20 border-b border-white/70 bg-white/75 text-gray-900 backdrop-blur-xl'
-      : 'border-b border-gray-200 bg-white text-gray-900';
-  const buttonClass = dark ? 'bg-white text-gray-900 hover:bg-gray-100' : 'bg-gray-900 text-white hover:bg-gray-800';
+  const brandInitial = config.brandName.slice(0, 1).toUpperCase();
 
   return (
-    <header className={headerClass}>
+    <header className="yo-navbar sticky top-0 z-20 backdrop-blur-xl bg-[color-mix(in_srgb,var(--yo-card)_88%,transparent)]">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-6 py-4">
         <div className="flex items-center gap-3">
-          <div className={`flex h-9 w-9 items-center justify-center rounded-lg text-sm font-bold ${dark ? 'bg-white text-gray-900' : 'bg-gray-900 text-white'}`}>{config.brandName.slice(0, 1).toUpperCase()}</div>
-          <div className="font-bold tracking-tight">{config.brandName}</div>
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--yo-primary)] text-sm font-bold text-white">{brandInitial}</div>
+          <div className="font-bold tracking-tight text-[var(--yo-text)]">{config.brandName}</div>
         </div>
-        <nav className={`hidden gap-6 text-sm font-medium ${dark ? 'text-gray-400' : 'text-gray-600'} md:flex`}>
-          {nav.map(item => <a href="#" key={item} className="hover:text-current">{item}</a>)}
+        <nav className="hidden gap-6 text-sm font-medium md:flex">
+          {nav.map(item => <a href="#" key={item} className="yo-navbar-link">{item}</a>)}
         </nav>
-        {!compact && config.ctaLabel ? <a href={config.ctaUrl || '#'} className={`rounded-lg px-4 py-2 text-sm font-medium transition ${buttonClass}`}>{config.ctaLabel}</a> : <span />}
+        {!compact && config.ctaLabel ? <a href={config.ctaUrl || '#'} className="yo-btn yo-btn-primary no-underline">{config.ctaLabel}</a> : <span />}
       </div>
     </header>
   );
@@ -32,10 +25,10 @@ function Header({ config, compact = false }: { config: MasterLayoutConfig; compa
 
 function Footer({ config }: { config: MasterLayoutConfig }) {
   return (
-    <footer className="border-t border-gray-200 bg-white px-6 py-10">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 text-sm text-gray-500">
-        <div className="font-bold text-gray-900">{config.brandName}</div>
-        <div>{config.footerText || `© ${new Date().getFullYear()} ${config.brandName}`}</div>
+    <footer className="yo-footer">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 text-sm">
+        <div className="font-bold text-[var(--yo-text)]">{config.brandName}</div>
+        <div style={{ color: 'var(--yo-muted)' }}>{config.footerText || `© ${new Date().getFullYear()} ${config.brandName}`}</div>
       </div>
     </footer>
   );
@@ -119,10 +112,10 @@ function renderShell(layout: MasterLayoutDefinition | null, zoneComponents: Retu
       <>
         <Header config={layoutConfig} />
         <div className="mx-auto grid max-w-7xl grid-cols-12 gap-8 px-6 py-8">
-          <aside className="col-span-12 rounded-xl border border-gray-200 bg-white p-5 text-sm text-gray-600 shadow-theme-sm lg:col-span-3">
-            <div className="font-bold text-gray-900">Documentation</div>
-            <ul className="mt-4 space-y-2 font-medium"><li>Overview</li><li>Components</li><li>Layouts</li></ul>
-          </aside>
+        <aside className="yo-sidebar col-span-12 rounded-xl border border-[var(--yo-border)] p-5 text-sm shadow-theme-sm lg:col-span-3">
+          <div className="font-bold text-[var(--yo-sidebarForeground,var(--yo-text))]">Documentation</div>
+          <ul className="mt-4 space-y-2 font-medium text-[var(--yo-muted)]"><li>Overview</li><li>Components</li><li>Layouts</li></ul>
+        </aside>
           <main className="col-span-12 lg:col-span-9">{children}</main>
         </div>
         <Footer config={layoutConfig} />

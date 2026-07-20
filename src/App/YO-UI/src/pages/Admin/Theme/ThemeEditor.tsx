@@ -4,7 +4,7 @@ import {
   ArrowLeft, Save, Palette, Type, Square, Box as ShadowIcon,
   Maximize2, Layers, Grid3X3, Code, Sparkles, Copy, Download,
   Upload, RotateCcw, Plus, MoreHorizontal, Check, Eye, GitCompare,
-  Pencil, X, AlertCircle, RefreshCw, Layers3, CheckSquare, Sparkle,
+  Pencil, X, AlertCircle, RefreshCw, Layers3, CheckSquare, Sparkle, History,
 } from "lucide-react";
 import {
   useGetThemeQuery,
@@ -28,6 +28,19 @@ import {
   scaleRadius,
   isValidHex,
   Harmony,
+  mergeStandardComponents,
+  STANDARD_COMPONENTS,
+  buildCssVariablesExport,
+  buildTailwindConfig,
+  buildReactTheme,
+  buildMultiTenantCss,
+  buildTailwindV4,
+  buildStyleDictionary,
+  buildColorScale,
+  applyScaleToConfig,
+  hexToRgba,
+  parseFigmaVariables,
+  buildFluidScale,
 } from "./themeUtils";
 import type { ParsedThemeConfig, ThemeTokens } from "../../../types/yoThemeTypes";
 
@@ -69,6 +82,72 @@ function generateGUID() {
   });
 }
 
+/* ── History change diffing ──────────────────────────────
+   Captures exactly what changed between two theme snapshots
+   so the Edit History list shows e.g. "primary  #f43f5e → #3b82f6". */
+export type HistoryChange = {
+  category: "color" | "font" | "radius" | "spacing" | "shadow" | "motion" | "focus" | "fluid" | "component" | "layout";
+  name: string;
+  oldValue?: string;
+  newValue?: string;
+};
+
+function fmtVal(v: unknown): string {
+  if (v == null) return "—";
+  if (Array.isArray(v)) return v.join(", ");
+  if (typeof v === "object") return JSON.stringify(v);
+  return String(v);
+}
+
+function diffThemeConfig(prev: ParsedThemeConfig | null | undefined, next: ParsedThemeConfig): HistoryChange[] {
+  const out: HistoryChange[] = [];
+  if (!prev || !prev.tokens || !next.tokens) return out;
+  const pt = prev.tokens;
+  const nt = next.tokens;
+
+  const pColors = pt.colors ?? {};
+  const nColors = nt.colors ?? {};
+  for (const k of new Set([...Object.keys(pColors), ...Object.keys(nColors)])) {
+    if (pColors[k]?.default !== nColors[k]?.default) {
+      out.push({ category: "color", name: k, oldValue: pColors[k]?.default ?? "—", newValue: nColors[k]?.default ?? "—" });
+    }
+  }
+
+  const pFonts = pt.fonts ?? {};
+  const nFonts = nt.fonts ?? {};
+  for (const k of new Set([...Object.keys(pFonts), ...Object.keys(nFonts)])) {
+    if (pFonts[k]?.family !== nFonts[k]?.family) {
+      out.push({ category: "font", name: k, oldValue: pFonts[k]?.family ?? "—", newValue: nFonts[k]?.family ?? "—" });
+    }
+  }
+
+  const diffScale = (category: HistoryChange["category"], pk: Record<string, any> = {}, nk: Record<string, any> = {}) => {
+    for (const k of new Set([...Object.keys(pk), ...Object.keys(nk)])) {
+      if (fmtVal(pk[k]) !== fmtVal(nk[k])) out.push({ category, name: k, oldValue: fmtVal(pk[k]), newValue: fmtVal(nk[k]) });
+    }
+  };
+  diffScale("spacing", pt.spacing, nt.spacing);
+  diffScale("radius", pt["border-radius"], nt["border-radius"]);
+  diffScale("shadow", pt.shadows, nt.shadows);
+  diffScale("motion", pt.motion, nt.motion);
+  diffScale("focus", pt.focus, nt.focus);
+  diffScale("fluid", pt.fluid, nt.fluid);
+
+  const pComp = prev.components ?? {};
+  const nComp = next.components ?? {};
+  for (const k of new Set([...Object.keys(pComp), ...Object.keys(nComp)])) {
+    if ((pComp[k]?.variant ?? "") !== (nComp[k]?.variant ?? "")) {
+      out.push({ category: "component", name: k, oldValue: pComp[k]?.variant ?? "—", newValue: nComp[k]?.variant ?? "—" });
+    }
+  }
+
+  if ((prev.structure?.layoutType ?? "") !== (next.structure?.layoutType ?? "")) {
+    out.push({ category: "layout", name: "layout", oldValue: prev.structure?.layoutType ?? "—", newValue: next.structure?.layoutType ?? "—" });
+  }
+
+  return out;
+}
+
 /* ================================================================== */
 /*  Main component                                                     */
 /* ================================================================== */
@@ -85,6 +164,8 @@ export default function ThemeEditor() {
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [colorSearch, setColorSearch] = useState("");
+  const [scaleBase, setScaleBase] = useState("#6366f1");
+  const [scaleName, setScaleName] = useState("brand");
   const [showThemeMenu, setShowThemeMenu] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -94,6 +175,56 @@ export default function ThemeEditor() {
   const [importJsonInput, setImportJsonInput] = useState("");
   const [importError, setImportError] = useState("");
   const [assignedPages, setAssignedPages] = useState<string[]>(["Home", "Blog Home"]);
+
+  /* ── Session history / undo snapshots ── */
+  type Snapshot = { id: number; label: string; ts: number; config: ParsedThemeConfig; changes?: HistoryChange[] };
+  const [history, setHistory] = useState<Snapshot[]>([]);
+  const [showHistory, setShowHistory] = useState(false);
+  const configRef = useRef<ParsedThemeConfig | null>(null);
+  const lastSnapJson = useRef<string>("");
+  const lastSnapConfigRef = useRef<ParsedThemeConfig | null>(null);
+  const firstRun = useRef(true);
+
+  const pushSnapshot = useCallback((label: string) => {
+    const c = configRef.current;
+    if (!c) return;
+    const changes = diffThemeConfig(lastSnapConfigRef.current, c);
+    setHistory((h) => {
+      const next = [{ id: Date.now() + Math.floor(Math.random() * 1000), label, ts: Date.now(), config: JSON.parse(JSON.stringify(c)), changes }, ...h].slice(0, 40);
+      try { localStorage.setItem(`yotheme-history-${guid ?? "new"}`, JSON.stringify(next)); } catch {}
+      return next;
+    });
+    lastSnapConfigRef.current = JSON.parse(JSON.stringify(c));
+  }, [guid]);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(`yotheme-history-${guid ?? "new"}`);
+      if (saved) {
+        const parsed = JSON.parse(saved) as Snapshot[];
+        setHistory(parsed);
+        if (parsed[0]) lastSnapConfigRef.current = parsed[0].config;
+      }
+    } catch {}
+  }, [guid]);
+
+  /* Auto-snapshot after edits settle (debounced) */
+  useEffect(() => {
+    configRef.current = config;
+    if (firstRun.current) { firstRun.current = false; lastSnapJson.current = JSON.stringify(config); lastSnapConfigRef.current = config; return; }
+    const json = JSON.stringify(config);
+    if (json === lastSnapJson.current) return;
+    lastSnapJson.current = json;
+    const id = setTimeout(() => pushSnapshot("Edit"), 1200);
+    return () => clearTimeout(id);
+  }, [config, pushSnapshot]);
+
+  const restoreSnapshot = useCallback((snap: Snapshot) => {
+    setConfig(JSON.parse(JSON.stringify(snap.config)));
+    setDirty(true);
+    lastSnapConfigRef.current = JSON.parse(JSON.stringify(snap.config));
+    setToast({ msg: "Snapshot restored", type: "info" });
+  }, []);
 
   /* Outside click to close menu */
   useEffect(() => {
@@ -339,6 +470,26 @@ export default function ThemeEditor() {
 
   const handleImportTheme = () => {
     try {
+      /* Figma Variables export → merge color tokens */
+      const figma = parseFigmaVariables(importJsonInput);
+      if (figma) {
+        setConfig((c) => {
+          const base: ParsedThemeConfig = c ?? {
+            tokens: { colors: {}, fonts: {}, spacing: {}, "border-radius": {}, shadows: {} },
+            components: {},
+            structure: { layoutType: "sidebar-right", layoutTypes: {} },
+            layouts: {},
+            templates: {},
+          };
+          return { ...base, tokens: { ...base.tokens, colors: { ...base.tokens.colors, ...figma } } };
+        });
+        setDirty(true);
+        setModal(null);
+        setImportJsonInput("");
+        setImportError("");
+        alert(`Imported ${Object.keys(figma).length} color variables from Figma Variables JSON.`);
+        return;
+      }
       const parsed = JSON.parse(importJsonInput);
       if (!parsed.tokens || !parsed.components) {
         setImportError("Invalid configuration structure: missing tokens or components.");
@@ -351,7 +502,7 @@ export default function ThemeEditor() {
       setImportError("");
       alert("Theme configuration imported successfully!");
     } catch (e) {
-      setImportError("Could not parse JSON: invalid format.");
+      setImportError("Could not parse JSON: invalid format or unsupported Figma payload.");
     }
   };
 
@@ -453,6 +604,7 @@ export default function ThemeEditor() {
   const radii = t?.["border-radius"] ?? {};
   const shadows = t?.shadows ?? {};
   const components = config?.components ?? {};
+  const componentList = { ...STANDARD_COMPONENTS, ...components };
   const structure = config?.structure;
 
   const filteredColorGroups = useMemo(() => {
@@ -468,6 +620,14 @@ export default function ThemeEditor() {
   const colorCount = Object.keys(colors).length;
   const showRightPanel = tab !== "code" && tab !== "generate";
 
+  const [toast, setToast] = useState<{ msg: string; type: "success" | "error" | "info" } | null>(null);
+  useEffect(() => {
+    if (toast) {
+      const id = setTimeout(() => setToast(null), 2500);
+      return () => clearTimeout(id);
+    }
+  }, [toast]);
+
   /* ── Loading / error ── */
   if (isLoading) return <div className="flex items-center justify-center h-[calc(100vh-64px)] bg-gray-50"><div className="flex flex-col items-center gap-3"><RefreshCw size={24} className="animate-spin text-indigo-500" /><div className="animate-pulse text-gray-400 font-medium text-sm">Loading visual theme developer...</div></div></div>;
   if (!theme || !config) return (
@@ -482,13 +642,19 @@ export default function ThemeEditor() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-64px)] bg-gray-50/80">
+      {toast && (
+        <div className={`fixed top-4 left-1/2 -translate-x-1/2 z-[60] px-4 py-2 rounded-xl text-xs font-semibold shadow-lg text-white ${toast.type === "error" ? "bg-red-500" : toast.type === "success" ? "bg-emerald-500" : "bg-indigo-600"}`}>
+          {toast.msg}
+        </div>
+      )}
       {/* ══ Top Bar ══ */}
       <div className="flex items-center gap-3 px-5 py-3 bg-white border-b border-gray-200/80 shrink-0 z-30">
-        <button onClick={() => navigate(`/admin/theme/${guid}`)} className="p-1.5 hover:bg-gray-100 rounded-xl transition-all">
+        <button onClick={() => navigate(`/admin/theme/${guid}`)} title="Back to theme list"
+          className="p-1.5 hover:bg-gray-100 rounded-xl transition-all">
           <ArrowLeft size={16} className="text-gray-500" />
         </button>
         <div className="relative" ref={menuRef}>
-          <button onClick={() => setShowThemeMenu(!showThemeMenu)}
+          <button onClick={() => setShowThemeMenu(!showThemeMenu)} title="Theme actions menu"
             className="flex items-center gap-2 pl-3 pr-2 py-1.5 bg-gray-50/80 hover:bg-gray-100 rounded-xl border border-gray-200/80 hover:border-gray-300/80 transition-all text-sm font-semibold text-gray-700">
             {theme.Name}
             {theme.IsActive && <span className="bg-emerald-50 text-emerald-700 text-[9px] font-bold px-1.5 py-0.5 rounded-md border border-emerald-200">Active</span>}
@@ -496,46 +662,56 @@ export default function ThemeEditor() {
           </button>
           {showThemeMenu && (
             <div className="absolute top-full left-0 mt-1.5 z-50 w-56 bg-white rounded-2xl border border-gray-200/80 shadow-2xl py-1.5 overflow-hidden">
-              <button onClick={handleCreateNewTheme} className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
+              <button onClick={handleCreateNewTheme} title="Start a new blank theme from scratch"
+                className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
                 <Plus size={14} className="text-gray-400" />
                 Create New Theme
               </button>
-              <button onClick={handleDuplicateTheme} className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
+              <button onClick={handleDuplicateTheme} title="Clone this theme into a new editable copy"
+                className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
                 <Copy size={14} className="text-gray-400" />
                 Duplicate Theme
               </button>
-              <button onClick={() => { setModal("rename"); setShowThemeMenu(false); }} className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
+              <button onClick={() => { setModal("rename"); setShowThemeMenu(false); }} title="Change the display name of this theme"
+                className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
                 <Pencil size={14} className="text-gray-400" />
                 Rename Theme
               </button>
               <div className="my-1 border-t border-gray-100/80" />
-              <button onClick={() => { setModal("import"); setShowThemeMenu(false); }} className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
+              <button onClick={() => { setModal("import"); setShowThemeMenu(false); }} title="Load a theme configuration from a JSON file"
+                className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
                 <Upload size={14} className="text-gray-400" />
                 Import Configuration
               </button>
-              <button onClick={handleExportTheme} className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
+              <button onClick={handleExportTheme} title="Download this theme configuration as a JSON file"
+                className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
                 <Download size={14} className="text-gray-400" />
                 Export Configuration
               </button>
-              <button onClick={handleResetTheme} className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
+              <button onClick={handleResetTheme} title="Discard all unsaved edits and reload the last saved config"
+                className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
                 <RotateCcw size={14} className="text-gray-400" />
                 Reset Theme
               </button>
               <div className="my-1 border-t border-gray-100/80" />
-              <button onClick={handleSave} className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
+              <button onClick={handleSave} title="Save your changes without making this the live theme"
+                className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
                 <Eye size={14} className="text-gray-400" />
                 Save Draft
               </button>
-              <button onClick={handlePublishTheme} className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left font-semibold">
+              <button onClick={handlePublishTheme} title="Save and make this the active theme used across the site"
+                className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left font-semibold">
                 <Check size={14} className="text-indigo-500" />
                 Publish & Activate
               </button>
               <div className="my-1 border-t border-gray-100/80" />
-              <button onClick={() => { setModal("assign"); setShowThemeMenu(false); }} className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
+              <button onClick={() => { setModal("assign"); setShowThemeMenu(false); }} title="Choose which pages should use this theme"
+                className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
                 <GitCompare size={14} className="text-gray-400" />
                 Assign to Pages
               </button>
-              <button onClick={() => { setModal("compare"); setShowThemeMenu(false); }} className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
+              <button onClick={() => { setModal("compare"); setShowThemeMenu(false); }} title="Review the differences between saved and current config"
+                className="flex items-center gap-2.5 w-full px-3.5 py-2 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-700 transition-all text-left">
                 <Layers3 size={14} className="text-gray-400" />
                 Compare Changes
               </button>
@@ -543,10 +719,15 @@ export default function ThemeEditor() {
           )}
         </div>
         <div className="flex-1" />
-        <button onClick={handleSave} disabled={saving || !dirty}
+        <button onClick={handleSave} disabled={saving || !dirty} title="Save your changes as a draft"
           className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:from-indigo-600 hover:to-indigo-700 transition-all disabled:opacity-40 shadow-lg shadow-indigo-500/20">
           <Save size={14} />
           {saving ? "Saving..." : "Save Draft"}
+        </button>
+        <button onClick={() => setShowHistory(true)} title="View edit history and restore previous snapshots"
+          className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold transition-all ${history.length ? "bg-gray-100 text-gray-700 hover:bg-gray-200" : "text-gray-400 hover:bg-gray-50"}`}>
+          <History size={14} />
+          History{history.length ? ` (${history.length})` : ""}
         </button>
         {dirty && <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" /><span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" /></span>}
       </div>
@@ -557,7 +738,7 @@ export default function ThemeEditor() {
           const Icon = td.icon;
           const active = tab === td.id;
           return (
-            <button key={td.id} onClick={() => setTab(td.id)}
+            <button key={td.id} onClick={() => setTab(td.id)} title={td.label}
               className={`flex items-center gap-1.5 px-3.5 py-2.5 text-xs font-semibold border-b-2 transition-all ${
                 active ? "border-indigo-600 text-indigo-600 bg-indigo-50/30" : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}>
@@ -594,12 +775,61 @@ export default function ThemeEditor() {
                     <h2 className="text-sm font-bold text-gray-800 tracking-tight">Color Tokens</h2>
                     <p className="text-[11px] text-gray-400 mt-0.5">{colorCount} tokens configured</p>
                   </div>
-                  <button onClick={handleDeriveDark} className="flex items-center gap-1 text-[10px] font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100/80 px-2.5 py-1.5 rounded-lg transition-all">
+                  <button onClick={handleDeriveDark} title="Auto-generate matching dark-mode values for every color from its contrast"
+                    className="flex items-center gap-1 text-[10px] font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100/80 px-2.5 py-1.5 rounded-lg transition-all">
                     <Sparkle size={10} />
                     Auto Dark Mode
                   </button>
                 </div>
                 <SearchField value={colorSearch} onChange={setColorSearch} />
+                <div className="flex items-center gap-2 text-[10px] text-gray-400 bg-gray-50/70 border border-gray-100 rounded-lg px-2.5 py-1.5">
+                  <span className="font-semibold text-gray-500">Badge =</span>
+                  <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-emerald-50 border border-emerald-200" /><span className="text-emerald-600 font-semibold">AAA/AA/AA-lg</span></span>
+                  <span className="flex items-center gap-1"><span className="h-3 w-3 rounded bg-red-50 border border-red-200" /><span className="text-red-600 font-semibold">Low</span></span>
+                  <span className="ml-auto">contrast vs white surface</span>
+                </div>
+                {/* Primitive scale + opacity modifier scales */}
+                <div className="space-y-3 rounded-2xl border border-gray-200/80 bg-gray-50/40 p-3.5">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Primitive Color Scale</h3>
+                    <button onClick={() => {
+                      const sc = buildColorScale(scaleBase, scaleName);
+                      if (Object.keys(sc).length) {
+                        setConfig((c) => (c ? applyScaleToConfig(c, sc) : c));
+                        setDirty(true);
+                      }
+                    }} title="Generate a 50–950 primitive scale and add it as tokens"
+                      className="text-[10px] font-semibold text-indigo-600 bg-indigo-50 hover:bg-indigo-100 px-2.5 py-1.5 rounded-lg transition-all">
+                      + Generate 50–950
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input type="color" value={scaleBase} onChange={(e) => setScaleBase(e.target.value)} title="Pick base color"
+                      className="h-8 w-10 rounded-lg border border-gray-200 bg-transparent cursor-pointer" />
+                    <input value={scaleName} onChange={(e) => setScaleName(e.target.value.replace(/\s+/g, "").toLowerCase())} placeholder="brand"
+                      className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 font-mono w-32 focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                    <div className="flex-1 flex h-8 rounded-lg overflow-hidden border border-gray-200">
+                      {Object.entries(buildColorScale(scaleBase, scaleName)).map(([k, v]) => (
+                        <div key={k} title={k} className="flex-1" style={{ backgroundColor: v.default }} />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-gray-400">Define a primitive scale once, then map semantic roles (primary, accent…) to specific steps like <code className="font-mono">brand-500</code>.</p>
+                  <div className="pt-1">
+                    <p className="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1.5">Dynamic Opacity Modifier Scales</p>
+                    {["primary", "secondary", "accent"].filter((n) => getColor(n)).map((n) => (
+                      <div key={n} className="flex items-center gap-2 mb-1.5">
+                        <span className="text-[10px] font-mono text-gray-500 w-16 capitalize">{n}</span>
+                        <div className="flex-1 flex rounded-md overflow-hidden border border-gray-200">
+                          {[10, 20, 40, 60, 80].map((a) => (
+                            <div key={a} title={`${n}/${a}`} className="flex-1 h-6" style={{ backgroundColor: hexToRgba(getColor(n), a / 100) }} />
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="space-y-0.5">
                   {filteredColorGroups.map((group) => (
                     <ColorGroup key={group.title} title={group.title} badge={`${group.tokens.length}`} defaultOpen={!colorSearch}>
@@ -614,6 +844,25 @@ export default function ThemeEditor() {
                     <div className="text-center py-8 text-xs text-gray-400">No color tokens match your search</div>
                   )}
                 </div>
+
+                {/* Primitive / Other tokens not in semantic groups */}
+                {(() => {
+                  const known = new Set(COLOR_GROUPS.flatMap((g: any) => g.tokens));
+                  const others = Object.keys(colors).filter((k) => !known.has(k));
+                  if (others.length === 0) return null;
+                  return (
+                    <div className="space-y-2">
+                      <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Primitive / Other Tokens</h3>
+                      <div className="grid grid-cols-2 gap-2">
+                        {others.map((k) => (
+                          <ColorField key={k} label={k} value={getColor(k)} darkValue={getDarkColor(k)}
+                            onChange={(v: string) => updateColor(k, v)} onDarkChange={(v: string) => updateDarkColor(k, v)}
+                            synced={getColor(k) === getDarkColor(k)} onToggleSync={() => toggleSyncColor(k)} onReset={() => resetColor(k)} />
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             )}
             {tab === "typography" && (
@@ -637,6 +886,28 @@ export default function ThemeEditor() {
                       onSourceChange={(v) => updateFont(name, "source", v)}
                       onWeightsChange={(v) => updateFont(name, "weights", v)} />
                   ))}
+                </div>
+
+                {/* Fluid modular type scale */}
+                <div className="pt-4 mt-2 border-t border-gray-100 space-y-3">
+                  <div>
+                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Fluid Modular Type Scale</h3>
+                    <p className="text-[10px] text-gray-400 mt-0.5">Inherently responsive headings via clamp() — scales smoothly between viewports.</p>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <NumericField label="Base Size" value={config?.tokens?.fluid?.base ?? "1"} onChange={(v) => updateTokens((tk) => ({ ...tk, fluid: { ...tk.fluid, base: v } }))} min={0.5} max={3} units={["rem"]} />
+                    <NumericField label="Ratio" value={String(config?.tokens?.fluid?.ratio ?? 1.25)} onChange={(v) => updateTokens((tk) => ({ ...tk, fluid: { ...tk.fluid, ratio: parseFloat(v) || 1.25 } }))} min={1.05} max={2} units={[]} />
+                    <NumericField label="Min Viewport" value={String(config?.tokens?.fluid?.min ?? 360)} onChange={(v) => updateTokens((tk) => ({ ...tk, fluid: { ...tk.fluid, min: parseInt(v) || 360 } }))} min={240} max={1920} units={["px"]} />
+                    <NumericField label="Max Viewport" value={String(config?.tokens?.fluid?.max ?? 1280)} onChange={(v) => updateTokens((tk) => ({ ...tk, fluid: { ...tk.fluid, max: parseInt(v) || 1280 } }))} min={320} max={2560} units={["px"]} />
+                  </div>
+                  <div className="space-y-1 rounded-xl bg-gray-50/60 border border-gray-100 p-3">
+                    {Object.entries(buildFluidScale(config?.tokens?.fluid)).map(([k, v]) => (
+                      <div key={k} className="flex items-center gap-3">
+                        <span className="text-[10px] font-mono text-gray-500 w-20">{k}</span>
+                        <code className="text-[10px] text-indigo-600 font-mono flex-1 truncate">{v}</code>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </Panel>
             )}
@@ -668,7 +939,48 @@ export default function ThemeEditor() {
             )}
             {tab === "spacing" && <Panel title="Spacing"><div className="space-y-4">{Object.entries(spacing).map(([name, val]) => <NumericField key={name} label={name} value={val} onChange={(v) => updateNumeric("spacing", name, v)} min={0} max={256} units={["px", "rem", "vw", "%"]} />)}</div></Panel>}
             {tab === "shadow" && <Panel title="Shadows"><div className="space-y-4">{Object.entries(shadows).map(([name, val]) => <ShadowField key={name} label={name} value={val} onChange={(v) => updateShadow(name, v)} />)}</div></Panel>}
-            {tab === "components" && <Panel title="Components"><div className="space-y-4">{Object.entries(components).map(([name, comp]) => <ComponentVariantField key={name} label={name} variant={comp.variant} variants={comp.variants} onVariantChange={(v) => updateComponentVariant(name, v)} onClassesChange={(vk, cls) => updateComponentClasses(name, vk, cls)} />)}</div></Panel>}
+            {tab === "components" && (
+              <Panel title="Component Style Studio">
+                <div className="mb-4 flex items-center justify-between gap-3 bg-gradient-to-br from-indigo-50/70 to-purple-50/40 border border-indigo-100 rounded-2xl p-3.5">
+                  <div>
+                    <p className="text-xs font-bold text-indigo-900">Standard Component Library</p>
+                    <p className="text-[10px] text-indigo-600/80 mt-0.5 leading-relaxed">Customize the global <code className="font-mono text-[9px]">.yo-*</code> classes used across every page — like a premium sellable theme.</p>
+                  </div>
+                  <button onClick={() => { if (config) { setConfig(mergeStandardComponents(config)); setDirty(true); } }}
+                    className="shrink-0 text-[11px] font-semibold px-3 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition-all shadow-md shadow-indigo-500/20">
+                    Load Full Set
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  {Object.entries(componentList).map(([name, comp]) => (
+                    <ComponentVariantField key={name} label={name} variant={comp.variant} variants={comp.variants}
+                      onVariantChange={(v) => updateComponentVariant(name, v)}
+                      onClassesChange={(vk, cls) => updateComponentClasses(name, vk, cls)} />
+                  ))}
+                </div>
+
+                {/* Motion + focus ring standardization (component state management / a11y) */}
+                <div className="mt-5 pt-4 border-t border-gray-100 grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Motion & Transitions</h3>
+                    <NumericField label="Transition Duration" value={config?.tokens?.motion?.duration ?? "0.2s"} onChange={(v) => updateTokens((tk) => ({ ...tk, motion: { ...tk.motion, duration: v } }))} min={0} max={2000} units={["ms", "s"]} />
+                    <SelectField label="Easing" value={config?.tokens?.motion?.easing ?? "cubic-bezier(0.4, 0, 0.2, 1)"} options={[
+                      { value: "cubic-bezier(0.4, 0, 0.2, 1)", label: "Standard" },
+                      { value: "ease", label: "Ease" },
+                      { value: "ease-in-out", label: "Ease In-Out" },
+                      { value: "linear", label: "Linear" },
+                    ]} onChange={(v) => updateTokens((tk) => ({ ...tk, motion: { ...tk.motion, easing: v } }))} />
+                    <SelectField label="Reduced Motion" value={String(config?.tokens?.motion?.reduced ?? false)} options={[{ value: "false", label: "Full motion" }, { value: "true", label: "Minimize" }]} onChange={(v) => updateTokens((tk) => ({ ...tk, motion: { ...tk.motion, reduced: v === "true" } }))} />
+                  </div>
+                  <div className="space-y-3">
+                    <h3 className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Focus Ring (ADA)</h3>
+                    <ColorField label="Ring Color" value={config?.tokens?.focus?.color ?? ""} onChange={(v) => updateTokens((tk) => ({ ...tk, focus: { ...tk.focus, color: v } }))} darkValue="" onDarkChange={() => {}} synced onToggleSync={() => {}} onReset={() => {}} />
+                    <NumericField label="Ring Width" value={config?.tokens?.focus?.width ?? "2px"} onChange={(v) => updateTokens((tk) => ({ ...tk, focus: { ...tk.focus, width: v } }))} min={0} max={12} units={["px"]} />
+                    <NumericField label="Ring Offset" value={config?.tokens?.focus?.offset ?? "2px"} onChange={(v) => updateTokens((tk) => ({ ...tk, focus: { ...tk.focus, offset: v } }))} min={0} max={12} units={["px"]} />
+                  </div>
+                </div>
+              </Panel>
+            )}
             {tab === "layouts" && <Panel title="Layouts"><div className="space-y-4"><SelectField label="Layout Type" value={structure?.layoutType ?? "sidebar-right"} options={(structure?.layoutTypes ? Object.entries(structure.layoutTypes) : []).map(([k]) => ({ value: k, label: k.split("-").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" ") }))} onChange={updateLayoutType} />{structure?.layoutTypes && <div className="space-y-2"><p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Shell Components</p><div className="grid gap-2">{Object.entries(structure.layoutTypes).map(([name, cfg]: [string, any]) => <div key={name} className="flex items-center gap-3 p-3 bg-gray-50/80 rounded-xl border border-gray-200/80"><span className="text-xs font-medium text-gray-600 w-28">{name}</span><code className="text-xs text-indigo-600 font-mono">{cfg.shell}</code></div>)}</div></div>}</div></Panel>}
             {tab === "preview" && <Panel title="Preview"><div className="flex items-center justify-center h-32 text-sm text-gray-400">Use preview toolbar above</div></Panel>}
             {tab === "code" && <CodeTab config={config} />}
@@ -721,8 +1033,9 @@ export default function ThemeEditor() {
             </div>
             <div className="space-y-1.5">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Paste Config JSON</label>
-              <textarea value={importJsonInput} onChange={(e) => setImportJsonInput(e.target.value)} rows={8} placeholder='{ "tokens": { ... }, "components": { ... } }'
+              <textarea value={importJsonInput} onChange={(e) => setImportJsonInput(e.target.value)} rows={8} placeholder='{ "tokens": { ... }, "components": { ... } }  — or a Figma Variables export'
                 className="w-full rounded-xl border border-gray-200 p-3.5 text-xs font-mono outline-none focus:border-indigo-500 transition-all resize-none bg-gray-50/50" />
+              <p className="text-[10px] text-gray-400">Accepts full theme config <span className="font-mono">or</span> a Figma Variables JSON (color variables are auto-mapped as tokens).</p>
               {importError && <p className="text-[10px] text-red-500 font-medium flex items-center gap-1"><AlertCircle size={10} />{importError}</p>}
             </div>
             <div className="flex gap-2 justify-end">
@@ -831,6 +1144,87 @@ export default function ThemeEditor() {
           </div>
         </div>
       )}
+
+      {/* ══ History / Snapshot panel ══ */}
+      {showHistory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/30 backdrop-blur-xs">
+          <div className="bg-white border-l border-gray-200 shadow-2xl w-[440px] h-full flex flex-col animate-in slide-in-from-right duration-200">
+            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-gray-800 flex items-center gap-2"><History size={15} className="text-indigo-500" />Edit History</h2>
+                <p className="text-[10px] text-gray-400 mt-0.5">Auto-captured snapshots · restore any point to undo edits</p>
+              </div>
+              <button onClick={() => setShowHistory(false)} className="p-1 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600"><X size={16} /></button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
+              {history.length === 0 && (
+                <div className="text-center text-gray-400 text-xs py-10">No snapshots yet. Edit tokens and snapshots will be captured automatically.</div>
+              )}
+              {history.map((s, i) => (
+                <div key={s.id} className="flex items-start gap-3 p-2.5 rounded-xl border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/40 transition-all group">
+                  <div className="flex flex-col items-center pt-1">
+                    <span className={`h-2.5 w-2.5 rounded-full ring-2 ${i === 0 ? "bg-indigo-500 ring-indigo-200" : "bg-gray-300 ring-gray-100"}`} />
+                    {i < history.length - 1 && <span className="w-px flex-1 bg-gray-200 min-h-[20px]" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-gray-700 truncate">{s.label}</span>
+                      {s.changes && s.changes.length > 0 && (
+                        <span className="shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-50 text-indigo-600">{s.changes.length} change{s.changes.length !== 1 ? "s" : ""}</span>
+                      )}
+                    </div>
+                    <div className="text-[10px] text-gray-400">{new Date(s.ts).toLocaleString()}</div>
+                    {s.changes && s.changes.length > 0 && (
+                      <div className="mt-1.5 space-y-1">
+                        {s.changes.slice(0, 4).map((c, ci) => <ChangeRow key={ci} change={c} />)}
+                        {s.changes.length > 4 && <div className="text-[9px] text-gray-400 pl-0.5">+{s.changes.length - 4} more</div>}
+                      </div>
+                    )}
+                  </div>
+                  <button onClick={() => { restoreSnapshot(s); setShowHistory(false); }}
+                    className="opacity-0 group-hover:opacity-100 shrink-0 text-[10px] font-semibold px-2.5 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-all">Restore</button>
+                </div>
+              ))}
+            </div>
+            <div className="p-4 border-t border-gray-100 flex items-center justify-between">
+              <button onClick={() => { setHistory([]); try { localStorage.removeItem(`yotheme-history-${guid ?? "new"}`); } catch {} }}
+                className="text-[10px] text-gray-400 hover:text-red-500 transition-all">Clear history</button>
+              <button onClick={() => pushSnapshot("Manual snapshot")} className="text-[10px] font-semibold px-3 py-1.5 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all">+ Snapshot now</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  History change row                                                 */
+/* ================================================================== */
+
+function ChangeRow({ change }: { change: HistoryChange }) {
+  const isColor = change.category === "color";
+  const swatch = (val?: string) => (
+    <span
+      className="h-2.5 w-2.5 rounded-full border border-gray-200 shrink-0 inline-block"
+      style={{ backgroundColor: val && val !== "—" ? val : "transparent" }}
+    />
+  );
+  return (
+    <div className="flex items-center gap-1.5 text-[10px] leading-tight">
+      {isColor ? (
+        <>
+          {swatch(change.oldValue)}
+          <span className="text-gray-300">→</span>
+          {swatch(change.newValue)}
+        </>
+      ) : null}
+      <span className="font-medium text-gray-600 capitalize truncate">{change.name}</span>
+      {!isColor && (
+        <span className="text-gray-400 truncate">
+          {change.oldValue ?? "—"} <span className="px-0.5 text-gray-300">→</span> {change.newValue ?? "—"}
+        </span>
+      )}
     </div>
   );
 }
@@ -856,28 +1250,84 @@ function Panel({ title, children }: { title: string; children: React.ReactNode }
 /* ================================================================== */
 
 function CodeTab({ config }: { config: ParsedThemeConfig }) {
-  const json = JSON.stringify(config, null, 2);
+  type Fmt = "json" | "css" | "tailwind" | "v4" | "styledictionary" | "react" | "multitenant";
+  const [fmt, setFmt] = useState<Fmt>("json");
+  const [tenant, setTenant] = useState("client-a");
   const [copied, setCopied] = useState(false);
+
+  const sources: Record<Fmt, string> = {
+    json: JSON.stringify(config, null, 2),
+    css: buildCssVariablesExport(config),
+    tailwind: buildTailwindConfig(config),
+    v4: buildTailwindV4(config),
+    styledictionary: buildStyleDictionary(config),
+    react: buildReactTheme(config),
+    multitenant: buildMultiTenantCss(config, tenant),
+  };
+  const code = sources[fmt];
+
   const handleCopy = () => {
-    navigator.clipboard.writeText(json).then(() => {
+    navigator.clipboard.writeText(code).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     });
   };
+
+  const tabs: { id: Fmt; label: string; hint: string }[] = [
+    { id: "json", label: "JSON", hint: "Full config" },
+    { id: "css", label: "CSS Vars", hint: "Runtime variables" },
+    { id: "tailwind", label: "Tailwind v3", hint: "tailwind.config.ts" },
+    { id: "v4", label: "Tailwind v4", hint: "@theme CSS-first" },
+    { id: "styledictionary", label: "Style Dict", hint: "Cross-platform tokens" },
+    { id: "react", label: "React", hint: "Typed theme object" },
+    { id: "multitenant", label: "Multi-tenant", hint: "Scoped stylesheet" },
+  ];
+
   return (
     <div className="p-5 h-full flex flex-col bg-white">
       <div className="flex items-center justify-between mb-4 shrink-0">
         <div>
-          <h2 className="text-sm font-bold text-gray-800 tracking-tight">Theme Configuration File</h2>
-          <p className="text-[11px] text-gray-400 mt-0.5">JSON export ready for deployment or manual tweaking</p>
+          <h2 className="text-sm font-bold text-gray-800 tracking-tight">Code Export & Framework Integration</h2>
+          <p className="text-[11px] text-gray-400 mt-0.5">Generate framework-ready assets from your tokens</p>
         </div>
         <button onClick={handleCopy} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
           {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
-          {copied ? "Copied" : "Copy JSON"}
+          {copied ? "Copied" : "Copy"}
         </button>
       </div>
+
+      <div className="flex items-center gap-0.5 mb-3 flex-wrap">
+        {tabs.map((t) => (
+          <button key={t.id} onClick={() => setFmt(t.id)} title={t.hint}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${fmt === t.id ? "bg-indigo-600 text-white shadow-md shadow-indigo-500/20" : "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {fmt === "multitenant" && (
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-[11px] text-gray-400">Tenant scope</span>
+          <input value={tenant} onChange={(e) => setTenant(e.target.value)} placeholder="client-a"
+            className="text-xs px-2.5 py-1.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-300 font-mono w-40" />
+          <span className="text-[10px] text-gray-400">→ wraps vars in <span className="font-mono">[data-theme="{tenant}"]</span></span>
+        </div>
+      )}
+
+      {(fmt === "css" || fmt === "v4") && (
+        <p className="text-[10px] text-gray-400 mb-3 font-mono">
+          rgb/hsl channels enable <span className="text-indigo-500">color-mix()</span> alpha scales & runtime switching in <span className="text-indigo-500">.yo-*</span> classes.
+        </p>
+      )}
+
+      {fmt === "styledictionary" && (
+        <p className="text-[10px] text-gray-400 mb-3">
+          Drop into a <span className="font-mono">Style Dictionary</span> pipeline to emit iOS/Android/SCSS/Compose tokens automatically — plug into CI for design-to-code sync.
+        </p>
+      )}
+
       <pre className="flex-1 overflow-auto rounded-2xl border border-gray-200 bg-gray-950 p-5 text-xs leading-relaxed shadow-inner">
-        <code className="text-gray-100">{json}</code>
+        <code className="text-gray-100">{code}</code>
       </pre>
     </div>
   );

@@ -6,20 +6,30 @@ import { Copy, RotateCcw, Link2, Unlink, ChevronDown, Pipette } from "lucide-rea
 /*  Color utilities                                                    */
 /* ------------------------------------------------------------------ */
 
-function getContrastRatio(hex: string): number {
+function relativeLuminance(hex: string): number {
   if (!/^#[0-9a-fA-F]{6}$/.test(hex)) return 0;
   const r = parseInt(hex.slice(1, 3), 16) / 255;
   const g = parseInt(hex.slice(3, 5), 16) / 255;
   const b = parseInt(hex.slice(5, 7), 16) / 255;
-  const lum = 0.2126 * (r <= 0.03928 ? r / 12.92 : ((r + 0.055) / 1.055) ** 2.4)
-    + 0.7152 * (g <= 0.03928 ? g / 12.92 : ((g + 0.055) / 1.055) ** 2.4)
-    + 0.0722 * (b <= 0.03928 ? b / 12.92 : ((b + 0.055) / 1.055) ** 2.4);
-  return Math.round((lum + 0.05) / 0.05 * 100) / 100;
+  const chan = (c: number) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+  return 0.2126 * chan(r) + 0.7152 * chan(g) + 0.0722 * chan(b);
 }
 
-function contrastLevel(hex: string): "AAA" | "AA" | "AA-lg" | "fail" {
-  const r = getContrastRatio(hex);
-  return r >= 7 ? "AAA" : r >= 4.5 ? "AA" : r >= 3 ? "AA-lg" : "fail";
+/** WCAG contrast ratio of this color when used as TEXT on a white surface. */
+function getContrastOnWhite(hex: string): number {
+  const lum = relativeLuminance(hex);
+  const white = 1; // luminance of #ffffff
+  const lighter = Math.max(white, lum);
+  const darker = Math.min(white, lum);
+  return Math.round(((lighter + 0.05) / (darker + 0.05)) * 100) / 100;
+}
+
+type ContrastInfo = { level: "AAA" | "AA" | "AA-lg" | "Low"; ratio: number; ok: boolean };
+
+function getContrastInfo(hex: string): ContrastInfo {
+  const ratio = getContrastOnWhite(hex);
+  const level = ratio >= 7 ? "AAA" : ratio >= 4.5 ? "AA" : ratio >= 3 ? "AA-lg" : "Low";
+  return { level, ratio, ok: ratio >= 3 };
 }
 
 const PRESETS = [
@@ -137,8 +147,8 @@ export function ColorField({
 
   const current = mode === "dark" ? darkValue ?? value : value;
   const validHex = /^#[0-9a-fA-F]{6}$/.test(current) || /^#[0-9a-fA-F]{3}$/.test(current);
-  const contrast = contrastLevel(current);
-  const bgOk = contrast !== "fail";
+  const contrast = getContrastInfo(current);
+  const bgOk = contrast.ok;
 
   const handleCopy = async () => {
     try {
@@ -171,26 +181,31 @@ export function ColorField({
           {onDarkChange && (
             <>
               <button type="button" onClick={() => setMode("light")}
+                title="Edit Light mode color"
                 className={`text-[9px] font-medium px-1.5 py-0.5 rounded transition-all ${mode === "light" ? "bg-gray-200/70 text-gray-700" : "text-gray-400 hover:text-gray-600"}`}>L</button>
               <button type="button" onClick={() => setMode("dark")}
+                title="Edit Dark mode color"
                 className={`text-[9px] font-medium px-1.5 py-0.5 rounded transition-all ${mode === "dark" ? "bg-gray-700 text-white" : "text-gray-400 hover:text-gray-600"}`}>D</button>
             </>
           )}
           <div className="w-px h-3 bg-gray-200 mx-1" />
           {onToggleSync && (
             <button type="button" onClick={onToggleSync}
-              className="p-0.5 rounded hover:bg-gray-100 text-gray-400 hover:text-indigo-500 transition-all" title={synced ? "Unlink dark" : "Sync dark"}>
+              className="p-0.5 rounded hover:bg-gray-100 text-gray-400 hover:text-indigo-500 transition-all"
+              title={synced ? "Dark value is linked to light — click to set a different dark color" : "Dark value differs from light — click to copy light value to dark"}>
               {synced ? <Link2 size={10} /> : <Unlink size={10} />}
             </button>
           )}
           {onReset && (
             <button type="button" onClick={onReset}
-              className="p-0.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all" title="Reset">
+              className="p-0.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+              title="Remove this token (revert to theme default)">
               <RotateCcw size={10} />
             </button>
           )}
           <button type="button" onClick={handleCopy}
-            className="p-0.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all" title="Copy">
+            className="p-0.5 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-all"
+            title="Copy color value to clipboard">
             {copied ? <span className="text-[8px] text-green-600 font-semibold">OK</span> : <Copy size={10} />}
           </button>
         </div>
@@ -199,6 +214,7 @@ export function ColorField({
       {/* Main row: swatch + text input */}
       <div className="flex items-center gap-2 px-3.5 pb-2.5">
         <button ref={swatchRef} type="button" onClick={handlePickerOpen}
+          title="Open color picker"
           className="relative block h-9 w-9 shrink-0 rounded-lg border-2 border-white shadow-[0_0_0_1px_rgba(0,0,0,0.08)] hover:shadow-[0_0_0_2px_rgba(99,102,241,0.3)] transition-shadow overflow-hidden cursor-pointer">
           <div className="h-full w-full rounded-[5px]" style={{ backgroundColor: validHex ? current : "#e2e8f0" }} />
           <div className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 bg-black/20 transition-opacity rounded-[5px]">
@@ -211,11 +227,14 @@ export function ColorField({
             if (mode === "dark" && onDarkChange) onDarkChange(v);
             else onChange(v);
           }}
+          title="Color value (hex)"
           className="flex-1 bg-transparent text-xs font-mono text-gray-600 outline-none min-w-0" />
         {validHex && (
-          <span className={`text-[9px] font-semibold px-1 py-0.5 rounded ${
-            bgOk ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
-          }`}>{contrast}</span>
+          <span
+            title={`WCAG contrast vs white surface: ${contrast.ratio}:1 — ${contrast.level === "Low" ? "low legibility, better as a background than as text" : "acceptable as text on white"}`}
+            className={`text-[9px] font-semibold px-1 py-0.5 rounded cursor-help ${
+              bgOk ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-600"
+            }`}>{contrast.level}</span>
         )}
       </div>
 
@@ -491,17 +510,124 @@ interface ComponentVariantFieldProps {
   onClassesChange: (variant: string, classes: string) => void;
 }
 
+/* Live preview sample markup per component type (uses standard .yo-* classes) */
+const PREVIEW_SAMPLES: Record<string, React.ReactNode> = {
+  button: <button className="yo-btn yo-btn-primary">Primary Button</button>,
+  card: <div className="yo-card p-4 w-44"><p className="text-sm font-semibold">Card Title</p><p className="text-xs opacity-70 mt-1">Sample card body</p></div>,
+  badge: <span className="yo-badge yo-badge-primary">New</span>,
+  input: <input className="yo-input w-48" placeholder="Sample input..." />,
+  alert: <div className="yo-alert yo-alert-success w-56"><span>Operation successful!</span></div>,
+  navbar: <div className="yo-navbar w-72"><span className="yo-navbar-brand">Brand</span><span className="yo-navbar-link yo-navbar-link-active">Active</span></div>,
+  sidebar: <div className="yo-sidebar w-40"><span className="yo-sidebar-item yo-sidebar-item-active">Dashboard</span><span className="yo-sidebar-item">Settings</span></div>,
+  table: (
+    <div className="yo-table-container w-64">
+      <table className="yo-table">
+        <thead><tr><th className="yo-table-header">A</th><th className="yo-table-header">B</th></tr></thead>
+        <tbody><tr className="yo-table-row"><td className="yo-table-cell">1</td><td className="yo-table-cell">2</td></tr></tbody>
+      </table>
+    </div>
+  ),
+  footer: <div className="yo-footer w-64"><span className="yo-footer-link">Footer link</span></div>,
+  accordion: (
+    <div className="yo-accordion w-60">
+      <div className="yo-accordion-item"><button className="yo-accordion-trigger">Section One <span>+</span></button><div className="yo-accordion-content">Collapsible body content.</div></div>
+      <div className="yo-accordion-item"><button className="yo-accordion-trigger">Section Two <span>+</span></button></div>
+    </div>
+  ),
+  modal: (
+    <div className="yo-modal">
+      <p className="text-sm font-semibold text-[var(--yo-text)]">Confirm action</p>
+      <p className="text-xs text-[var(--yo-muted-foreground)] mt-1">This cannot be undone.</p>
+      <div className="flex gap-2 mt-3 justify-end"><button className="yo-btn yo-btn-ghost !text-xs">Cancel</button><button className="yo-btn yo-btn-primary !text-xs">Confirm</button></div>
+    </div>
+  ),
+  tabs: (
+    <div className="yo-tabs w-64">
+      <span className="yo-tab yo-tab-active">Overview</span>
+      <span className="yo-tab">Activity</span>
+      <span className="yo-tab">Settings</span>
+    </div>
+  ),
+  breadcrumb: (
+    <div className="yo-breadcrumb">
+      <span>Home</span><span className="yo-breadcrumb-sep">/</span>
+      <span>Projects</span><span className="yo-breadcrumb-sep">/</span>
+      <span className="yo-breadcrumb-current">Current</span>
+    </div>
+  ),
+  avatar: <div className="flex items-center gap-2"><span className="yo-avatar">JD</span><span className="yo-avatar !rounded-full">AB</span></div>,
+  switch: (
+    <div className="flex items-center gap-3">
+      <span className="yo-switch" data-on="false"><span className="yo-switch-thumb" /></span>
+      <span className="yo-switch" data-on="true"><span className="yo-switch-thumb" /></span>
+    </div>
+  ),
+  progress: (
+    <div className="w-52 space-y-2">
+      <div className="yo-progress"><div className="yo-progress-bar" style={{ width: "65%" }} /></div>
+      <div className="yo-progress"><div className="yo-progress-bar" style={{ width: "30%" }} /></div>
+    </div>
+  ),
+  toast: (
+    <div className="flex flex-col gap-2">
+      <div className="yo-toast w-56"><span>Settings saved.</span></div>
+      <div className="yo-toast yo-toast-success w-56"><span>Published successfully.</span></div>
+    </div>
+  ),
+  tooltip: <span className="yo-tooltip">Hover tooltip text</span>,
+  pagination: (
+    <div className="yo-pagination">
+      <span className="yo-page">‹</span><span className="yo-page yo-page-active">1</span>
+      <span className="yo-page">2</span><span className="yo-page">3</span><span className="yo-page">›</span>
+    </div>
+  ),
+};
+
 export function ComponentVariantField({ label, variant, variants, onVariantChange, onClassesChange }: ComponentVariantFieldProps) {
   const [expanded, setExpanded] = useState(false);
+  const [stateView, setStateView] = useState<"default" | "hover" | "focus" | "active" | "disabled">("default");
+  const activeClasses = variants[variant]?.classes ?? "";
+  const sample = PREVIEW_SAMPLES[label.toLowerCase()];
+  const stateClass =
+    stateView === "disabled" ? "opacity-50 pointer-events-none cursor-not-allowed"
+    : stateView === "focus" ? "ring-2 ring-offset-2 ring-indigo-500 rounded-lg"
+    : stateView === "active" ? "brightness-90 [transform:scale(0.98)]"
+    : stateView === "hover" ? "brightness-110"
+    : "";
+  const states: ("default" | "hover" | "focus" | "active" | "disabled")[] = ["default", "hover", "focus", "active", "disabled"];
   return (
     <div className="bg-white/90 rounded-2xl border border-gray-200/80 p-4 space-y-3 shadow-sm">
       <div className="flex items-center justify-between">
         <span className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">{label}</span>
         <button type="button" onClick={() => setExpanded(!expanded)}
           className="text-[10px] font-medium text-indigo-500 hover:text-indigo-700 hover:bg-indigo-50/60 px-2 py-0.5 rounded-lg transition-all">
-          {expanded ? "Collapse" : "Classes"}
+          {expanded ? "Collapse" : "Edit Classes"}
         </button>
       </div>
+
+      {/* Component state management preview */}
+      <div className="flex items-center gap-1.5">
+        <span className="text-[9px] font-medium text-gray-400 uppercase tracking-wider mr-1">State</span>
+        {states.map((s) => (
+          <button key={s} type="button" onClick={() => setStateView(s)}
+            className={`text-[9px] font-semibold px-2 py-1 rounded-lg border transition-all ${
+              stateView === s ? "bg-indigo-50 border-indigo-300 text-indigo-700 shadow-sm" : "bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50"
+            }`}>{s}</button>
+        ))}
+      </div>
+
+      {/* Live preview of the active variant */}
+      <div className="flex items-center justify-center min-h-[3.5rem] rounded-xl bg-gradient-to-br from-gray-50 to-gray-100/60 border border-gray-100 p-3 overflow-x-auto">
+        <span className={stateClass}>{sample ?? <span className="text-[10px] text-gray-400 font-mono break-all text-center">{activeClasses}</span>}</span>
+      </div>
+
+      {/* Tailwind class reference for this variant */}
+      <div className="flex items-center gap-2">
+        <span className="text-[9px] font-medium text-gray-400 uppercase tracking-wider shrink-0">Tailwind</span>
+        <code className="text-[10px] font-mono text-indigo-600 bg-indigo-50/70 px-2 py-1 rounded-md truncate flex-1" title={activeClasses}>{activeClasses}</code>
+      </div>
+
+      {/* Variant selector */}
       <div className="flex flex-wrap gap-1.5">
         {Object.entries(variants).map(([k]) => (
           <button key={k} type="button" onClick={() => onVariantChange(k)}
@@ -510,6 +636,7 @@ export function ComponentVariantField({ label, variant, variants, onVariantChang
             }`}>{k.charAt(0).toUpperCase() + k.slice(1)}</button>
         ))}
       </div>
+
       {expanded && (
         <div className="space-y-2 pt-2 border-t border-gray-100/80">
           {Object.entries(variants).map(([k, cfg]) => (
