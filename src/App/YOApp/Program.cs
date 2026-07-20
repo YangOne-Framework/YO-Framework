@@ -5,6 +5,8 @@ using Scalar.AspNetCore;
 using YOApp;
 using YangOne.BackgroundJobRunner;
 using YangOne.Configuration;
+using YOApp;
+using static OpenIddict.Abstractions.OpenIddictConstants.Permissions;
 
 var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
@@ -45,6 +47,27 @@ var app = builder.Build();
 
 Startup.Configure(app, serviceProvider: builder.Services.BuildServiceProvider(), env);
 //TODO::open api
-app.MapOpenApi();
-app.MapScalarApiReference();
+//app.MapOpenApi();
+app.MapOpenApi("/openapi/{documentName}.json").RequireAuthorization("ScalarBasicPolicy");
+
+app.MapScalarApiReference(options => options
+    .AddPreferredSecuritySchemes("OAuth")
+    .AddOAuth2Flows("OAuth", flows =>
+    {
+        // Configure Authorization Code flow
+        flows.AuthorizationCode = new AuthorizationCodeFlow
+        {
+            ClientId = "test-client"
+        };
+
+        // Configure Client Credentials flow
+        flows.ClientCredentials = new ClientCredentialsFlow
+        {
+            ClientId = "test-client",
+            ClientSecret = "test-secret"
+        };
+    })
+    // All OAuth flows will have preselected scopes
+    .AddDefaultScopes("OAuth", ["profile", "email"])
+);
 app.Run();

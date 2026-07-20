@@ -283,6 +283,39 @@ namespace YOApp
                 options.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
                 options.AddOperationTransformer<AuthOperationTransformer>();
                 options.AddOperationTransformer<ApiResponseOperationTransformer>();
+
+                options.AddDocumentTransformer((document, context, cancellationToken) =>
+                {
+                    document.Components ??= new OpenApiComponents();
+
+                    document.Components.SecuritySchemes =
+                        new Dictionary<string, IOpenApiSecurityScheme>
+                        {
+                            ["OAuth"] = new OpenApiSecurityScheme
+                            {
+                                Type = SecuritySchemeType.OAuth2,
+
+                                Flows = new OpenApiOAuthFlows
+                                {
+                                    ClientCredentials = new OpenApiOAuthFlow
+                                    {
+                                        TokenUrl = new Uri(
+                                            "https://localhost:7259/connect/token"),
+
+                                        Scopes = new Dictionary<string, string>
+                                        {
+                                            ["api"] = "API access"
+                                        }
+                                    }
+                                }
+                            }
+                        };
+
+                    document.Security = [new OpenApiSecurityRequirement { [new OpenApiSecuritySchemeReference("OAuth", document)] = ["api"] }];
+
+                    return Task.CompletedTask;
+                });
+
             });
             //services.ConfigureApplicationCookie(options =>
             //{
@@ -342,11 +375,22 @@ namespace YOApp
                         //    return ctx.Response.WriteAsync(payload);
                         //}
                     };
+                })
+                .AddScheme<AuthenticationSchemeOptions, ScalarBasicAuthenticationHandler>(ScalarBasicAuthenticationHandler.SchemeName, options => { });
+
+
+
+            //services.AddAuthorization();
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("ScalarBasicPolicy", policy =>
+                {
+                    policy.AddAuthenticationSchemes(
+                        ScalarBasicAuthenticationHandler.SchemeName);
+
+                    policy.RequireAuthenticatedUser();
                 });
-
-
-
-            services.AddAuthorization();
+            });
             services.Configure<IISServerOptions>(options =>
             {
                 options.AllowSynchronousIO = true;
