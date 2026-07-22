@@ -54,7 +54,7 @@ public class YOThemeApiController : BaseApiController
             if (!result.Success)
                 return ErrorResponse<YOTheme>(404, result.Message);
 
-            return SuccessResponse(result.Message, result.Data);
+            return SuccessResponse<YOTheme>(result.Message, (YOTheme)result.Data);
         }
         catch (Exception e)
         {
@@ -72,7 +72,7 @@ public class YOThemeApiController : BaseApiController
             if (!result.Success || result.Data == null)
                 return SuccessResponse<YOTheme>("No active theme", null);
 
-            return SuccessResponse(result.Message, result.Data);
+            return SuccessResponse<YOTheme>(result.Message, (YOTheme)result.Data);
         }
         catch (Exception e)
         {
@@ -96,7 +96,7 @@ public class YOThemeApiController : BaseApiController
             // Invalidate page caches — theme config affects all rendered pages
             PublicPageCache.InvalidatePage();
 
-            return SuccessResponse(result.Message, result.Data);
+            return SuccessResponse<YOTheme>(result.Message, (YOTheme)result.Data);
         }
         catch (Exception e)
         {
@@ -213,47 +213,36 @@ public class YOThemeApiController : BaseApiController
     // ── Export / Import ────────────────────────────────────
 
     [HttpGet("export/{guid}")]
-    public async Task<ActionResult<ApiResponse<YOThemeExport>>> ExportTheme(string guid)
+    public async Task<ActionResult<ApiResponse<YOThemePackage>>> ExportTheme(string guid)
     {
         try
         {
             var result = await _themeService.ExportThemeJsonAsync(guid);
             if (!result.Success || result.Data == null)
-                return ErrorResponse<YOThemeExport>(404, result.Message);
+                return ErrorResponse<YOThemePackage>(404, result.Message);
 
-            var export = new YOThemeExport
-            {
-                Name = result.Data.Name,
-                Slug = result.Data.Slug,
-                Version = result.Data.Version,
-                Author = result.Data.Author,
-                Description = result.Data.Description,
-                Tags = result.Data.Tags,
-                Config = result.Data.Config
-            };
-
-            return SuccessResponse(result.Message, export);
+            return SuccessResponse(result.Message, result.Data as YOThemePackage);
         }
         catch (Exception e)
         {
             _logger.Log(LogType.Error, () => e.Message, e);
-            return ErrorResponse<YOThemeExport>(501, e.Message);
+            return ErrorResponse<YOThemePackage>(501, e.Message);
         }
     }
 
     [HttpPost("import")]
-    public async Task<ActionResult<ApiResponse<YOTheme>>> ImportTheme([FromBody] YOThemeImportRequest request)
+    public async Task<ActionResult<ApiResponse<YOTheme>>> ImportTheme([FromBody] System.Text.Json.JsonElement raw)
     {
         try
         {
-            var json = System.Text.Json.JsonSerializer.Serialize(request);
+            var json = raw.GetRawText();
             var result = await _themeService.ImportThemeAsync(json);
             if (!result.Success)
                 return ErrorResponse<YOTheme>(501, result.Message);
 
             PublicPageCache.InvalidatePage();
 
-            return SuccessResponse(result.Message, result.Data);
+            return SuccessResponse<YOTheme>(result.Message, (YOTheme)result.Data);
         }
         catch (Exception e)
         {

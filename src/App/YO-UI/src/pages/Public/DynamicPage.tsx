@@ -109,15 +109,15 @@ function PublicThemeSwitcher() {
   };
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 rounded-xl border border-[var(--yo-border)] bg-[var(--yo-card)] p-3 shadow-lg" style={{ fontFamily: "var(--font-body, system-ui, sans-serif)" }}>
-      <div className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--yo-muted)" }}>Preview Theme</div>
+    <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 rounded-xl border border-[rgb(var(--c-border))] bg-[var(--yo-card)] p-3 shadow-lg" style={{ fontFamily: "var(--font-body, system-ui, sans-serif)" }}>
+      <div className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "rgb(var(--c-muted))" }}>Preview Theme</div>
       <div className="flex max-w-[220px] flex-col gap-1">
         <button
           onClick={() => setTheme(null)}
           className="rounded-lg px-3 py-1.5 text-left text-xs font-medium transition"
           style={{
-            color: !current ? "var(--yo-primary)" : "var(--yo-text)",
-            background: !current ? "color-mix(in srgb, var(--yo-primary) 12%, transparent)" : "transparent",
+            color: !current ? "rgb(var(--c-primary))" : "rgb(var(--c-text))",
+            background: !current ? "color-mix(in srgb, rgb(var(--c-primary)) 12%, transparent)" : "transparent",
           }}
         >
           ◉ Active theme
@@ -126,10 +126,10 @@ function PublicThemeSwitcher() {
           <button
             key={t.YOThemeUniqueId}
             onClick={() => setTheme(t.YOThemeUniqueId)}
-            className="rounded-lg px-3 py-1.5 text-left text-xs font-medium transition hover:bg-[color-mix(in_srgb,var(--yo-text)_6%,transparent)]"
+            className="rounded-lg px-3 py-1.5 text-left text-xs font-medium transition hover:bg-[color-mix(in_srgb,rgb(var(--c-text))_6%,transparent)]"
             style={{
-              color: current === t.YOThemeUniqueId ? "var(--yo-primary)" : "var(--yo-text)",
-              background: current === t.YOThemeUniqueId ? "color-mix(in srgb, var(--yo-primary) 12%, transparent)" : "transparent",
+              color: current === t.YOThemeUniqueId ? "rgb(var(--c-primary))" : "rgb(var(--c-text))",
+              background: current === t.YOThemeUniqueId ? "color-mix(in srgb, rgb(var(--c-primary)) 12%, transparent)" : "transparent",
             }}
           >
             {t.IsActive ? "● " : ""}{t.Name}

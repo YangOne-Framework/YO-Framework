@@ -97,12 +97,15 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
   if (tokens.colors) {
     for (const [name, val] of Object.entries(tokens.colors)) {
       if (typeof val === "object" && val.default) {
+        const channels = hexToRgbChannels(val.default);
         rules.push(`  --yo-${name}: ${val.default};`);
-        rules.push(`  --yo-${name}-rgb: ${hexToRgbChannels(val.default)};`);
+        rules.push(`  --c-${name}: ${channels};`);
         const [h, s, l] = hexToHslChannels(val.default);
+        rules.push(`  --yo-${name}-rgb: ${channels};`);
         rules.push(`  --yo-${name}-hsl: ${h} ${s}% ${l}%;`);
         if (val.dark) {
           rules.push(`  --yo-${name}-dark: ${val.dark};`);
+          rules.push(`  --c-${name}-dark: ${hexToRgbChannels(val.dark)};`);
         }
       }
     }
@@ -112,7 +115,7 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
   rules.push(`  --yo-transition-easing: ${tokens.motion?.easing ?? "cubic-bezier(0.4, 0, 0.2, 1)"};`);
   /* Focus ring (ADA) — always available for the Focus Ring control */
   rules.push(`  --yo-focus-ring-width: ${tokens.focus?.width ?? "2px"};`);
-  rules.push(`  --yo-focus-ring-color: ${tokens.focus?.color ?? "var(--yo-primary)"};`);
+  rules.push(`  --yo-focus-ring-color: ${tokens.focus?.color ?? "rgb(var(--c-primary))"};`);
   rules.push(`  --yo-focus-ring-offset: ${tokens.focus?.offset ?? "2px"};`);
   /* Fluid modular type scale (always emitted so headings track the slider) */
   if (tokens.fluid?.base) rules.push(`  --yo-fluid-base: ${tokens.fluid.base};`);
@@ -143,6 +146,20 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
 
   let cssOutput = `:root {\n${rules.join("\n")}\n}\n\n`;
 
+  /* ── Dark mode overrides ── */
+  const darkRules: string[] = [];
+  if (tokens.colors) {
+    for (const [name, val] of Object.entries(tokens.colors)) {
+      if (typeof val === "object" && val.dark) {
+        darkRules.push(`  --c-${name}: ${hexToRgbChannels(val.dark)};`);
+        darkRules.push(`  --yo-${name}: ${val.dark};`);
+      }
+    }
+  }
+  if (darkRules.length > 0) {
+    cssOutput += `@media (prefers-color-scheme: dark) {\n:root {\n${darkRules.join("\n")}\n}\n}\n\n`;
+  }
+
   /* ── 2. Component Customization Fallbacks ── */
   const compButton = components?.button as any;
   const btnPx = compButton?.paddingX ?? "1.25rem";
@@ -169,7 +186,7 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
 /* ── Typography Resets ── */
 .yo-heading-1, .yo-heading-2, .yo-heading-3 {
   font-family: var(--font-heading, system-ui, sans-serif);
-  color: var(--yo-text);
+  color: rgb(var(--c-text));
   font-weight: 700;
   letter-spacing: -0.02em;
 }
@@ -178,7 +195,7 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
 .yo-heading-3 { font-size: var(--yo-fs-4); line-height: 1.2; }
 .yo-body {
   font-family: var(--font-body, system-ui, sans-serif);
-  color: var(--yo-text);
+  color: rgb(var(--c-text));
   font-size: var(--yo-fs-2);
 }
 
@@ -205,7 +222,7 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
   transform: scale(0.97);
 }
 .yo-btn-primary {
-  background-color: var(--yo-primary);
+  background-color: rgb(var(--c-primary));
   color: #ffffff;
 }
 .yo-btn-primary:hover {
@@ -214,7 +231,7 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
   transform: translateY(-1px);
 }
 .yo-btn-secondary {
-  background-color: var(--yo-secondary);
+  background-color: rgb(var(--c-secondary));
   color: #ffffff;
 }
 .yo-btn-secondary:hover {
@@ -223,31 +240,31 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
 }
 .yo-btn-outline {
   background-color: transparent;
-  border-color: var(--yo-border);
-  color: var(--yo-text);
+  border-color: rgb(var(--c-border));
+  color: rgb(var(--c-text));
   box-shadow: none;
 }
 .yo-btn-outline:hover {
-  background-color: color-mix(in srgb, var(--yo-text) 4%, transparent);
-  border-color: var(--yo-text);
+  background-color: color-mix(in srgb, rgb(var(--c-text)) 4%, transparent);
+  border-color: rgb(var(--c-text));
 }
 .yo-btn-text {
   background-color: transparent;
-  color: var(--yo-primary);
+  color: rgb(var(--c-primary));
   box-shadow: none;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
 }
 .yo-btn-text:hover {
-  background-color: color-mix(in srgb, var(--yo-primary) 8%, transparent);
+  background-color: color-mix(in srgb, rgb(var(--c-primary)) 8%, transparent);
 }
 
 /* ── Cards ── */
 .yo-card {
   background-color: var(--yo-card, #ffffff);
-  color: var(--yo-cardForeground, var(--yo-text));
+  color: var(--yo-cardForeground, rgb(var(--c-text)));
   border-radius: ${cardRadius};
-  border: 1px solid var(--yo-border);
+  border: 1px solid rgb(var(--c-border));
   box-shadow: ${cardShadow};
   overflow: hidden;
   transition: transform var(--yo-transition-duration) var(--yo-transition-easing), box-shadow var(--yo-transition-duration) var(--yo-transition-easing);
@@ -258,7 +275,7 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
 }
 .yo-card-header {
   padding: ${cardPadding};
-  border-bottom: 1px solid var(--yo-border);
+  border-bottom: 1px solid rgb(var(--c-border));
   font-family: var(--font-heading, system-ui, sans-serif);
   font-weight: 700;
   font-size: 1rem;
@@ -268,8 +285,8 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
 }
 .yo-card-footer {
   padding: ${cardPadding};
-  border-top: 1px solid var(--yo-border);
-  background-color: color-mix(in srgb, var(--yo-text) 1.5%, transparent);
+  border-top: 1px solid rgb(var(--c-border));
+  background-color: color-mix(in srgb, rgb(var(--c-text)) 1.5%, transparent);
 }
 
 /* ── Badges ── */
@@ -285,19 +302,19 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
   border: 1px solid transparent;
 }
 .yo-badge-primary {
-  background-color: color-mix(in srgb, var(--yo-primary) 12%, transparent);
-  color: var(--yo-primary);
-  border-color: color-mix(in srgb, var(--yo-primary) 20%, transparent);
+  background-color: color-mix(in srgb, rgb(var(--c-primary)) 12%, transparent);
+  color: rgb(var(--c-primary));
+  border-color: color-mix(in srgb, rgb(var(--c-primary)) 20%, transparent);
 }
 .yo-badge-secondary {
-  background-color: color-mix(in srgb, var(--yo-secondary) 12%, transparent);
-  color: var(--yo-secondary);
-  border-color: color-mix(in srgb, var(--yo-secondary) 20%, transparent);
+  background-color: color-mix(in srgb, rgb(var(--c-secondary)) 12%, transparent);
+  color: rgb(var(--c-secondary));
+  border-color: color-mix(in srgb, rgb(var(--c-secondary)) 20%, transparent);
 }
 .yo-badge-accent {
-  background-color: color-mix(in srgb, var(--yo-accent) 12%, transparent);
-  color: var(--yo-accent);
-  border-color: color-mix(in srgb, var(--yo-accent) 20%, transparent);
+  background-color: color-mix(in srgb, rgb(var(--c-accent)) 12%, transparent);
+  color: rgb(var(--c-accent));
+  border-color: color-mix(in srgb, rgb(var(--c-accent)) 20%, transparent);
 }
 .yo-badge-success {
   background-color: rgba(34, 197, 94, 0.1);
@@ -319,7 +336,7 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
   font-size: 0.75rem;
   font-weight: 700;
   margin-bottom: 0.375rem;
-  color: var(--yo-text);
+  color: rgb(var(--c-text));
   text-transform: uppercase;
   letter-spacing: 0.05em;
   opacity: 0.85;
@@ -329,21 +346,21 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
   padding: ${inputPadding};
   font-family: var(--font-body, system-ui, sans-serif);
   font-size: 0.875rem;
-  background-color: var(--yo-bg);
-  color: var(--yo-text);
-  border: 1px solid var(--yo-border);
+  background-color: rgb(var(--c-bg));
+  color: rgb(var(--c-text));
+  border: 1px solid rgb(var(--c-border));
   border-radius: ${inputRadius};
   outline: none;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 .yo-input::placeholder {
-  color: color-mix(in srgb, var(--yo-text) 40%, transparent);
+  color: color-mix(in srgb, rgb(var(--c-text)) 40%, transparent);
 }
 .yo-input:focus, .yo-textarea:focus, .yo-select:focus {
-  border-color: var(--yo-ring, var(--yo-primary));
+  border-color: var(--yo-ring, rgb(var(--c-primary)));
   outline: none;
   box-shadow: 0 0 0 var(--yo-focus-ring-offset, 3px) var(--yo-bg, #fff),
-              0 0 0 calc(var(--yo-focus-ring-offset, 3px) + var(--yo-focus-ring-width, 2px)) var(--yo-focus-ring-color, var(--yo-primary));
+              0 0 0 calc(var(--yo-focus-ring-offset, 3px) + var(--yo-focus-ring-width, 2px)) var(--yo-focus-ring-color, rgb(var(--c-primary)));
 }
 
 /* ── Alerts ── */
@@ -384,40 +401,40 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
   justify-content: space-between;
   padding: 1rem 1.5rem;
   background-color: var(--yo-card, #ffffff);
-  border-bottom: 1px solid var(--yo-border);
+  border-bottom: 1px solid rgb(var(--c-border));
 }
 .yo-navbar-brand {
   font-family: var(--font-heading, system-ui, sans-serif);
   font-weight: 850;
   font-size: 1.25rem;
   letter-spacing: -0.03em;
-  color: var(--yo-primary);
+  color: rgb(var(--c-primary));
 }
 .yo-navbar-link {
   font-family: var(--font-body, system-ui, sans-serif);
   font-size: 0.875rem;
   font-weight: 600;
-  color: var(--yo-text);
+  color: rgb(var(--c-text));
   opacity: 0.8;
   transition: opacity 0.15s, color 0.15s;
   cursor: pointer;
 }
 .yo-navbar-link:hover {
   opacity: 1;
-  color: var(--yo-primary);
+  color: rgb(var(--c-primary));
 }
 .yo-navbar-link-active {
   opacity: 1;
-  color: var(--yo-primary);
-  border-bottom: 2px solid var(--yo-primary);
+  color: rgb(var(--c-primary));
+  border-bottom: 2px solid rgb(var(--c-primary));
   padding-bottom: 0.25rem;
 }
 
 /* ── Sidebar ── */
 .yo-sidebar {
   background-color: var(--yo-sidebarBackground, var(--yo-card, #ffffff));
-  border-right: 1px solid var(--yo-sidebarBorder, var(--yo-border));
-  color: var(--yo-sidebarForeground, var(--yo-text));
+  border-right: 1px solid var(--yo-sidebarBorder, rgb(var(--c-border)));
+  color: var(--yo-sidebarForeground, rgb(var(--c-text)));
   padding: 1.5rem 1rem;
 }
 .yo-sidebar-item {
@@ -432,17 +449,17 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
   cursor: pointer;
 }
 .yo-sidebar-item:hover {
-  background-color: color-mix(in srgb, var(--yo-sidebarForeground, var(--yo-text)) 6%, transparent);
+  background-color: color-mix(in srgb, var(--yo-sidebarForeground, rgb(var(--c-text))) 6%, transparent);
 }
 .yo-sidebar-item-active {
-  background-color: var(--yo-sidebarPrimary, var(--yo-primary));
+  background-color: var(--yo-sidebarPrimary, rgb(var(--c-primary)));
   color: #ffffff;
   font-weight: 600;
 }
 
 /* ── Accordions ── */
 .yo-accordion {
-  border: 1px solid var(--yo-border);
+  border: 1px solid rgb(var(--c-border));
   border-radius: var(--radius-md, 0.5rem);
   background-color: var(--yo-card, #ffffff);
   overflow: hidden;
@@ -455,20 +472,20 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
   padding: 1rem 1.25rem;
   font-weight: 600;
   font-size: 0.875rem;
-  border-bottom: 1px solid var(--yo-border);
+  border-bottom: 1px solid rgb(var(--c-border));
   cursor: pointer;
 }
 .yo-accordion-content {
   padding: 1rem 1.25rem;
   font-size: 0.875rem;
-  color: var(--yo-text);
+  color: rgb(var(--c-text));
   opacity: 0.9;
 }
 
 /* ── Tables ── */
 .yo-table-container {
   overflow-x: auto;
-  border: 1px solid var(--yo-border);
+  border: 1px solid rgb(var(--c-border));
   border-radius: var(--radius-md, 0.5rem);
 }
 .yo-table {
@@ -478,24 +495,24 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
   font-size: 0.875rem;
 }
 .yo-table-header {
-  background-color: color-mix(in srgb, var(--yo-text) 3%, transparent);
-  border-bottom: 1px solid var(--yo-border);
+  background-color: color-mix(in srgb, rgb(var(--c-text)) 3%, transparent);
+  border-bottom: 1px solid rgb(var(--c-border));
   font-weight: 700;
-  color: var(--yo-text);
+  color: rgb(var(--c-text));
   padding: 0.875rem 1rem;
 }
 .yo-table-cell {
   padding: 0.875rem 1rem;
-  border-bottom: 1px solid var(--yo-border);
+  border-bottom: 1px solid rgb(var(--c-border));
 }
 .yo-table-row:hover {
-  background-color: color-mix(in srgb, var(--yo-text) 1.5%, transparent);
+  background-color: color-mix(in srgb, rgb(var(--c-text)) 1.5%, transparent);
 }
 
 /* ── Footer ── */
 .yo-footer {
   background-color: var(--yo-card, #ffffff);
-  border-top: 1px solid var(--yo-border);
+  border-top: 1px solid rgb(var(--c-border));
   padding: 3rem 1.5rem;
 }
 .yo-footer-column {
@@ -505,57 +522,104 @@ export function buildTokenCss(tokens: ParsedThemeConfig["tokens"], components?: 
 }
 .yo-footer-link {
   font-size: 0.825rem;
-  color: var(--yo-text);
+  color: rgb(var(--c-text));
   opacity: 0.75;
   transition: opacity 0.15s, color 0.15s;
 }
 .yo-footer-link:hover {
   opacity: 1;
-  color: var(--yo-primary);
+  color: rgb(var(--c-primary));
 }
 
 /* ── Extended Standard Components ── */
-.yo-accordion { border: 1px solid var(--yo-border); border-radius: var(--radius-md); overflow: hidden; }
-.yo-accordion-item { border-bottom: 1px solid var(--yo-border); }
+.yo-accordion { border: 1px solid rgb(var(--c-border)); border-radius: var(--radius-md); overflow: hidden; }
+.yo-accordion-item { border-bottom: 1px solid rgb(var(--c-border)); }
 .yo-accordion-item:last-child { border-bottom: 0; }
 .yo-accordion-trigger { width: 100%; text-align: left; padding: 0.75rem 1rem; font-weight: 600; background: transparent; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-.yo-accordion-content { padding: 0 1rem 0.75rem; color: var(--yo-muted-foreground); font-size: 0.875rem; }
+.yo-accordion-content { padding: 0 1rem 0.75rem; color: rgb(var(--c-muted)); font-size: 0.875rem; }
 
-.yo-modal { background: var(--yo-card); border: 1px solid var(--yo-border); border-radius: var(--radius-lg); box-shadow: var(--shadow-xl, 0 20px 25px -5px rgb(0 0 0 / 0.15)); padding: 1.25rem; max-width: 28rem; }
+.yo-modal { background: rgb(var(--c-card)); border: 1px solid rgb(var(--c-border)); border-radius: var(--radius-lg); box-shadow: var(--shadow-xl, 0 20px 25px -5px rgb(0 0 0 / 0.15)); padding: 1.25rem; max-width: 28rem; }
 .yo-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; padding: 1rem; }
 
-.yo-tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid var(--yo-border); }
-.yo-tab { padding: 0.5rem 0.875rem; font-weight: 500; color: var(--yo-muted-foreground); border-bottom: 2px solid transparent; cursor: pointer; }
-.yo-tab-active { color: var(--yo-primary); border-bottom-color: var(--yo-primary); }
+.yo-tabs { display: flex; gap: 0.25rem; border-bottom: 1px solid rgb(var(--c-border)); }
+.yo-tab { padding: 0.5rem 0.875rem; font-weight: 500; color: rgb(var(--c-muted)); border-bottom: 2px solid transparent; cursor: pointer; }
+.yo-tab-active { color: rgb(var(--c-primary)); border-bottom-color: rgb(var(--c-primary)); }
 
-.yo-breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--yo-muted-foreground); }
+.yo-breadcrumb { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: rgb(var(--c-muted)); }
 .yo-breadcrumb-sep { opacity: 0.5; }
-.yo-breadcrumb-current { color: var(--yo-text); font-weight: 600; }
+.yo-breadcrumb-current { color: rgb(var(--c-text)); font-weight: 600; }
 
-.yo-avatar { display: inline-flex; align-items: center; justify-content: center; height: 2.5rem; width: 2.5rem; border-radius: var(--radius-md); background: color-mix(in srgb, var(--yo-primary) 15%, transparent); color: var(--yo-primary); font-weight: 600; }
+.yo-avatar { display: inline-flex; align-items: center; justify-content: center; height: 2.5rem; width: 2.5rem; border-radius: var(--radius-md); background: color-mix(in srgb, rgb(var(--c-primary)) 15%, transparent); color: rgb(var(--c-primary)); font-weight: 600; }
 
-.yo-switch { position: relative; display: inline-flex; height: 1.5rem; width: 2.75rem; border-radius: 9999px; background: var(--yo-muted); transition: background var(--yo-transition-duration) var(--yo-transition-easing); }
-.yo-switch[data-on="true"] { background: var(--yo-primary); }
+.yo-switch { position: relative; display: inline-flex; height: 1.5rem; width: 2.75rem; border-radius: 9999px; background: rgb(var(--c-muted)); transition: background var(--yo-transition-duration) var(--yo-transition-easing); }
+.yo-switch[data-on="true"] { background: rgb(var(--c-primary)); }
 .yo-switch-thumb { position: absolute; top: 0.15rem; left: 0.15rem; height: 1.2rem; width: 1.2rem; border-radius: 9999px; background: #fff; transition: transform var(--yo-transition-duration) var(--yo-transition-easing); }
 .yo-switch[data-on="true"] .yo-switch-thumb { transform: translateX(1.25rem); }
 
-.yo-progress { width: 100%; height: 0.5rem; background: var(--yo-muted); border-radius: 9999px; overflow: hidden; }
-.yo-progress-bar { height: 100%; background: var(--yo-primary); border-radius: 9999px; }
+.yo-progress { width: 100%; height: 0.5rem; background: rgb(var(--c-muted)); border-radius: 9999px; overflow: hidden; }
+.yo-progress-bar { height: 100%; background: rgb(var(--c-primary)); border-radius: 9999px; }
 
-.yo-toast { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-md); background: var(--yo-card); border: 1px solid var(--yo-border); box-shadow: var(--shadow-md); font-size: 0.875rem; }
+.yo-toast { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1rem; border-radius: var(--radius-md); background: rgb(var(--c-card)); border: 1px solid rgb(var(--c-border)); box-shadow: var(--shadow-md); font-size: 0.875rem; }
 .yo-toast-success { border-color: color-mix(in srgb, var(--yo-success, #22c55e) 40%, transparent); }
 
-.yo-tooltip { display: inline-block; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); background: var(--yo-text); color: var(--yo-bg); font-size: 0.75rem; }
+.yo-tooltip { display: inline-block; padding: 0.25rem 0.5rem; border-radius: var(--radius-sm); background: rgb(var(--c-text)); color: rgb(var(--c-bg)); font-size: 0.75rem; }
 
 .yo-pagination { display: flex; gap: 0.25rem; }
-.yo-page { min-width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; padding: 0 0.5rem; border-radius: var(--radius-md); border: 1px solid var(--yo-border); font-size: 0.875rem; cursor: pointer; }
-.yo-page-active { background: var(--yo-primary); color: var(--yo-primary-foreground, #fff); border-color: var(--yo-primary); }
+.yo-page { min-width: 2rem; height: 2rem; display: inline-flex; align-items: center; justify-content: center; padding: 0 0.5rem; border-radius: var(--radius-md); border: 1px solid rgb(var(--c-border)); font-size: 0.875rem; cursor: pointer; }
+.yo-page-active { background: rgb(var(--c-primary)); color: var(--yo-primary-foreground, #fff); border-color: rgb(var(--c-primary)); }
+
+/* ── Spacing & Layout (consume --spacing-* tokens) ── */
+.yo-section {
+  padding: var(--spacing-section-padding, 5rem 1rem);
+}
+@media (min-width: 768px) {
+  .yo-section {
+    padding: var(--spacing-section-padding-md, 5rem 2rem);
+  }
+}
+.yo-container {
+  max-width: var(--spacing-container-max, 1280px);
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: var(--spacing-container-padding, 1rem);
+  padding-right: var(--spacing-container-padding, 1rem);
+}
+.yo-container-fluid {
+  width: 100%;
+  padding-left: var(--spacing-container-padding, 1rem);
+  padding-right: var(--spacing-container-padding, 1rem);
+}
+.yo-grid {
+  display: grid;
+  gap: var(--spacing-gap, 1.5rem);
+}
+.yo-grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+.yo-grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+.yo-grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+.yo-grid-cols-6 { grid-template-columns: repeat(6, 1fr); }
+@media (min-width: 768px) {
+  .md\:yo-grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .md\:yo-grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .md\:yo-grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .md\:yo-grid-cols-6 { grid-template-columns: repeat(6, 1fr); }
+}
+@media (min-width: 1024px) {
+  .lg\:yo-grid-cols-2 { grid-template-columns: repeat(2, 1fr); }
+  .lg\:yo-grid-cols-3 { grid-template-columns: repeat(3, 1fr); }
+  .lg\:yo-grid-cols-4 { grid-template-columns: repeat(4, 1fr); }
+  .lg\:yo-grid-cols-6 { grid-template-columns: repeat(6, 1fr); }
+}
+
+/* ── Component Variants ── */
+.yo-btn-pill { border-radius: 9999px; }
+.yo-btn-shadow { box-shadow: var(--shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.1)); }
+.yo-card-shadow { box-shadow: var(--shadow-lg, 0 10px 15px -3px rgb(0 0 0 / 0.15)); }
 
 /* ── Global Focus Ring Standardization (ADA compliance) ── */
 :focus-visible {
   outline: none;
   box-shadow: 0 0 0 var(--yo-focus-ring-offset, 2px) var(--yo-bg, #fff),
-              0 0 0 calc(var(--yo-focus-ring-offset, 2px) + var(--yo-focus-ring-width, 2px)) var(--yo-focus-ring-color, var(--yo-primary));
+              0 0 0 calc(var(--yo-focus-ring-offset, 2px) + var(--yo-focus-ring-width, 2px)) var(--yo-focus-ring-color, rgb(var(--c-primary)));
   border-radius: var(--radius-sm, 0.25rem);
 }
 `;

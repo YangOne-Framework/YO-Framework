@@ -191,7 +191,7 @@ public class YOThemeService : IYOThemeService
 
                 var result = await db.QueryFirstAsync(
                     "usp_YOTheme_Activate",
-                    new { YOThemeUniqueId = yOThemeGUID, UpdatedBy = 0 },
+                    new { YOThemeUniqueId = yOThemeGUID },
                     commandType: System.Data.CommandType.StoredProcedure);
 
                 if (result.Action == "not_found")
@@ -220,7 +220,11 @@ public class YOThemeService : IYOThemeService
             if (!themeResult.Success || themeResult.Data == null)
                 return new YOThemeOverrideResult { Success = false, Message = "Theme not found" };
 
-            var themeId = themeResult.Data.YOThemeId;
+            var theme = themeResult.Data as YOTheme;
+            if (theme == null)
+                return new YOThemeOverrideResult { Success = false, Message = "Theme not found" };
+
+            var themeId = theme.YOThemeId;
 
             var dbFactory = DbFactoryProvider.GetFactory();
             using (var db = (DbConnection)dbFactory.GetConnection())
@@ -317,11 +321,57 @@ public class YOThemeService : IYOThemeService
             if (!themeResult.Success || themeResult.Data == null)
                 return new YOThemeResult { Success = false, Message = "Theme not found" };
 
+            var theme = themeResult.Data as YOTheme;
+            if (theme == null)
+                return new YOThemeResult { Success = false, Message = "Theme not found" };
+
+            var config = theme.Config != null ? JsonConvert.DeserializeObject(theme.Config) : null;
+
+            var pkg = new YOThemePackage
+            {
+                manifestVersion = "1.0",
+                exportedAt = DateTime.UtcNow.ToString("o"),
+                signature = new YOThemePackageSignature
+                {
+                    hash = "",
+                    hashAlgorithm = "sha256"
+                },
+                meta = new YOThemePackageMeta
+                {
+                    name = theme.Name,
+                    slug = theme.Slug,
+                    version = theme.Version,
+                    author = theme.Author,
+                    description = theme.Description,
+                    tags = theme.Tags
+                },
+                config = theme.Config ?? "{}",
+                assets = new Dictionary<string, YOThemePackageAsset>()
+            };
+
+            /* Compute signature over content (exclude signature itself) */
+            var sig = new YOThemePackageSignature { hashAlgorithm = "sha256" };
+            var forHash = JsonConvert.SerializeObject(new
+            {
+                pkg.manifestVersion,
+                pkg.exportedAt,
+                meta = pkg.meta,
+                config = pkg.config,
+                assets = pkg.assets
+            });
+            using (var sha256 = System.Security.Cryptography.SHA256.Create())
+            {
+                var bytes = System.Text.Encoding.UTF8.GetBytes(forHash);
+                var hashBytes = sha256.ComputeHash(bytes);
+                sig.hash = string.Concat(hashBytes.Select(b => b.ToString("x2")));
+            }
+            pkg.signature = sig;
+
             return new YOThemeResult
             {
                 Success = true,
                 Message = "Success",
-                Data = themeResult.Data
+                Data = pkg
             };
         }
         catch (Exception ex)
@@ -334,12 +384,54 @@ public class YOThemeService : IYOThemeService
     {
         try
         {
+            /* Try to deserialize as the new YOThemePackage format first */
+            YOThemePackage pkg = null;
+            try { pkg = JsonConvert.DeserializeObject<YOThemePackage>(json); } catch { }
+
+            if (pkg != null && pkg.manifestVersion != null && pkg.config != null)
+            {
+                /* Verify integrity */
+                var sig = pkg.signature;
+                var forHash = JsonConvert.SerializeObject(new
+                {
+                    pkg.manifestVersion,
+                    pkg.exportedAt,
+                    meta = pkg.meta,
+                    config = pkg.config,
+                    assets = pkg.assets
+                });
+                using (var sha256 = System.Security.Cryptography.SHA256.Create())
+                {
+                    var bytes = System.Text.Encoding.UTF8.GetBytes(forHash);
+                    var hashBytes = sha256.ComputeHash(bytes);
+                    var computed = string.Concat(hashBytes.Select(b => b.ToString("x2")));
+                    if (computed != sig.hash)
+                        return new YOThemeResult { Success = false, Message = "Package integrity check failed — signature mismatch." };
+                }
+
+                var importName = pkg.meta?.name ?? "Imported Theme";
+                var importSlug = pkg.meta?.slug ?? importName.ToLower().Replace(" ", "-");
+                var request = new YOThemeSaveRequest
+                {
+                    YOThemeUniqueId = Guid.NewGuid().ToString(),
+                    Name = importName,
+                    Slug = importSlug,
+                    Version = pkg.meta?.version ?? "1.0.0",
+                    Author = pkg.meta?.author,
+                    Description = pkg.meta?.description,
+                    Tags = pkg.meta?.tags,
+                    Config = pkg.config
+                };
+            return await SaveAsync(request);
+            }
+
+            /* Fallback: legacy YOThemeImportRequest */
             var import = JsonConvert.DeserializeObject<YOThemeImportRequest>(json);
             if (import == null || string.IsNullOrEmpty(import.Name))
                 return new YOThemeResult { Success = false, Message = "Invalid theme JSON" };
 
             var existingResult = await GetAsync(import.OverwriteGUID);
-            var request = new YOThemeSaveRequest
+            var saveRequest = new YOThemeSaveRequest
             {
                 YOThemeUniqueId = import.OverwriteGUID,
                 Name = import.Name,
@@ -353,7 +445,7 @@ public class YOThemeService : IYOThemeService
                 ParentYOThemeId = null
             };
 
-            return await SaveAsync(request);
+            return await SaveAsync(saveRequest);
         }
         catch (JsonException ex)
         {

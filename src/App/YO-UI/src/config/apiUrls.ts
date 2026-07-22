@@ -318,6 +318,7 @@ export const API = {
     LAYOUT_BY_ID: (layoutGuid: string) => `/api/v1/page/layout/${layoutGuid}`,
     LAYOUT_SAVE: "/api/v1/page/layout/save",
     LAYOUT_DELETE: (layoutGuid: string) => `/api/v1/page/layout/${layoutGuid}`,
+    LAYOUT_IMAGE_ADD: "/api/v1/page/layout/image/add",
   },
 
   PUBLIC_PAGE: {

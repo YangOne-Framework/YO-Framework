@@ -1,15 +1,16 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Monitor, Tablet, Smartphone, Sun, Moon, LayoutDashboard, Globe, FileText, ShoppingCart, LogIn, ChevronRight, MessageSquare, Star, Plus, MapPin, Check, Eye, Grid3x3, AlertTriangle, Contrast, Circle } from "lucide-react";
 import { buildTokenCss } from "../../../context/YOThemeContext";
 import { GoogleFontLoader } from "../../../components/GoogleFontLoader";
 import type { ParsedThemeConfig } from "../../../types/yoThemeTypes";
+import { useReflex } from "../../../services/reflexEngine";
 
 type PreviewMode = "dashboard" | "landing" | "blog" | "form" | "pricing" | "system";
 type DeviceMode = "desktop" | "tablet" | "mobile";
 type ThemeMode = "light" | "dark" | "midnight" | "high-contrast";
 type Density = "comfortable" | "compact" | "dense";
 
-interface Props { config: ParsedThemeConfig | null; }
+interface Props { config: ParsedThemeConfig | null; previewMode?: "system" | "light" | "dark"; }
 
 /* Scoped overrides so the Spacing tab's sliders reflect live in the preview
    (Tailwind spacing utilities are compiled with fixed values, so we rebind
@@ -77,7 +78,7 @@ function buildSpacingOverrides(spacing?: Record<string, string>): string {
   return css;
 }
 
-export function ThemePreview({ config }: Props) {
+export function ThemePreview({ config, previewMode = "system" }: Props) {
   const [mode, setMode] = useState<PreviewMode>("dashboard");
   const [device, setDevice] = useState<DeviceMode>("desktop");
   const [theme, setTheme] = useState<ThemeMode>("light");
@@ -86,9 +87,17 @@ export function ThemePreview({ config }: Props) {
   const [showGrid, setShowGrid] = useState(false);
   const [cbOpen, setCbOpen] = useState(false);
 
+  useEffect(() => {
+    if (previewMode === "light") setTheme("light");
+    else if (previewMode === "dark") setTheme("dark");
+    else if (previewMode === "system") {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      setTheme(prefersDark ? "dark" : "light");
+    }
+  }, [previewMode]);
+
   const cssVars = useMemo(() => {
     if (!config?.tokens) return "";
-    /* Compile standard classes along with token variables */
     const vars = buildTokenCss(config.tokens, config.components);
 
     /* ── Multi-mode dimming overrides ── */
@@ -122,6 +131,8 @@ export function ThemePreview({ config }: Props) {
     return vars + extra + densityCss + spacingCss;
   }, [config, theme, density]);
 
+  useReflex(config);
+
   if (!config) return <div className="flex items-center justify-center h-full text-sm text-gray-400">No theme configuration loaded</div>;
 
   const t = config.tokens;
@@ -153,6 +164,7 @@ export function ThemePreview({ config }: Props) {
     <div className="h-full flex flex-col bg-gradient-to-br from-gray-100 to-gray-200/80">
       <GoogleFontLoader fonts={config?.tokens?.fonts} />
       <style>{`${cssVars}`}</style>
+      {config.customCss && <style id="yo-theme-custom-css">{config.customCss}</style>}
 
       {/* Color-blindness simulation filters (SVG) */}
       <svg className="absolute w-0 h-0" aria-hidden>
@@ -243,7 +255,7 @@ export function ThemePreview({ config }: Props) {
 
       {/* Preview canvas with device frame */}
       <div className="flex-1 flex items-start justify-center p-6 overflow-y-auto">
-        <div className={`${frameWidth} ${frameRadius} ${frameBorder} shadow-2xl transition-all duration-300 overflow-hidden bg-[var(--yo-bg)] text-[var(--yo-text)] yo-preview-root ${theme === "dark" || theme === "midnight" ? "yo-dark" : theme === "high-contrast" ? "yo-hc" : ""} ${density !== "comfortable" ? `yo-density-${density}` : ""} ${config?.tokens?.motion?.reduced ? "yo-reduced-motion" : ""} relative`}
+        <div className={`${frameWidth} ${frameRadius} ${frameBorder} shadow-2xl transition-all duration-300 overflow-hidden bg-[rgb(var(--c-bg))] text-[rgb(var(--c-text))] yo-preview-root ${theme === "dark" || theme === "midnight" ? "yo-dark" : theme === "high-contrast" ? "yo-hc" : ""} ${density !== "comfortable" ? `yo-density-${density}` : ""} ${config?.tokens?.motion?.reduced ? "yo-reduced-motion" : ""} relative`}
           style={{
             borderColor: device === "desktop" ? "transparent" : "#222",
             fontFamily: `'${f("body")}', system-ui, sans-serif`,
@@ -276,7 +288,7 @@ export function ThemePreview({ config }: Props) {
           )}
 
           {/* Render Preview Layouts exclusively with Standard CSS Classes */}
-          <div className="yo-body min-h-[500px] flex flex-col bg-[var(--yo-bg)] text-[var(--yo-text)]">
+          <div className="yo-body min-h-[500px] flex flex-col bg-[rgb(var(--c-bg))] text-[rgb(var(--c-text))]">
             {mode === "dashboard" && <DashboardPreview navbar={previewNavbar} />}
             {mode === "landing" && <LandingPreview navbar={previewNavbar} />}
             {mode === "blog" && <BlogPreview navbar={previewNavbar} />}
@@ -333,7 +345,7 @@ function DashboardPreview({ navbar }: { navbar: React.ReactNode }) {
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{card.label}</span>
                   <span className={`yo-badge yo-badge-${card.b}`}>{card.b}</span>
                 </div>
-                <h3 className="text-xl font-extrabold text-[var(--yo-text)]">{card.val}</h3>
+                <h3 className="text-xl font-extrabold text-[rgb(var(--c-text))]">{card.val}</h3>
                 <p className="text-[9px] text-green-500 font-semibold">+12% from last quarter</p>
               </div>
             ))}
@@ -391,7 +403,7 @@ function LandingPreview({ navbar }: { navbar: React.ReactNode }) {
       <section className="px-6 py-16 text-center space-y-6 max-w-3xl mx-auto">
         <span className="yo-badge yo-badge-accent">Core Framework System</span>
         <h1 className="yo-heading-1 text-3xl sm:text-4xl leading-tight">
-          Enterprise Design System Builder. Custom-tailored layout <span className="text-[var(--yo-primary)]">instantly</span>.
+          Enterprise Design System Builder. Custom-tailored layout <span className="text-[rgb(var(--c-primary))]">instantly</span>.
         </h1>
         <p className="text-sm leading-relaxed max-w-lg mx-auto text-[var(--yo-muted-foreground)]">
           Create premium sellable themes in minutes. Standard component classes give you full power without messy inline configurations.
@@ -403,14 +415,14 @@ function LandingPreview({ navbar }: { navbar: React.ReactNode }) {
       </section>
 
       {/* Feature Cards Grid */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-5 p-6 bg-gradient-to-b from-transparent to-[var(--yo-border)]">
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-5 p-6 bg-gradient-to-b from-transparent to-[rgb(var(--c-border))]">
         {[
           { title: "Universal CSS Classes", desc: "No inline styling. Compile robust standard .yo-* components matching Bootstrap/Bulma premium features." },
           { title: "Instant Dark Conversion", desc: "Native contrast and math engines analyze your colors to compile optimized dark-variants on-the-fly." },
           { title: "Fluid Custom Layouts", desc: "Reorganize columns, sidebar orientations, footers, and page-widths directly from the admin dashboard." }
         ].map((feat, i) => (
           <div key={i} className="yo-card yo-card-hover p-5 space-y-3">
-            <div className="h-10 w-10 rounded-xl bg-[var(--yo-primary)] flex items-center justify-center text-white font-bold shadow-md">
+            <div className="h-10 w-10 rounded-xl bg-[rgb(var(--c-primary))] flex items-center justify-center text-white font-bold shadow-md">
               {i + 1}
             </div>
             <h3 className="yo-heading-3 text-sm">{feat.title}</h3>
@@ -442,7 +454,7 @@ function BlogPreview({ navbar }: { navbar: React.ReactNode }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <article key={i} className="yo-card yo-card-hover flex flex-col">
-              <div className="h-40 bg-[var(--yo-primary)]/10 flex items-center justify-center text-[var(--yo-primary)] border-b border-[var(--yo-border)] font-bold text-lg">
+              <div className="h-40 bg-[rgb(var(--c-primary))]/10 flex items-center justify-center text-[rgb(var(--c-primary))] border-b border-[rgb(var(--c-border))] font-bold text-lg">
                 #ArticleCover{i}
               </div>
               <div className="p-4 space-y-3 flex-1 flex flex-col justify-between">
@@ -500,10 +512,10 @@ function FormPreview({ navbar }: { navbar: React.ReactNode }) {
 
             <div className="flex items-center justify-between text-xs py-1">
               <label className="flex items-center gap-1.5 cursor-pointer">
-                <input type="checkbox" className="rounded border-[var(--yo-border)] accent-[var(--yo-primary)]" />
+                <input type="checkbox" className="rounded border-[rgb(var(--c-border))] accent-[rgb(var(--c-primary))]" />
                 Remember credentials
               </label>
-              <span className="text-[var(--yo-primary)] font-semibold cursor-pointer">Recover Code?</span>
+              <span className="text-[rgb(var(--c-primary))] font-semibold cursor-pointer">Recover Code?</span>
             </div>
 
             <button className="yo-btn yo-btn-primary w-full !mt-2">Unlock Enterprise Access</button>
@@ -537,23 +549,23 @@ function PricingPreview({ navbar }: { navbar: React.ReactNode }) {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {tiers.map((tier, i) => (
-            <div key={i} className={`yo-card p-5 space-y-4 flex flex-col justify-between ${tier.featured ? "border-[var(--yo-primary)] scale-[1.03]" : ""}`}>
+            <div key={i} className={`yo-card p-5 space-y-4 flex flex-col justify-between ${tier.featured ? "border-[rgb(var(--c-primary))] scale-[1.03]" : ""}`}>
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{tier.name}</span>
                   {tier.featured && <span className="yo-badge yo-badge-accent">Most Popular</span>}
                 </div>
                 <div>
-                  <span className="text-3xl font-extrabold text-[var(--yo-text)]">{tier.price}</span>
+                  <span className="text-3xl font-extrabold text-[rgb(var(--c-text))]">{tier.price}</span>
                   <span className="text-xs text-[var(--yo-muted-foreground)]"> / mo</span>
                 </div>
                 <p className="text-xs text-[var(--yo-muted-foreground)] leading-relaxed">{tier.desc}</p>
                 
-                <ul className="space-y-2 pt-2 border-t border-[var(--yo-border)]">
+                <ul className="space-y-2 pt-2 border-t border-[rgb(var(--c-border))]">
                   {tier.features.map((feat) => (
                     <li key={feat} className="text-xs flex items-center gap-2">
                       <Check size={12} className="text-green-500 shrink-0" />
-                      <span className="text-xs text-[var(--yo-text)]">{feat}</span>
+                      <span className="text-xs text-[rgb(var(--c-text))]">{feat}</span>
                     </li>
                   ))}
                 </ul>
@@ -592,17 +604,17 @@ function SystemStatusPreview() {
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Form Validation</span>
           <div className="yo-card p-4 space-y-3 max-w-md">
             <div>
-              <label className="text-xs font-medium text-[var(--yo-text)]">Email address</label>
+              <label className="text-xs font-medium text-[rgb(var(--c-text))]">Email address</label>
               <input className="yo-input w-full border-red-400" defaultValue="not-an-email" />
               <p className="text-[10px] text-red-500 mt-1 flex items-center gap-1"><AlertTriangle size={11} />Enter a valid email address.</p>
             </div>
             <div>
-              <label className="text-xs font-medium text-[var(--yo-text)]">Username</label>
+              <label className="text-xs font-medium text-[rgb(var(--c-text))]">Username</label>
               <input className="yo-input w-full border-green-400" defaultValue="jane_doe" />
               <p className="text-[10px] text-green-600 mt-1 flex items-center gap-1"><Check size={11} />Looks good.</p>
             </div>
             <div>
-              <label className="text-xs font-medium text-[var(--yo-text)]">Disabled field</label>
+              <label className="text-xs font-medium text-[rgb(var(--c-text))]">Disabled field</label>
               <input className="yo-input w-full opacity-50 cursor-not-allowed" disabled defaultValue="Read only" />
             </div>
             <div className="flex gap-2 pt-1">
@@ -616,10 +628,10 @@ function SystemStatusPreview() {
         <div className="space-y-2">
           <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Empty State & Toast</span>
           <div className="yo-card p-8 flex flex-col items-center justify-center text-center space-y-2 border-dashed">
-            <div className="h-10 w-10 rounded-full bg-[var(--yo-muted)]/20 flex items-center justify-center text-[var(--yo-muted-foreground)]">
+            <div className="h-10 w-10 rounded-full bg-[rgb(var(--c-muted))]/20 flex items-center justify-center text-[var(--yo-muted-foreground)]">
               <Plus size={18} />
             </div>
-            <p className="text-xs font-semibold text-[var(--yo-text)]">No projects yet</p>
+            <p className="text-xs font-semibold text-[rgb(var(--c-text))]">No projects yet</p>
             <p className="text-[11px] text-[var(--yo-muted-foreground)]">Create your first project to get started.</p>
             <button className="yo-btn yo-btn-primary !text-xs">New Project</button>
           </div>

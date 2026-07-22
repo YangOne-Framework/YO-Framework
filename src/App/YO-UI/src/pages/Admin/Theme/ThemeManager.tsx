@@ -45,7 +45,7 @@ function buildBaseConfig(): ParsedThemeConfig {
         xl: "0 20px 25px -5px rgb(0 0 0 / 0.15)",
       },
       motion: { duration: "0.2s", easing: "cubic-bezier(0.4, 0, 0.2, 1)" },
-      focus: { width: "2px", color: "var(--yo-primary)", offset: "2px" },
+      focus: { width: "2px", color: "rgb(var(--c-primary))", offset: "2px" },
       fluid: { base: "1", ratio: 1.25, min: 360, max: 1280 },
     },
     components: {},

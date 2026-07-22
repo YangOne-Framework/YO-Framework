@@ -5,9 +5,11 @@ import {
   Maximize2, Layers, Grid3X3, Code, Sparkles, Copy, Download,
   Upload, RotateCcw, Plus, MoreHorizontal, Check, Eye, GitCompare,
   Pencil, X, AlertCircle, RefreshCw, Layers3, CheckSquare, Sparkle, History,
+  Moon, Sun, Monitor,
 } from "lucide-react";
 import {
   useGetThemeQuery,
+  useGetActiveThemeQuery,
   useSaveThemeMutation,
   useActivateThemeMutation,
 } from "../../../redux/theme/themeAPI";
@@ -42,13 +44,16 @@ import {
   parseFigmaVariables,
   buildFluidScale,
 } from "./themeUtils";
-import type { ParsedThemeConfig, ThemeTokens } from "../../../types/yoThemeTypes";
+import type { ParsedThemeConfig, ThemeTokens, YOThemePackage } from "../../../types/yoThemeTypes";
+import { buildThemePackage, verifyThemePackage } from "../../../types/yoThemeTypes";
 
 /* ================================================================== */
 /*  Types & config                                                      */
 /* ================================================================== */
 
-type EditorTab = "colors" | "typography" | "radius" | "spacing" | "shadow" | "components" | "layouts" | "preview" | "code" | "generate";
+type PreviewMode = "system" | "light" | "dark";
+
+type EditorTab = "colors" | "typography" | "radius" | "spacing" | "shadow" | "components" | "layouts" | "preview" | "code" | "css" | "generate";
 
 const TABS: { id: EditorTab; label: string; icon: any }[] = [
   { id: "colors", label: "Colors", icon: Palette },
@@ -60,6 +65,7 @@ const TABS: { id: EditorTab; label: string; icon: any }[] = [
   { id: "layouts", label: "Layouts", icon: Grid3X3 },
   { id: "preview", label: "Preview", icon: Eye },
   { id: "code", label: "Code", icon: Code },
+  { id: "css", label: "CSS", icon: Code },
   { id: "generate", label: "Generate", icon: Sparkles },
 ];
 
@@ -156,8 +162,15 @@ export default function ThemeEditor() {
   const { guid } = useParams<{ guid: string }>();
   const navigate = useNavigate();
   const { data: theme, isLoading, refetch } = useGetThemeQuery(guid!);
+  const { data: activeTheme } = useGetActiveThemeQuery();
   const [saveTheme] = useSaveThemeMutation();
   const [activateTheme] = useActivateThemeMutation();
+
+  useEffect(() => {
+    if (!isLoading && !theme && activeTheme && guid !== activeTheme.YOThemeUniqueId) {
+      navigate(`/admin/theme/editor/${activeTheme.YOThemeUniqueId}`, { replace: true });
+    }
+  }, [isLoading, theme, activeTheme, guid, navigate]);
 
   const [tab, setTab] = useState<EditorTab>("colors");
   const [config, setConfig] = useState<ParsedThemeConfig | null>(null);
@@ -167,6 +180,8 @@ export default function ThemeEditor() {
   const [scaleBase, setScaleBase] = useState("#6366f1");
   const [scaleName, setScaleName] = useState("brand");
   const [showThemeMenu, setShowThemeMenu] = useState(false);
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("system");
+  const [reflexEnabled, setReflexEnabled] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
 
   /* Modal state */
@@ -458,18 +473,40 @@ export default function ThemeEditor() {
     }
   };
 
-  const handleExportTheme = () => {
+  const handleExportTheme = async () => {
     if (!theme || !config) return;
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(config, null, 2));
+    const pkg = await buildThemePackage(theme, config);
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(pkg, null, 2));
     const dlAnchorElem = document.createElement("a");
     dlAnchorElem.setAttribute("href", dataStr);
-    dlAnchorElem.setAttribute("download", `${theme.Slug}-config.json`);
+    dlAnchorElem.setAttribute("download", `${theme.Slug}.yo-theme.json`);
     dlAnchorElem.click();
     setShowThemeMenu(false);
   };
 
-  const handleImportTheme = () => {
+  const handleImportTheme = async () => {
     try {
+      const parsed = JSON.parse(importJsonInput);
+
+      /* Check if it's a YOThemePackage (full export with signature) */
+      if (parsed.manifestVersion && parsed.config && parsed.signature) {
+        const pkg = parsed as YOThemePackage;
+        const valid = await verifyThemePackage(pkg);
+        if (!valid) {
+          setImportError("Package integrity check failed — signature mismatch.");
+          return;
+        }
+        /* Auto-fill meta fields from package */
+        setNewNameInput(pkg.meta.name);
+        setConfig(pkg.config);
+        setDirty(true);
+        setModal(null);
+        setImportJsonInput("");
+        setImportError("");
+        alert(`Theme "${pkg.meta.name}" v${pkg.meta.version} imported successfully! Package hash verified.`);
+        return;
+      }
+
       /* Figma Variables export → merge color tokens */
       const figma = parseFigmaVariables(importJsonInput);
       if (figma) {
@@ -490,9 +527,10 @@ export default function ThemeEditor() {
         alert(`Imported ${Object.keys(figma).length} color variables from Figma Variables JSON.`);
         return;
       }
-      const parsed = JSON.parse(importJsonInput);
+
+      /* Legacy raw config JSON fallback */
       if (!parsed.tokens || !parsed.components) {
-        setImportError("Invalid configuration structure: missing tokens or components.");
+        setImportError("Invalid format: expected a YOThemePackage (.yo-theme.json), Figma Variables JSON, or valid theme config with tokens + components.");
         return;
       }
       setConfig(parsed);
@@ -500,7 +538,7 @@ export default function ThemeEditor() {
       setModal(null);
       setImportJsonInput("");
       setImportError("");
-      alert("Theme configuration imported successfully!");
+      alert("Theme configuration imported successfully (legacy format).");
     } catch (e) {
       setImportError("Could not parse JSON: invalid format or unsupported Figma payload.");
     }
@@ -632,7 +670,22 @@ export default function ThemeEditor() {
   if (isLoading) return <div className="flex items-center justify-center h-[calc(100vh-64px)] bg-gray-50"><div className="flex flex-col items-center gap-3"><RefreshCw size={24} className="animate-spin text-indigo-500" /><div className="animate-pulse text-gray-400 font-medium text-sm">Loading visual theme developer...</div></div></div>;
   if (!theme || !config) return (
     <div className="flex items-center justify-center h-[calc(100vh-64px)] bg-gray-50">
-      <div className="text-center p-8 bg-white rounded-3xl border border-gray-200 shadow-xl max-w-sm"><AlertCircle size={32} className="text-red-500 mx-auto mb-3" /><p className="text-gray-700 font-bold text-lg">Theme configuration missing</p><button onClick={() => navigate("/admin/theme")} className="mt-4 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold shadow-md hover:bg-indigo-700 transition-all">Back to Themes</button></div>
+      <div className="text-center p-8 bg-white rounded-3xl border border-gray-200 shadow-xl max-w-sm">
+        <AlertCircle size={32} className="text-red-500 mx-auto mb-3" />
+        <p className="text-gray-700 font-bold text-lg">Theme not found</p>
+        <p className="text-xs text-gray-400 mt-1 mb-4">The requested theme does not exist.</p>
+        {activeTheme ? (
+          <button onClick={() => navigate(`/admin/theme/editor/${activeTheme.YOThemeUniqueId}`)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold shadow-md hover:bg-indigo-700 transition-all">
+            Edit Active Theme ({activeTheme.Name})
+          </button>
+        ) : (
+          <button onClick={() => navigate("/admin/theme")}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold shadow-md hover:bg-indigo-700 transition-all">
+            Back to Themes
+          </button>
+        )}
+      </div>
     </div>
   );
 
@@ -719,6 +772,24 @@ export default function ThemeEditor() {
           )}
         </div>
         <div className="flex-1" />
+        {/* Dark Mode Toggle */}
+        <div className="flex items-center gap-0.5 rounded-xl bg-gray-100 p-0.5">
+          {(["system", "light", "dark"] as PreviewMode[]).map((m) => {
+            const Icon = m === "dark" ? Moon : m === "light" ? Sun : Monitor;
+            return (
+              <button key={m} onClick={() => setPreviewMode(m)} title={`Preview: ${m}`}
+                className={`p-1.5 rounded-lg transition-all ${previewMode === m ? "bg-white text-gray-800 shadow-sm" : "text-gray-400 hover:text-gray-600"}`}>
+                <Icon size={14} />
+              </button>
+            );
+          })}
+        </div>
+        {/* Reflex toggle */}
+        <button onClick={() => setReflexEnabled(!reflexEnabled)} title={reflexEnabled ? "Live reflex ON — changes reflect instantly" : "Reflex OFF — manual refresh"}
+          className={`flex items-center gap-1 rounded-xl px-2.5 py-2 text-xs font-semibold transition-all ${reflexEnabled ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-gray-100 text-gray-500 border border-gray-200"}`}>
+          <RefreshCw size={12} className={reflexEnabled ? "animate-spin-slow" : ""} />
+          Reflex
+        </button>
         <button onClick={handleSave} disabled={saving || !dirty} title="Save your changes as a draft"
           className="flex items-center gap-1.5 rounded-xl bg-gradient-to-r from-indigo-500 to-indigo-600 px-4 py-2 text-xs font-semibold text-white hover:from-indigo-600 hover:to-indigo-700 transition-all disabled:opacity-40 shadow-lg shadow-indigo-500/20">
           <Save size={14} />
@@ -937,7 +1008,51 @@ export default function ThemeEditor() {
                 </div>
               </Panel>
             )}
-            {tab === "spacing" && <Panel title="Spacing"><div className="space-y-4">{Object.entries(spacing).map(([name, val]) => <NumericField key={name} label={name} value={val} onChange={(v) => updateNumeric("spacing", name, v)} min={0} max={256} units={["px", "rem", "vw", "%"]} />)}</div></Panel>}
+            {tab === "spacing" && (
+              <Panel title="Spacing">
+                <div className="space-y-3">
+                  {Object.entries(spacing).length === 0 && (
+                    <p className="text-xs text-gray-400 italic">No spacing tokens defined yet. Add one below or load the layout presets.</p>
+                  )}
+                  {Object.entries(spacing).map(([name, val]) => (
+                    <div key={name} className="flex items-start gap-2">
+                      <NumericField label={name} value={val} onChange={(v) => updateNumeric("spacing", name, v)} min={0} max={256} units={["px", "rem", "vw", "%"]} />
+                      <button type="button" onClick={() => {
+                        const next = { ...spacing };
+                        delete next[name];
+                        updateTokens((t) => ({ ...t, spacing: next }));
+                        setDirty(true);
+                      }} className="mt-6 shrink-0 rounded-lg p-1 text-gray-400 hover:text-error-600 hover:bg-error-50 transition-all">✕</button>
+                    </div>
+                  ))}
+                  <div className="flex gap-2 pt-2">
+                    <button type="button" onClick={() => {
+                      const key = prompt("Spacing key (e.g. section-padding):");
+                      if (!key) return;
+                      const val = prompt("Value (e.g. 5rem 1rem):");
+                      if (val == null) return;
+                      updateTokens((t) => ({ ...t, spacing: { ...t.spacing, [key]: val || "0" } }));
+                      setDirty(true);
+                    }} className="inline-flex items-center gap-1 rounded-lg border border-dashed border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-gray-400 hover:text-gray-700 transition-all">
+                      + Add
+                    </button>
+                    <button type="button" onClick={() => {
+                      const presets: Record<string, string> = {
+                        'section-padding': '5rem 1rem',
+                        'section-padding-md': '5rem 2rem',
+                        'container-max': '1280px',
+                        'container-padding': '1rem',
+                        'gap': '1.5rem',
+                      };
+                      updateTokens((t) => ({ ...t, spacing: { ...t.spacing, ...presets } }));
+                      setDirty(true);
+                    }} className="inline-flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-500 hover:border-indigo-300 hover:text-indigo-600 transition-all">
+                      Load Layout Presets
+                    </button>
+                  </div>
+                </div>
+              </Panel>
+            )}
             {tab === "shadow" && <Panel title="Shadows"><div className="space-y-4">{Object.entries(shadows).map(([name, val]) => <ShadowField key={name} label={name} value={val} onChange={(v) => updateShadow(name, v)} />)}</div></Panel>}
             {tab === "components" && (
               <Panel title="Component Style Studio">
@@ -984,6 +1099,7 @@ export default function ThemeEditor() {
             {tab === "layouts" && <Panel title="Layouts"><div className="space-y-4"><SelectField label="Layout Type" value={structure?.layoutType ?? "sidebar-right"} options={(structure?.layoutTypes ? Object.entries(structure.layoutTypes) : []).map(([k]) => ({ value: k, label: k.split("-").map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" ") }))} onChange={updateLayoutType} />{structure?.layoutTypes && <div className="space-y-2"><p className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">Shell Components</p><div className="grid gap-2">{Object.entries(structure.layoutTypes).map(([name, cfg]: [string, any]) => <div key={name} className="flex items-center gap-3 p-3 bg-gray-50/80 rounded-xl border border-gray-200/80"><span className="text-xs font-medium text-gray-600 w-28">{name}</span><code className="text-xs text-indigo-600 font-mono">{cfg.shell}</code></div>)}</div></div>}</div></Panel>}
             {tab === "preview" && <Panel title="Preview"><div className="flex items-center justify-center h-32 text-sm text-gray-400">Use preview toolbar above</div></Panel>}
             {tab === "code" && <CodeTab config={config} />}
+            {tab === "css" && <CssTab config={config} setConfig={setConfig} setDirty={setDirty} />}
             {tab === "generate" && <GenerateTab config={config} setConfig={setConfig} setDirty={setDirty} />}
           </div>
         </div>
@@ -992,7 +1108,7 @@ export default function ThemeEditor() {
         {showRightPanel && (
           <div className="flex-1 flex flex-col bg-gray-50/80">
             <div className="flex-1 overflow-hidden">
-              <ThemePreview config={config} />
+              <ThemePreview config={config} previewMode={previewMode} />
             </div>
           </div>
         )}
@@ -1032,10 +1148,22 @@ export default function ThemeEditor() {
               <button onClick={() => setModal(null)} className="p-1 hover:bg-gray-100 rounded-lg text-gray-400 hover:text-gray-600"><X size={16} /></button>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Paste Config JSON</label>
-              <textarea value={importJsonInput} onChange={(e) => setImportJsonInput(e.target.value)} rows={8} placeholder='{ "tokens": { ... }, "components": { ... } }  — or a Figma Variables export'
+              <div className="flex items-center gap-2">
+                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider cursor-pointer bg-gray-100 hover:bg-gray-200 rounded-lg px-3 py-2 transition-all">
+                  <input type="file" accept=".json,.yo-theme.json" className="hidden" onChange={e => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => setImportJsonInput(reader.result as string);
+                    reader.readAsText(file);
+                  }} />
+                  Browse File…
+                </label>
+                <span className="text-[10px] text-gray-400">or paste below</span>
+              </div>
+              <textarea value={importJsonInput} onChange={(e) => setImportJsonInput(e.target.value)} rows={8} placeholder='Paste a .yo-theme.json (full export), a Figma Variables export, or a raw theme config JSON'
                 className="w-full rounded-xl border border-gray-200 p-3.5 text-xs font-mono outline-none focus:border-indigo-500 transition-all resize-none bg-gray-50/50" />
-              <p className="text-[10px] text-gray-400">Accepts full theme config <span className="font-mono">or</span> a Figma Variables JSON (color variables are auto-mapped as tokens).</p>
+              <p className="text-[10px] text-gray-400">Accepts <span className="font-mono">.yo-theme.json</span> packages (with signature verification), Figma Variables exports (colors auto-mapped), or raw theme config JSON. Package imports auto-fill theme name and include integrity check.</p>
               {importError && <p className="text-[10px] text-red-500 font-medium flex items-center gap-1"><AlertCircle size={10} />{importError}</p>}
             </div>
             <div className="flex gap-2 justify-end">
@@ -1329,6 +1457,55 @@ function CodeTab({ config }: { config: ParsedThemeConfig }) {
       <pre className="flex-1 overflow-auto rounded-2xl border border-gray-200 bg-gray-950 p-5 text-xs leading-relaxed shadow-inner">
         <code className="text-gray-100">{code}</code>
       </pre>
+    </div>
+  );
+}
+
+/* ================================================================== */
+/*  CSS tab — Custom CSS editor                                        */
+/* ================================================================== */
+
+function CssTab({ config, setConfig, setDirty }: {
+  config: ParsedThemeConfig;
+  setConfig: React.Dispatch<React.SetStateAction<ParsedThemeConfig | null>>;
+  setDirty: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  const [localCss, setLocalCss] = useState(config.customCss ?? "");
+  const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    setLocalCss(config.customCss ?? "");
+  }, [config.customCss]);
+
+  const handleApply = () => {
+    setConfig(prev => prev ? { ...prev, customCss: localCss } : prev);
+    setDirty(true);
+  };
+
+  return (
+    <div className="p-5 h-full flex flex-col bg-white">
+      <div className="flex items-center justify-between mb-4 shrink-0">
+        <div>
+          <h2 className="text-sm font-bold text-gray-800 tracking-tight">Custom CSS</h2>
+          <p className="text-[11px] text-gray-400 mt-0.5">Inject custom styles that apply when this theme is active</p>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={() => { navigator.clipboard.writeText(localCss).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }); }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition-all shadow-sm">
+            {copied ? <Check size={12} className="text-emerald-500" /> : <Copy size={12} />}
+            {copied ? "Copied" : "Copy"}
+          </button>
+          <button onClick={handleApply}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-600 text-xs font-semibold text-white hover:bg-indigo-700 transition-all shadow-sm">
+            <Check size={12} />
+            Apply CSS
+          </button>
+        </div>
+      </div>
+      <textarea value={localCss} onChange={e => setLocalCss(e.target.value)}
+        className="flex-1 w-full rounded-2xl border border-gray-200 bg-gray-950 p-5 text-xs font-mono leading-relaxed text-gray-100 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        placeholder={`/* Custom CSS for this theme */\n.yo-custom-class {\n  background: rgb(var(--c-primary));\n}\n\n@media (prefers-color-scheme: dark) {\n  .yo-custom-class {\n    background: rgb(var(--c-primary-dark));\n  }\n}`} />
+      <p className="mt-3 text-[10px] text-gray-400">Use <code className="font-mono text-indigo-500">rgb(var(--c-*))</code> or <code className="font-mono text-indigo-500">var(--yo-*)</code> to reference theme tokens. Custom CSS is injected after all standard styles via a dedicated <code className="font-mono">&lt;style&gt;</code> block.</p>
     </div>
   );
 }

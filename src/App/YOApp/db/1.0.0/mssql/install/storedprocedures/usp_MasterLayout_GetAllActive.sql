@@ -12,7 +12,6 @@ BEGIN
         HasFooter,
         Sidebar,
         IsSystem,
-        LayoutConfig,
         IsActive,
         AddedOn,
         UpdatedOn

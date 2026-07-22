@@ -79,6 +79,52 @@ export function PropertiesPanel() {
           </Panel>
         )}
 
+        {definition.states && Object.keys(definition.states).length > 0 && (
+          <Panel title="Interactive States" badge="hover / focus / active">
+            {Object.entries(definition.states).map(([stateName, stateProps]) => (
+              <div key={stateName} className="mb-2">
+                <p className="mb-1 text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">{stateName}</p>
+                {Object.keys(stateProps).map(prop => (
+                  <div key={prop} className="flex items-center gap-2 text-xs">
+                    <span className="w-24 text-gray-500 dark:text-gray-400">{prop}</span>
+                    <input className="mt-1 w-full rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs dark:border-gray-700 dark:bg-gray-800" value={String(stateProps[prop as keyof typeof stateProps] ?? '')} readOnly placeholder="Set via theme" />
+                  </div>
+                ))}
+              </div>
+            ))}
+          </Panel>
+        )}
+
+        {definition.styleSlots && definition.styleSlots.length > 0 && (
+          <Panel title="Style Slots" badge="Per-part overrides">
+            {definition.styleSlots.map(slot => {
+              const slotKey = `__styleSlot__${slot.slot}`;
+              const slotStyle = (component.config as any)?.[slotKey] as Record<string, string> | undefined;
+              return (
+                <details key={slot.slot} className="group rounded-lg border border-gray-200 dark:border-gray-700">
+                  <summary className="flex cursor-pointer items-center justify-between px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">{slot.label} ({slot.slot})</summary>
+                  <div className="space-y-1.5 border-t border-gray-100 p-2 dark:border-gray-700">
+                    {slot.cssProperties.map(prop => (
+                      <div key={prop} className="flex items-center gap-2">
+                        <span className="w-20 text-[10px] font-medium text-gray-400 dark:text-gray-500">{prop}</span>
+                        <input className="w-full rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs dark:border-gray-700 dark:bg-gray-800"
+                          value={slotStyle?.[prop] ?? ''}
+                          onChange={e => {
+                            const current = { ...((component.config as any)?.[slotKey] as Record<string, string> | undefined) };
+                            if (!e.target.value) delete current[prop];
+                            else current[prop] = e.target.value;
+                            editorStore.updateComponentConfig(component.id, slotKey, Object.keys(current).length > 0 ? current : undefined);
+                          }}
+                          placeholder={`--c-${prop}`} />
+                      </div>
+                    ))}
+                  </div>
+                </details>
+              );
+            })}
+          </Panel>
+        )}
+
         <Panel title="Animation" badge="Product showcase presets">
           <Label>Preset</Label>
           <select className={selectClass} value={component.animation?.presetId ?? 'none'} onChange={e => updateAnimation({ presetId: e.target.value })}>
@@ -115,7 +161,7 @@ export function PropertiesPanel() {
 }
 
 function PageAndSectionPanel({ sectionId }: { sectionId: string | null }) {
-  const { page } = useEditorStore();
+  const { page, editingLayout } = useEditorStore();
   const section = sectionId ? page.sections.find(x => x.id === sectionId) : null;
   return (
     <aside className="h-full overflow-y-auto border-l border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
@@ -124,11 +170,15 @@ function PageAndSectionPanel({ sectionId }: { sectionId: string | null }) {
           <p className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">Page settings</p>
           <h2 className="mt-1 text-lg font-bold tracking-tight text-gray-900 dark:text-white">Layout & master</h2>
           <div className="mt-5 space-y-4">
-            <Label>Master layout</Label>
-            <select className={selectClass} value={page.masterLayoutId ?? 'none'}
-              onChange={e => editorStore.setPageMeta({ masterLayoutId: e.target.value === 'none' ? null : e.target.value })}>
-              {masterLayouts.map(layout => <option key={layout.id} value={layout.id}>{layout.name}</option>)}
-            </select>
+            {!editingLayout && (
+              <>
+                <Label>Master layout</Label>
+                <select className={selectClass} value={page.masterLayoutId ?? 'none'}
+                  onChange={e => editorStore.setPageMeta({ masterLayoutId: e.target.value === 'none' ? null : e.target.value })}>
+                  {masterLayouts.map(layout => <option key={layout.id} value={layout.id}>{layout.name}</option>)}
+                </select>
+              </>
+            )}
             <SmallSelect label="Page width" value={page.settings.containerMode} options={['boxed', 'fluid']}
               onChange={value => editorStore.setPageSetting('containerMode', value as 'boxed' | 'fluid')} />
             <DynamicFieldRenderer field={{ key: 'backgroundColor', label: 'Page background', type: 'color' }}

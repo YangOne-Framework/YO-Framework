@@ -9,10 +9,10 @@ function Header({ config, compact = false }: { config: MasterLayoutConfig; compa
 
   return (
     <header className="yo-navbar sticky top-0 z-20 backdrop-blur-xl bg-[color-mix(in_srgb,var(--yo-card)_88%,transparent)]">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-5 px-6 py-4">
+      <div className="yo-container flex items-center justify-between gap-5 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[var(--yo-primary)] text-sm font-bold text-white">{brandInitial}</div>
-          <div className="font-bold tracking-tight text-[var(--yo-text)]">{config.brandName}</div>
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[rgb(var(--c-primary))] text-sm font-bold text-white">{brandInitial}</div>
+          <div className="font-bold tracking-tight text-[rgb(var(--c-text))]">{config.brandName}</div>
         </div>
         <nav className="hidden gap-6 text-sm font-medium md:flex">
           {nav.map(item => <a href="#" key={item} className="yo-navbar-link">{item}</a>)}
@@ -26,9 +26,9 @@ function Header({ config, compact = false }: { config: MasterLayoutConfig; compa
 function Footer({ config }: { config: MasterLayoutConfig }) {
   return (
     <footer className="yo-footer">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 text-sm">
-        <div className="font-bold text-[var(--yo-text)]">{config.brandName}</div>
-        <div style={{ color: 'var(--yo-muted)' }}>{config.footerText || `© ${new Date().getFullYear()} ${config.brandName}`}</div>
+      <div className="yo-container flex flex-wrap items-center justify-between gap-4 text-sm">
+        <div className="font-bold text-[rgb(var(--c-text))]">{config.brandName}</div>
+        <div style={{ color: 'rgb(var(--c-muted))' }}>{config.footerText || `© ${new Date().getFullYear()} ${config.brandName}`}</div>
       </div>
     </footer>
   );
@@ -99,7 +99,7 @@ function renderShell(layout: MasterLayoutDefinition | null, zoneComponents: Retu
     if (hasDesign) return (
       <div>
         <RenderZoneComponents ids={zoneComponents.header} components={layout?.components} />
-        <div className="mx-auto grid max-w-7xl grid-cols-12 gap-8 px-6 py-8">
+        <div className="yo-container grid grid-cols-12 gap-8 py-8">
           <aside className="col-span-12 lg:col-span-3">
             <RenderZoneComponents ids={zoneComponents.sidebar} components={layout?.components} />
           </aside>
@@ -111,10 +111,10 @@ function renderShell(layout: MasterLayoutDefinition | null, zoneComponents: Retu
     return (
       <>
         <Header config={layoutConfig} />
-        <div className="mx-auto grid max-w-7xl grid-cols-12 gap-8 px-6 py-8">
-        <aside className="yo-sidebar col-span-12 rounded-xl border border-[var(--yo-border)] p-5 text-sm shadow-theme-sm lg:col-span-3">
-          <div className="font-bold text-[var(--yo-sidebarForeground,var(--yo-text))]">Documentation</div>
-          <ul className="mt-4 space-y-2 font-medium text-[var(--yo-muted)]"><li>Overview</li><li>Components</li><li>Layouts</li></ul>
+        <div className="yo-container grid grid-cols-12 gap-8 py-8">
+        <aside className="yo-sidebar col-span-12 rounded-xl border border-[rgb(var(--c-border))] p-5 text-sm shadow-theme-sm lg:col-span-3">
+          <div className="font-bold text-[var(--yo-sidebarForeground,rgb(var(--c-text)))]">Documentation</div>
+          <ul className="mt-4 space-y-2 font-medium text-[rgb(var(--c-muted))]"><li>Overview</li><li>Components</li><li>Layouts</li></ul>
         </aside>
           <main className="col-span-12 lg:col-span-9">{children}</main>
         </div>
@@ -128,7 +128,7 @@ function renderShell(layout: MasterLayoutDefinition | null, zoneComponents: Retu
       <div>
         <RenderZoneComponents ids={zoneComponents.header} components={layout?.components} />
         {zoneComponents.sidebar.length > 0 ? (
-          <div className="mx-auto grid max-w-7xl grid-cols-12 gap-8 px-6 py-8">
+          <div className="yo-container grid grid-cols-12 gap-8 py-8">
             <aside className={`col-span-12 ${layout?.sidebar === 'left' ? 'lg:col-span-3' : 'lg:col-span-9'} order-1`}>
               <RenderZoneComponents ids={zoneComponents.sidebar} components={layout?.components} />
             </aside>

@@ -1,6 +1,8 @@
 import type { CSSProperties } from "react";
 import type { YoRendererProps } from '../../types/yoPageTypes';
 import { componentInlineStyle, componentStyleClasses } from '../../utils/style';
+import { resolveImageUrl } from '../../utils/image';
+import { useYOTheme } from '../../context/YOThemeContext';
 
 function wrapperClasses(base: string, style: YoRendererProps['style']) {
   return `${base} ${componentStyleClasses(style)}`;
@@ -39,9 +41,11 @@ export function ButtonRenderer({ config, style }: YoRendererProps) {
     variant === 'secondary' ? 'yo-btn yo-btn-secondary'
       : variant === 'ghost' ? 'yo-btn yo-btn-text'
         : 'yo-btn yo-btn-primary';
+  const { resolveComponent } = useYOTheme();
+  const variantExtra = resolveComponent('button').classes;
   return (
     <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
-      <a href={String(config.url ?? '#')} className={`${variantClass} no-underline`}>
+      <a href={String(config.url ?? '#')} className={`${variantClass} ${variantExtra} no-underline`}>
         {String(config.label ?? 'Click here')}
       </a>
     </div>
@@ -50,13 +54,21 @@ export function ButtonRenderer({ config, style }: YoRendererProps) {
 
 /* ── Image ───────────────────────────────────────────────── */
 export function ImageRenderer({ config, style }: YoRendererProps) {
-  const src = String(config.src || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1200&auto=format&fit=crop');
+  const src = resolveImageUrl(config.src || 'https://images.unsplash.com/photo-1497366754035-f200968a6e72?q=80&w=1200&auto=format&fit=crop');
   const alt = String(config.alt ?? 'Content image');
   const objectFit = String(config.objectFit ?? 'cover');
+  const width = config.width ? String(config.width) : undefined;
+  const height = config.height ? String(config.height) : undefined;
+  const sized = Boolean(width || height);
   return (
     <figure className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
-      <img src={src} alt={alt} className={`w-full ${objectFit === 'contain' ? 'object-contain' : 'object-cover'} rounded-[var(--radius-lg,0.75rem)]`} />
-      {config.caption ? <figcaption className="mt-2 text-sm" style={{ color: 'var(--yo-muted)' }}>{String(config.caption)}</figcaption> : null}
+      <img
+        src={src}
+        alt={alt}
+        style={sized ? { width, height, objectFit: objectFit as CSSProperties['objectFit'] } : undefined}
+        className={`${sized ? '' : 'w-full'} ${objectFit === 'contain' ? 'object-contain' : 'object-cover'} rounded-[var(--radius-lg,0.75rem)]`}
+      />
+      {config.caption ? <figcaption className="mt-2 text-sm" style={{ color: 'rgb(var(--c-muted))' }}>{String(config.caption)}</figcaption> : null}
     </figure>
   );
 }
@@ -69,18 +81,17 @@ export function HeroRenderer({ config, style }: YoRendererProps) {
   const heroStyle: CSSProperties = {
     ...componentInlineStyle(style),
     backgroundColor: 'var(--yo-card, #ffffff)',
-    color: 'var(--yo-cardForeground, var(--yo-text))',
-    border: '1px solid var(--yo-border)',
+    color: 'var(--yo-cardForeground, rgb(var(--c-text)))',
+    border: '1px solid rgb(var(--c-border))',
     fontFamily: 'var(--font-body, system-ui, sans-serif)',
-    padding: 'var(--spacing-20, 5rem) var(--spacing-8, 2rem)',
   };
 
   const titleClass = hasImage ? 'text-5xl font-bold tracking-tight text-white' : 'yo-heading-1';
-  const subColor = hasImage ? '#cbd5e1' : 'var(--yo-muted)';
-  const eyebrowColor = hasImage ? '#e2e8f0' : 'var(--yo-primary)';
+  const subColor = hasImage ? '#cbd5e1' : 'rgb(var(--c-muted))';
+  const eyebrowColor = hasImage ? '#e2e8f0' : 'rgb(var(--c-primary))';
 
   if (hasImage) {
-    heroStyle.backgroundImage = `linear-gradient(rgba(2,6,23,.6),rgba(2,6,23,.6)), url(${backgroundImage})`;
+    heroStyle.backgroundImage = `linear-gradient(rgba(2,6,23,.6),rgba(2,6,23,.6)), url(${resolveImageUrl(backgroundImage)})`;
     heroStyle.backgroundColor = 'transparent';
     heroStyle.border = 'none';
     heroStyle.backgroundSize = 'cover';
@@ -88,7 +99,7 @@ export function HeroRenderer({ config, style }: YoRendererProps) {
   }
 
   return (
-    <section className={wrapperClasses('relative overflow-hidden rounded-2xl', style)} style={heroStyle}>
+    <section className={wrapperClasses('yo-section relative overflow-hidden rounded-2xl', style)} style={heroStyle}>
       <div className="max-w-3xl">
         <p className="mb-4 text-sm font-semibold uppercase tracking-wider" style={{ color: eyebrowColor }}>{String(config.eyebrow ?? 'CMS Studio')}</p>
         <h1 className={titleClass}>{String(config.title ?? 'Build dynamic pages visually')}</h1>
@@ -103,6 +114,8 @@ export function HeroRenderer({ config, style }: YoRendererProps) {
 
 /* ── Card Grid ───────────────────────────────────────────── */
 export function CardGridRenderer({ config, style }: YoRendererProps) {
+  const { resolveComponent } = useYOTheme();
+  const cardVariantClasses = resolveComponent('card').classes;
   const rawItems = Array.isArray(config.items) ? config.items : [];
   const items = rawItems.length > 0 ? rawItems : [
     { title: 'Visual Editor', body: 'Compose pages from reusable content blocks.' },
@@ -111,13 +124,13 @@ export function CardGridRenderer({ config, style }: YoRendererProps) {
   ];
   return (
     <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
-      <div className="grid gap-4 md:grid-cols-3">
+        <div className="yo-grid yo-grid-cols-2 md:yo-grid-cols-3">
         {items.map((item: any, index: number) => (
-          <div key={index} className="yo-card yo-card-hover">
+          <div key={index} className={`yo-card yo-card-hover ${cardVariantClasses}`}>
             <div className="yo-card-body">
               <div className="yo-badge yo-badge-primary mb-3">{index + 1}</div>
-              <h3 className="text-lg font-semibold" style={{ color: 'var(--yo-text)' }}>{String(item.title ?? 'Card')}</h3>
-              <p className="mt-2 text-sm leading-6" style={{ color: 'var(--yo-muted)' }}>{String(item.body ?? '')}</p>
+              <h3 className="text-lg font-semibold" style={{ color: 'rgb(var(--c-text))' }}>{String(item.title ?? 'Card')}</h3>
+              <p className="mt-2 text-sm leading-6" style={{ color: 'rgb(var(--c-muted))' }}>{String(item.body ?? '')}</p>
             </div>
           </div>
         ))}
@@ -138,16 +151,16 @@ function MenuItem({ item, depth = 0 }: { item: any; depth?: number }) {
   return (
     <li className="relative group">
       <a href={item.url ?? '#'}
-        className="block whitespace-nowrap px-3 py-2 text-sm font-medium rounded-lg text-[var(--yo-muted)] transition hover:bg-[color-mix(in_srgb,var(--yo-text)_8%,transparent)] hover:text-[var(--yo-text)]">
+        className="block whitespace-nowrap px-3 py-2 text-sm font-medium rounded-lg text-[rgb(var(--c-muted))] transition hover:bg-[color-mix(in_srgb,rgb(var(--c-text))_8%,transparent)] hover:text-[rgb(var(--c-text))]">
         {item.label ?? 'Link'}
         {hasChildren && <span className="ml-1 inline-block text-xs">{'▼'}</span>}
       </a>
       {hasChildren && (
-        <ul className="absolute left-0 top-full z-50 hidden min-w-44 space-y-1 rounded-xl border p-2 shadow-lg group-hover:block bg-[var(--yo-card)] border-[var(--yo-border)]">
+        <ul className="absolute left-0 top-full z-50 hidden min-w-44 space-y-1 rounded-xl border p-2 shadow-lg group-hover:block bg-[var(--yo-card)] border-[rgb(var(--c-border))]">
           {item.children.map((child: any, ci: number) => (
             <li key={ci}>
               <a href={child.url ?? '#'}
-                className="block rounded-lg px-3 py-2 text-sm font-medium transition text-[var(--yo-muted)] hover:bg-[color-mix(in_srgb,var(--yo-text)_8%,transparent)] hover:text-[var(--yo-text)]">
+                className="block rounded-lg px-3 py-2 text-sm font-medium transition text-[rgb(var(--c-muted))] hover:bg-[color-mix(in_srgb,rgb(var(--c-text))_8%,transparent)] hover:text-[rgb(var(--c-text))]">
                 {child.label ?? 'Link'}
               </a>
             </li>
@@ -176,10 +189,10 @@ export function LayoutHeaderRenderer({ config, style }: YoRendererProps) {
   return (
     <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
       <header className="yo-navbar sticky top-0 z-20 backdrop-blur-xl bg-[color-mix(in_srgb,var(--yo-card)_88%,transparent)]">
-        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-5">
+        <div className="yo-container flex items-center justify-between gap-5">
           <div className="yo-navbar-brand flex items-center gap-3">
             {logoUrl ? (
-              <img src={logoUrl} alt={logoAlt} className="h-9 w-auto rounded" />
+              <img src={resolveImageUrl(logoUrl)} alt={logoAlt} className="h-9 w-auto rounded" />
             ) : (
               <>{brandName}</>
             )}
@@ -214,14 +227,14 @@ export function LayoutFooterRenderer({ config, style }: YoRendererProps) {
   return (
     <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
       <footer className="yo-footer">
-        <div className={`mx-auto flex max-w-7xl flex-col items-center gap-8 ${textAlign} md:flex-row md:flex-wrap md:${justify} md:items-start`}>
+        <div className={`yo-container flex flex-col items-center gap-8 ${textAlign} md:flex-row md:flex-wrap md:${justify} md:items-start`}>
           <div className="max-w-sm space-y-3">
-            {logoUrl ? <img src={logoUrl} alt={logoAlt} className="h-9 w-auto rounded" /> : <div className="font-bold text-[var(--yo-text)]">{brandName}</div>}
-            {description && <p className="text-sm leading-6" style={{ color: 'var(--yo-muted)' }}>{description}</p>}
+            {logoUrl ? <img src={resolveImageUrl(logoUrl)} alt={logoAlt} className="h-9 w-auto rounded" /> : <div className="font-bold text-[rgb(var(--c-text))]">{brandName}</div>}
+            {description && <p className="text-sm leading-6" style={{ color: 'rgb(var(--c-muted))' }}>{description}</p>}
           </div>
           {quickLinks.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--yo-text)' }}>Quick Links</p>
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'rgb(var(--c-text))' }}>Quick Links</p>
               <ul className="space-y-1.5">
                 {quickLinks.map((link: any, i: number) => (
                   <li key={i}><a href={link.url ?? '#'} className="yo-footer-link">{link.label ?? 'Link'}</a></li>
@@ -231,11 +244,11 @@ export function LayoutFooterRenderer({ config, style }: YoRendererProps) {
           )}
           {socialLinks.filter((s: any) => s.enabled !== false).length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'var(--yo-text)' }}>Follow Us</p>
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: 'rgb(var(--c-text))' }}>Follow Us</p>
               <div className="flex flex-wrap gap-2">
                 {socialLinks.filter((s: any) => s.enabled !== false).map((s: any, i: number) => (
                   <a key={i} href={s.url ?? '#'} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--yo-border)] bg-[color-mix(in_srgb,var(--yo-text)_4%,transparent)] px-3 py-1.5 text-sm text-[var(--yo-text)] hover:bg-[color-mix(in_srgb,var(--yo-text)_8%,transparent)] transition">
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-[rgb(var(--c-border))] bg-[color-mix(in_srgb,rgb(var(--c-text))_4%,transparent)] px-3 py-1.5 text-sm text-[rgb(var(--c-text))] hover:bg-[color-mix(in_srgb,rgb(var(--c-text))_8%,transparent)] transition">
                     <SocialIcon platform={s.platform} />
                     {s.platform ?? 'Link'}
                   </a>
@@ -244,8 +257,8 @@ export function LayoutFooterRenderer({ config, style }: YoRendererProps) {
             </div>
           )}
         </div>
-        <div className={`mx-auto mt-8 max-w-7xl border-t pt-6 border-[var(--yo-border)] ${textAlign}`}>
-          <p className="text-sm" style={{ color: 'var(--yo-muted)' }}>{displayText}</p>
+        <div className={`yo-container mt-8 border-t pt-6 border-[rgb(var(--c-border))] ${textAlign}`}>
+          <p className="text-sm" style={{ color: 'rgb(var(--c-muted))' }}>{displayText}</p>
         </div>
       </footer>
     </div>
@@ -259,7 +272,7 @@ export function LayoutSidebarRenderer({ config, style }: YoRendererProps) {
   return (
     <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
       <aside className="yo-sidebar h-full">
-        <div className="font-bold text-[var(--yo-sidebarForeground,var(--yo-text))]">{title}</div>
+        <div className="font-bold text-[var(--yo-sidebarForeground,rgb(var(--c-text)))]">{title}</div>
         <ul className="mt-4 space-y-2 font-medium">
           {items.map((item: any, i: number) => <li key={i} className="yo-sidebar-item">{String(item?.label ?? item ?? '')}</li>)}
         </ul>

@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
 using YangOne.Identity.Extensions;
 using YangOne.Log;
+using YangOne.Storage;
 using YangOne.Web;
 using YangOne.Web.API;
 
@@ -15,13 +17,15 @@ public class YOPageApiController : BaseApiController
     private readonly IPageService _pageService;
     private readonly IMasterLayoutService _masterLayoutService;
     private readonly IMemoryCache _cache;
+    private readonly IStorageProvider _storageProvider;
 
-    public YOPageApiController(ILogger logger, IPageService pageService, IMasterLayoutService masterLayoutService, IMemoryCache cache)
+    public YOPageApiController(ILogger logger, IPageService pageService, IMasterLayoutService masterLayoutService, IMemoryCache cache, IStorageProvider storageProvider)
     {
         _logger = logger;
         _pageService = pageService;
         _masterLayoutService = masterLayoutService;
         _cache = cache;
+        _storageProvider = storageProvider;
     }
 
     // ── Page endpoints ──────────────────────────────────────────
@@ -187,6 +191,30 @@ public class YOPageApiController : BaseApiController
     }
 
     
+    [HttpPost("layout/image/add")]
+    public async Task<ActionResult<ApiResponse<object>>> AddLayoutImage([FromForm] IFormFile file)
+    {
+        try
+        {
+            if (file == null || file.Length == 0)
+                return ErrorResponse(600, "No image file provided.");
+
+            // Store on the server via the configured storage provider and return a
+            // relative URL. Storing a URL (instead of a base64 blob) keeps the
+            // layout config small, which makes DB rows lighter and selection faster.
+            var relativeUrl = await _storageProvider.Save("layout/images", file);
+            if (string.IsNullOrEmpty(relativeUrl))
+                return ErrorResponse(501, "Failed to store the image.");
+
+            return SuccessResponse<object>("Image uploaded", new { url = relativeUrl });
+        }
+        catch (Exception e)
+        {
+            _logger.Log(LogType.Error, () => e.Message, e);
+            return ErrorResponse(501, e.Message);
+        }
+    }
+
     [HttpGet("layout/{layoutUniqueId}")]
     public async Task<ActionResult<ApiResponse<MasterLayout>>> GetLayout(string layoutUniqueId)
     {

@@ -362,7 +362,7 @@ export const STANDARD_COMPONENTS: Record<string, ComponentVariantConfig> = {
     variant: "default",
     variants: {
       default: { classes: "yo-input" },
-      filled: { classes: "yo-input bg-[var(--yo-muted)]" },
+      filled: { classes: "yo-input bg-[rgb(var(--c-muted))]" },
       underlined: { classes: "yo-input !border-0 !border-b-2 !rounded-none" },
     },
     borderRadius: "var(--radius-md, 0.5rem)",
@@ -381,7 +381,7 @@ export const STANDARD_COMPONENTS: Record<string, ComponentVariantConfig> = {
     variant: "default",
     variants: {
       default: { classes: "yo-navbar" },
-      dark: { classes: "yo-navbar !bg-[var(--yo-text)] !text-[var(--yo-bg)]" },
+      dark: { classes: "yo-navbar !bg-[rgb(var(--c-text))] !text-[rgb(var(--c-bg))]" },
     },
   },
   sidebar: {
@@ -502,8 +502,10 @@ export function buildCssVariablesExport(config: ParsedThemeConfig): string {
   const lines: string[] = [];
   for (const [name, val] of Object.entries(t.colors ?? {})) {
     if (val?.default) {
+      const channels = hexToRgbChannels(val.default);
+      lines.push(`  --c-${name}: ${channels};`);
       lines.push(`  --yo-${name}: ${val.default};`);
-      lines.push(`  --yo-${name}-rgb: ${hexToRgbChannels(val.default)};`);
+      lines.push(`  --yo-${name}-rgb: ${channels};`);
       const [h, s, l] = hexToHsl(val.default);
       lines.push(`  --yo-${name}-hsl: ${h} ${s}% ${l}%;`);
     }
@@ -526,7 +528,7 @@ export function buildTailwindConfig(config: ParsedThemeConfig): string {
   const t = config.tokens;
   const colorEntries = Object.entries(t.colors ?? {})
     .filter(([, v]) => v?.default)
-    .map(([name]) => `        "${name}": "rgb(var(--yo-${name}-rgb) / <alpha-value>)",`)
+    .map(([name]) => `        "${name}": "rgb(var(--c-${name}) / <alpha-value>)",`)
     .join("\n");
   const fontEntries = Object.entries(t.fonts ?? {})
     .map(([name, v]) => `        "${name}": ["${v.family}", "system-ui", "sans-serif"],`)

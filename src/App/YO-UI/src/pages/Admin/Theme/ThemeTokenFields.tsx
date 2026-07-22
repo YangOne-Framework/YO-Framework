@@ -536,7 +536,7 @@ const PREVIEW_SAMPLES: Record<string, React.ReactNode> = {
   ),
   modal: (
     <div className="yo-modal">
-      <p className="text-sm font-semibold text-[var(--yo-text)]">Confirm action</p>
+      <p className="text-sm font-semibold text-[rgb(var(--c-text))]">Confirm action</p>
       <p className="text-xs text-[var(--yo-muted-foreground)] mt-1">This cannot be undone.</p>
       <div className="flex gap-2 mt-3 justify-end"><button className="yo-btn yo-btn-ghost !text-xs">Cancel</button><button className="yo-btn yo-btn-primary !text-xs">Confirm</button></div>
     </div>

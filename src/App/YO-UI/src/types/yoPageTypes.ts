@@ -19,6 +19,40 @@ export interface ConfigField {
   placeholder?: string;
 }
 
+export interface YoComponentState {
+  hover?: Record<string, string>;
+  focus?: Record<string, string>;
+  active?: Record<string, string>;
+  disabled?: Record<string, string>;
+}
+
+export interface ComponentBreakpointOverrides {
+  desktop?: Record<string, string>;
+  tablet?: Record<string, string>;
+  mobile?: Record<string, string>;
+}
+
+export interface ComponentPropSchema {
+  key: string;
+  label: string;
+  type: FieldType | 'color' | 'select';
+  required?: boolean;
+  defaultValue?: unknown;
+  options?: SelectOption[];
+  min?: number;
+  max?: number;
+  placeholder?: string;
+  helpText?: string;
+}
+
+export interface StyleSlotDefinition {
+  slot: string;
+  label: string;
+  cssProperties: string[];
+  defaultStyle?: Record<string, string>;
+  allowedUnits?: string[];
+}
+
 export interface YoComponentDefinition {
   type: string;
   label: string;
@@ -29,6 +63,14 @@ export interface YoComponentDefinition {
   defaultAnimation?: YoAnimationConfig;
   configSchema: ConfigField[];
   renderer: (props: YoRendererProps) => React.ReactElement;
+  /** Blueprint: style slots for per-part styling (root, container, title, body, etc.) */
+  styleSlots?: StyleSlotDefinition[];
+  /** Blueprint: interactive states with overridable CSS properties */
+  states?: YoComponentState;
+  /** Blueprint: responsive breakpoint style overrides */
+  breakpoints?: ComponentBreakpointOverrides;
+  /** Blueprint: structured prop schema for type-safe config editing */
+  props?: ComponentPropSchema[];
 }
 
 export interface YoRendererProps {
@@ -94,6 +136,10 @@ export interface YoSection {
     backgroundColor?: string;
     backgroundImage?: string;
     className?: string;
+    /** Per-region max-width override (Layout Builder regions) */
+    maxWidth?: string;
+    /** Per-region theme style overrides (reflex system) */
+    styleOverrides?: string;
   };
   columns: YoColumn[];
 }

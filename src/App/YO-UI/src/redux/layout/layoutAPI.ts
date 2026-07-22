@@ -79,6 +79,19 @@ export const layoutAPI = createApi({
       }),
       invalidatesTags: ["MasterLayout"],
     }),
+
+    uploadLayoutImage: builder.mutation<{ url: string }, File>({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        return {
+          url: API.YO_PAGE.LAYOUT_IMAGE_ADD,
+          method: "POST",
+          body: formData,
+        };
+      },
+      transformResponse: (response: any) => (response?.Data as { url: string }) ?? { url: "" },
+    }),
   }),
 });
 
@@ -87,4 +100,5 @@ export const {
   useGetMasterLayoutByIdQuery,
   useSaveMasterLayoutMutation,
   useDeleteMasterLayoutMutation,
+  useUploadLayoutImageMutation,
 } = layoutAPI;

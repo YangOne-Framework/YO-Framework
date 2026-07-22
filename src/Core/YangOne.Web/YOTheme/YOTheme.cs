@@ -177,7 +177,7 @@ public class YOThemeResult
 {
     public bool Success { get; set; }
     public string Message { get; set; }
-    public YOTheme Data { get; set; }
+    public object Data { get; set; }
     public List<YOThemeListItem> DataList { get; set; }
     public string Action { get; set; }
     public int RowTotal { get; set; }
@@ -212,6 +212,46 @@ public class YOThemeAssignment
     public string EntityName { get; set; }
 }
 
+/// <summary>
+/// Comprehensive export package — mirrors the front-end .yo-theme.json format.
+/// Includes full config, meta, embedded assets, and an integrity signature.
+/// </summary>
+public class YOThemePackage
+{
+    public string manifestVersion { get; set; } = "1.0";
+    public string exportedAt { get; set; }
+    public YOThemePackageSignature signature { get; set; }
+    public YOThemePackageMeta meta { get; set; }
+    public string config { get; set; } // JSON string of ParsedThemeConfig
+    public Dictionary<string, YOThemePackageAsset> assets { get; set; } = new();
+}
+
+public class YOThemePackageSignature
+{
+    public string hash { get; set; }
+    public string hashAlgorithm { get; set; } = "sha256";
+}
+
+public class YOThemePackageMeta
+{
+    public string name { get; set; }
+    public string slug { get; set; }
+    public string version { get; set; }
+    public string author { get; set; }
+    public string description { get; set; }
+    public string tags { get; set; }
+}
+
+public class YOThemePackageAsset
+{
+    public string data { get; set; } // base64-encoded
+    public string mime { get; set; }
+    public string filename { get; set; }
+}
+
+/// <summary>
+/// Legacy simple export (kept for backward compatibility).
+/// </summary>
 public class YOThemeExport
 {
     public string Name { get; set; }

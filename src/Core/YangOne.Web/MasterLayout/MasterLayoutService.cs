@@ -29,6 +29,10 @@ public class MasterLayoutService : IMasterLayoutService
                     "usp_MasterLayout_GetAllActive",
                     commandType: System.Data.CommandType.StoredProcedure)).ToList();
 
+                // List responses don't need the (potentially heavy) LayoutConfig;
+                // it is only returned by the GetById details endpoint.
+                data.ForEach(x => x.LayoutConfig = null);
+
                 return new MasterLayoutResult
                 {
                     Success = true,
@@ -55,6 +59,10 @@ public class MasterLayoutService : IMasterLayoutService
                 var data = (await db.QueryAsync<MasterLayout>(
                     "usp_MasterLayout_GetAllActive",
                     commandType: System.Data.CommandType.StoredProcedure)).ToList();
+
+                // List responses don't need the (potentially heavy) LayoutConfig;
+                // it is only returned by the GetById details endpoint.
+                data.ForEach(x => x.LayoutConfig = null);
 
                 return new MasterLayoutResult
                 {
@@ -122,7 +130,6 @@ public class MasterLayoutService : IMasterLayoutService
                         Sidebar = request.Sidebar,
                         IsSystem = request.IsSystem,
                         LayoutConfig = request.LayoutConfig,
-                        YOThemeId = request.YOThemeId,
                         UpdatedBy = 0
                     },
                     commandType: System.Data.CommandType.StoredProcedure);

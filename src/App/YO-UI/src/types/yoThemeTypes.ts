@@ -26,6 +26,8 @@ export interface ParsedThemeConfig {
   layouts: Record<string, LayoutDefinition>;
   templates: Record<string, TemplateDefinition>;
   customizer?: CustomizerSchema;
+  /** Custom CSS injected into the page when this theme is active */
+  customCss?: string;
 }
 
 export interface ThemeTokens {
@@ -130,3 +132,93 @@ export interface YOThemeOverrideSaveRequest {
   YOThemeUniqueId: string;
   Overrides: Record<string, unknown>;
 }
+
+/**
+ * Comprehensive export/import package format.
+ * Mirrors "folder with all files" — config, assets, layouts, templates + integrity signature.
+ */
+/**
+ * Comprehensive export/import package format.
+ * Mirrors "folder with all files" — config, assets, layouts, templates + integrity signature.
+ */
+export interface YOThemePackage {
+  manifestVersion: "1.0";
+  exportedAt: string;
+  signature: {
+    hash: string;
+    hashAlgorithm: "sha256";
+  };
+  meta: {
+    name: string;
+    slug: string;
+    version: string;
+    author: string;
+    description: string;
+    tags: string;
+  };
+  /** Full theme configuration */
+  config: ParsedThemeConfig;
+  /** Embedded assets keyed by identifier (screenshot, logo, etc.) */
+  assets: Record<string, { data: string; mime: string; filename: string }>;
+}
+
+/** Generate SHA-256 hex hash of a string using the Web Crypto API */
+export async function sha256Hex(str: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(str);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+/**
+ * Build a complete YOThemePackage from a theme + config.
+ * Excludes layouts/templates from this layer (they live in the page system).
+ */
+export async function buildThemePackage(
+  theme: YOTheme,
+  config: ParsedThemeConfig,
+  assets?: Record<string, { data: string; mime: string; filename: string }>,
+): Promise<YOThemePackage> {
+  const payload: Omit<YOThemePackage, "signature"> = {
+    manifestVersion: "1.0",
+    exportedAt: new Date().toISOString(),
+    meta: {
+      name: theme.Name,
+      slug: theme.Slug,
+      version: theme.Version,
+      author: theme.Author ?? "",
+      description: theme.Description ?? "",
+      tags: theme.Tags ?? "",
+    },
+    config,
+    assets: assets ?? {},
+  };
+  const hash = await sha256Hex(JSON.stringify(payload));
+  return { ...payload, signature: { hash, hashAlgorithm: "sha256" } };
+}
+
+/**
+ * Verify package integrity by re-hashing and comparing signatures.
+ */
+export async function verifyThemePackage(pkg: YOThemePackage): Promise<boolean> {
+  const { signature, ...rest } = pkg;
+  const hash = await sha256Hex(JSON.stringify(rest));
+  return hash === signature.hash;
+}
+
+/**
+ * Block Style Engine value modes:
+ * - "token": resolve value as a theme token name → emits rgb(var(--c-{value}))
+ * - "raw":    emit value as-is (e.g. "16px", "#fff")
+ * - "cssVar": emit value wrapped in var() (e.g. "my-var" → var(--my-var))
+ */
+export type StyleValueMode = "token" | "raw" | "cssVar";
+
+export interface StyleValue {
+  mode: StyleValueMode;
+  value: string;
+}
+
+export type BlockStyleOverrides = Record<string, StyleValue>;
+export type ComponentStyleSlots = Record<string, Record<string, StyleValue>>;
