@@ -12,4 +12,6 @@ public class HtmlComponentItemDto
     public string Icon { get; set; }
     public string PreviewImage { get; set; }
     public bool IsActive { get; set; }
+    public string CatalogCategory { get; set; }
+    public int RowTotal { get; set; }
 }

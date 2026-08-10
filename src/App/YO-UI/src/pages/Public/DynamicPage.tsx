@@ -1,9 +1,13 @@
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PageRenderer } from "../../renderer/PageRenderer";
-import { YOThemeProvider, buildTokenCss, parseThemeConfig } from "../../context/YOThemeContext";
+import { StudioThemeProvider } from "../../context/StudioThemeContext";
+import { buildTokenCss, parseThemeConfig } from "../../services/runtimeThemeCss";
+import { sanitizeCustomCss } from "../../services/themeCompiler";
+import { decodeBase64Url } from "../../services/previewEncoding";
 import { GoogleFontLoader } from "../../components/GoogleFontLoader";
-import { useGetThemeQuery, useGetThemeListQuery } from "../../redux/theme/themeAPI";
+import { useGetStudioConfigQuery, useGetStudioThemesQuery } from "../../redux/theme/themeStudioAPI";
+import { useResolvePublicThemeQuery } from "../../redux/publicPage/publicPageAPI";
 import type { YoPage } from "../../types/yoPageTypes";
 import type { ParsedThemeConfig, TemplateDefinition, LayoutDefinition } from "../../types/yoThemeTypes";
 
@@ -98,7 +102,7 @@ function resolveTemplate(
 function PublicThemeSwitcher() {
   const [searchParams, setSearchParams] = useSearchParams();
   const current = searchParams.get("theme");
-  const { data: themes = [] } = useGetThemeListQuery({ limit: 50 });
+  const { data: themes = [] } = useGetStudioThemesQuery({ limit: 50 });
   if (!themes.length) return null;
 
   const setTheme = (guid: string | null) => {
@@ -147,21 +151,46 @@ export default function DynamicPage({ page, preview = false }: DynamicPageProps)
   // Theme override is only allowed in preview mode (separate /preview route),
   // never on the real published page.
   const themeParam = preview ? searchParams.get("theme") : null;
+  // Unsaved studio draft injected by the Theme Studio live preview.
+  const previewConfigParam = preview ? searchParams.get("themeConfig") : null;
+  const darkMode = preview && searchParams.get("mode") === "dark";
 
   // The published page API (api/public/pages/{slug}) already resolves and returns
   // the theme + layout server-side (active theme, or the page's linked theme) as
   // `ThemeConfig` / `MasterLayout`. So the real page consumes the theme straight
   // from the page payload — no separate auth-gated /yotheme/active call, which
   // meant an extra round-trip and broke anonymous/public rendering.
-  const { data: overrideTheme } = useGetThemeQuery(themeParam ?? "", { skip: !themeParam });
+  // The ?theme= override reads the selected theme's draft via config/{guid} —
+  // note: GET /yotheme-studio/themes/{guid} is not implemented on the backend (405).
+  const { data: overrideCfg } = useGetStudioConfigQuery(themeParam ?? "", { skip: !themeParam });
+
+  // Studio assignment pipeline fallback (blueprint §10/§21): when the page API
+  // did not deliver a theme (no linked theme and the server cache predates an
+  // assignment), resolve the effective published theme for this route through
+  // the anonymous resolve endpoint.
+  const { data: resolvedTheme } = useResolvePublicThemeQuery(
+    { route: page.slug ? `/${page.slug}` : undefined },
+    { skip: !!page.themeConfig || !!themeParam || !!previewConfigParam },
+  );
 
   // Theme resolution precedence:
-  //   1. ?theme=<guid>  (preview route only — force a specific theme for testing)
-  //   2. the theme delivered by the page API itself (single smooth load)
+  //   1. ?theme=<guid>  (preview theme switcher — explicit choice, wins)
+  //   2. ?themeConfig=<base64url>  (studio live preview — the unsaved draft)
+  //   3. the theme delivered by the page API itself (single smooth load)
+  //   4. studio assignment resolution for this route
   const themeConfig = useMemo<ParsedThemeConfig | null>(() => {
-    if (themeParam && overrideTheme?.Config) return parseThemeConfig(overrideTheme.Config);
-    return (page.themeConfig as ParsedThemeConfig) ?? null;
-  }, [themeParam, overrideTheme, page.themeConfig]);
+    if (themeParam && overrideCfg?.row?.Config) return parseThemeConfig(overrideCfg.row.Config);
+    if (previewConfigParam) {
+      try {
+        return parseThemeConfig(decodeBase64Url(previewConfigParam));
+      } catch {
+        // fall through to the other resolution sources
+      }
+    }
+    if (page.themeConfig) return page.themeConfig as ParsedThemeConfig;
+    if (resolvedTheme?.Config) return parseThemeConfig(resolvedTheme.Config);
+    return null;
+  }, [themeParam, overrideCfg, previewConfigParam, page.themeConfig, resolvedTheme]);
 
   const resolved = useMemo(() => {
     if (!themeConfig) return { template: null, layout: null, Shell: DefaultShell };
@@ -175,8 +204,40 @@ export default function DynamicPage({ page, preview = false }: DynamicPageProps)
 
   const cssVars = useMemo(() => {
     if (!themeConfig?.tokens) return "";
-    return buildTokenCss(themeConfig.tokens);
-  }, [themeConfig]);
+    // Preview forces light/dark explicitly; the real published page honors the
+    // theme's defaultMode (light/dark) and falls back to the OS preference.
+    const pageMode = themeConfig.appearance?.defaultMode;
+    const mode = !preview
+      ? pageMode === "dark" || pageMode === "light"
+        ? pageMode
+        : "auto"
+      : darkMode
+        ? "dark"
+        : "light";
+    const customCss = sanitizeCustomCss(themeConfig.customCss ?? "").css;
+    const base = buildTokenCss(themeConfig.tokens, themeConfig.components, mode);
+    return customCss ? `${base}\n${customCss}` : base;
+  }, [themeConfig, preview, darkMode]);
+
+  // Forced dark/light for the studio live preview and for themes with an
+  // explicit defaultMode — never touches the site when the theme is "auto".
+  useEffect(() => {
+    const pageMode = themeConfig?.appearance?.defaultMode;
+    const forced = preview
+      ? darkMode
+        ? "dark"
+        : "light"
+      : pageMode === "dark" || pageMode === "light"
+        ? pageMode
+        : null;
+    if (!forced) return;
+    document.documentElement.setAttribute("data-yo-theme-mode", forced);
+    document.documentElement.style.colorScheme = forced;
+    return () => {
+      document.documentElement.removeAttribute("data-yo-theme-mode");
+      document.documentElement.style.colorScheme = "";
+    };
+  }, [preview, darkMode, themeConfig]);
 
   if (!themeConfig) {
     // No theme — render page directly
@@ -190,13 +251,13 @@ export default function DynamicPage({ page, preview = false }: DynamicPageProps)
   const Shell = resolved.Shell;
 
   return (
-    <YOThemeProvider themeConfig={themeConfig} template={resolved.template} layout={resolved.layout}>
+    <StudioThemeProvider themeConfig={themeConfig} template={resolved.template} layout={resolved.layout}>
       <style>{cssVars}</style>
       {themeConfig.tokens?.fonts && <GoogleFontLoader fonts={themeConfig.tokens.fonts} />}
       <Shell>
         <PageRenderer page={page} />
       </Shell>
       {preview && <PublicThemeSwitcher />}
-    </YOThemeProvider>
+    </StudioThemeProvider>
   );
 }

@@ -27,4 +27,5 @@ public class HtmlComponentSaveRequest
     public string RuntimeOptions { get; set; }
     public string Version { get; set; }
     public bool IsActive { get; set; }
+    public string CatalogCategory { get; set; }
 }

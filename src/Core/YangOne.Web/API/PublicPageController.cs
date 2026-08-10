@@ -33,7 +33,14 @@ public class PublicPageController : BaseApiController
                 slug = "home";
 
             if (PublicPageCache.TryGet(_cache, slug, out var cached))
+            {
+                // Theme config is always resolved fresh per request so a publish
+                // is reflected immediately, independent of the page cache.
+                var (themeId, themeConfig) = await PublicPageCache.ResolveActiveTheme(slug);
+                cached.YOThemeId = themeId;
+                cached.ThemeConfig = themeConfig;
                 return SuccessResponse("Success (cached)", cached);
+            }
 
             var result = await _pageService.GetBySlug(slug, "published");
             if (!result.Success || result.Data == null)

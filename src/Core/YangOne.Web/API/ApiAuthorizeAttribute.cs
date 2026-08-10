@@ -24,8 +24,10 @@ namespace YangOne.Web.API
 
         public async Task OnAuthorizationAsync(AuthorizationFilterContext context)
         {
-           
-            var skipAuthorization = ((Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor)context.ActionDescriptor).MethodInfo.CustomAttributes.Any(x => x.AttributeType == typeof(AllowAnonymousAttribute) || x.AttributeType == typeof(AllowAnonymousFilter));
+            var descriptor = (Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor)context.ActionDescriptor;
+            var skipAuthorization = descriptor.MethodInfo.CustomAttributes.Any(x => x.AttributeType == typeof(AllowAnonymousAttribute) || x.AttributeType == typeof(AllowAnonymousFilter))
+                || descriptor.ControllerTypeInfo.GetCustomAttributes(typeof(AllowAnonymousAttribute), true).Any()
+                || descriptor.ControllerTypeInfo.GetCustomAttributes(typeof(AllowAnonymousFilter), true).Any();
 
             if (skipAuthorization)
             {

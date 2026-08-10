@@ -242,7 +242,6 @@ export function mapPageDtoToYoPage(dto: Record<string, unknown>): YoPage {
     updatedAt: (dto.lastModified ?? dto.LastModified ?? dto.updatedOn ?? dto.UpdatedOn ?? new Date().toISOString()) as string,
     publishedAt: (dto.publishedAt ?? dto.PublishedAt ?? null) as string | null,
     templateType: (dto.templateType ?? dto.TemplateType ?? 'page') as string,
-    yoThemeId: (dto.yoThemeId ?? dto.YOThemeId ?? null) as number | null,
   };
 }
 

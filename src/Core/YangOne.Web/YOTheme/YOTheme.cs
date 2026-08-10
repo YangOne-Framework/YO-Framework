@@ -43,6 +43,36 @@ public class YOTheme
 
     public bool IsDeleted { get; set; }
 
+    /* ── YOTheme Studio lifecycle columns (1.1.0, blueprint §13) ── */
+
+    public long? BrandKitId { get; set; }
+
+    public string Thumbnail { get; set; }
+
+    public string PublishedConfig { get; set; }
+
+    public string CompiledCss { get; set; }
+
+    public string PublishedCss { get; set; }
+
+    public string ConfigHash { get; set; }
+
+    public string PublishedConfigHash { get; set; }
+
+    /// <summary>draft | under_review | approved | published | archived (blueprint §8)</summary>
+    public string Status { get; set; }
+
+    public bool IsDefault { get; set; }
+
+    public bool IsPublished { get; set; }
+
+    public DateTime? PublishedOn { get; set; }
+
+    public long PublishedBy { get; set; }
+
+    /// <summary>Theme config schema version: 1 = legacy flat tokens, 2 = three-level tokens</summary>
+    public int SchemaVersion { get; set; }
+
     [AutoFill(AutoFillProperty.CurrentDate)]
     [IgnoreUpdate]
     public DateTime AddedOn { get; set; }
@@ -95,6 +125,13 @@ public class YOThemeListItem
     public bool IsSystem { get; set; }
     public long? ParentYOThemeId { get; set; }
     public string ParentThemeName { get; set; }
+    public string Thumbnail { get; set; }
+    public long? BrandKitId { get; set; }
+    public string Status { get; set; }
+    public bool IsDefault { get; set; }
+    public bool IsPublished { get; set; }
+    public DateTime? PublishedOn { get; set; }
+    public int SchemaVersion { get; set; }
     public long RowTotal { get; set; }
 }
 
@@ -136,6 +173,15 @@ public class YOThemeAsset
     public string FileHash { get; set; }
 
     public DateTime AddedOn { get; set; }
+
+    /* ── 1.1.0 blueprint §101 extension columns ── */
+    public long? BrandKitId { get; set; }
+    public string AssetName { get; set; }
+    public string MimeType { get; set; }
+    public string AltText { get; set; }
+    public string MetadataJson { get; set; }
+    public bool IsActive { get; set; }
+    public bool IsDeleted { get; set; }
 }
 
 // ── Request DTOs ──
@@ -152,6 +198,9 @@ public class YOThemeSaveRequest
     public string Config { get; set; }
     public bool IsSystem { get; set; }
     public long? ParentYOThemeId { get; set; }
+    public string Thumbnail { get; set; }
+    public long? BrandKitId { get; set; }
+    public int SchemaVersion { get; set; } = 2;
 }
 
 public class YOThemeActivateRequest

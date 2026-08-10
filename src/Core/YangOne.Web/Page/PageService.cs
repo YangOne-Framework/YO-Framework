@@ -336,7 +336,6 @@ public class PageService : IPageService
                         PublishedAt = request.PublishedAt,
                         Culture = request.Culture ?? "en-US",
                         TemplateType = request.TemplateType ?? "page",
-                        YOThemeId = request.YOThemeId,
                         UpdatedBy = 0
                     },
                     commandType: System.Data.CommandType.StoredProcedure);

@@ -14,7 +14,6 @@ interface MasterLayoutDto {
   IsActive: boolean;
   AddedOn: string;
   RowTotal: number;
-  YOThemeId?: number | null;
 }
 
 interface MasterLayoutListResponse {
@@ -38,7 +37,6 @@ export interface MasterLayoutSaveRequest {
   Sidebar: string;
   IsSystem: boolean;
   LayoutConfig: string;
-  YOThemeId?: number | null;
 }
 
 export const layoutAPI = createApi({

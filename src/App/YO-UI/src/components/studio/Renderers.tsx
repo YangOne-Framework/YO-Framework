@@ -2,7 +2,7 @@ import type { CSSProperties } from "react";
 import type { YoRendererProps } from '../../types/yoPageTypes';
 import { componentInlineStyle, componentStyleClasses } from '../../utils/style';
 import { resolveImageUrl } from '../../utils/image';
-import { useYOTheme } from '../../context/YOThemeContext';
+import { useStudioTheme } from '../../context/StudioThemeContext';
 
 function wrapperClasses(base: string, style: YoRendererProps['style']) {
   return `${base} ${componentStyleClasses(style)}`;
@@ -41,7 +41,7 @@ export function ButtonRenderer({ config, style }: YoRendererProps) {
     variant === 'secondary' ? 'yo-btn yo-btn-secondary'
       : variant === 'ghost' ? 'yo-btn yo-btn-text'
         : 'yo-btn yo-btn-primary';
-  const { resolveComponent } = useYOTheme();
+  const { resolveComponent } = useStudioTheme();
   const variantExtra = resolveComponent('button').classes;
   return (
     <div className={componentStyleClasses(style)} style={componentInlineStyle(style)}>
@@ -114,7 +114,7 @@ export function HeroRenderer({ config, style }: YoRendererProps) {
 
 /* ── Card Grid ───────────────────────────────────────────── */
 export function CardGridRenderer({ config, style }: YoRendererProps) {
-  const { resolveComponent } = useYOTheme();
+  const { resolveComponent } = useStudioTheme();
   const cardVariantClasses = resolveComponent('card').classes;
   const rawItems = Array.isArray(config.items) ? config.items : [];
   const items = rawItems.length > 0 ? rawItems : [

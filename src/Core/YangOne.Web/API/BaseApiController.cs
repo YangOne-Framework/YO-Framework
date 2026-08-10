@@ -130,6 +130,13 @@ namespace YangOne.Web.API
         }
 
         [ApiExplorerSettings(IgnoreApi = true)]
+        protected ActionResult<ApiResponse<object>> ErrorResponse(int statusCode, string msg, object? data)
+        {
+            var response = CreateResponse<object>(statusCode, msg, data, new[] { msg });
+            return StatusCode(statusCode, response);
+        }
+
+        [ApiExplorerSettings(IgnoreApi = true)]
         protected ActionResult<ApiResponse<T>> ErrorResponse<T>(int statusCode, string msg)
         {
             var response = CreateResponse<T>(statusCode, msg, default, new[] { msg });

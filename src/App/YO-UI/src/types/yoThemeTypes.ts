@@ -17,6 +17,16 @@ export interface YOTheme {
   OverrideCount: number;
   ParentThemeName: string;
   RowTotal: number;
+  /** YOTheme Studio lifecycle columns (1.1.0) */
+  Status?: 'draft' | 'under_review' | 'approved' | 'published' | 'archived';
+  IsDefault?: boolean;
+  IsPublished?: boolean;
+  PublishedOn?: string | null;
+  SchemaVersion?: number;
+  Thumbnail?: string | null;
+  BrandKitId?: number | null;
+  AddedOn?: string;
+  UpdatedOn?: string | null;
 }
 
 export interface ParsedThemeConfig {
@@ -28,6 +38,8 @@ export interface ParsedThemeConfig {
   customizer?: CustomizerSchema;
   /** Custom CSS injected into the page when this theme is active */
   customCss?: string;
+  /** Default appearance — how the page picks light/dark when not previewing */
+  appearance?: { defaultMode?: 'light' | 'dark'; supportedModes?: string[] };
 }
 
 export interface ThemeTokens {
@@ -42,6 +54,9 @@ export interface ThemeTokens {
   focus?: { width?: string; color?: string; offset?: string };
   /** Fluid modular scale for inherently responsive typography/spacing */
   fluid?: { base?: string; ratio?: number; min?: number; max?: number };
+  /** Responsive breakpoint overrides — emitted as min-width media queries on
+   *  the CSS variables (e.g. spacing-container-max, c-primary). */
+  responsive?: Record<string, { minWidth: string; vars: Record<string, string> }>;
 }
 
 export interface FontConfig {
@@ -117,6 +132,9 @@ export interface YOThemeSaveRequest {
   Config?: string;
   IsSystem?: boolean;
   ParentYOThemeId?: number | null;
+  Thumbnail?: string;
+  BrandKitId?: number | null;
+  SchemaVersion?: number;
 }
 
 export interface YOThemeActivateRequest {

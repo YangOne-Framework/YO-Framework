@@ -109,15 +109,6 @@ const LayoutList = () => {
       ),
     },
     {
-      key: "YOThemeId",
-      label: "Theme",
-      render: (row: any) => (
-        <span className="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-sm font-medium text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300">
-          {row.YOThemeId ? "Assigned" : "Default"}
-        </span>
-      ),
-    },
-    {
       key: "IsSystem",
       label: "System",
       render: (row: any) => (

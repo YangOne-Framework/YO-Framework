@@ -81,7 +81,9 @@ namespace YangOne.Web
             services.TryAddSingleton<IPageService, PageService>();
             services.AddSingleton<IAuditService, AuditService>();
             services.AddSingleton<IMasterLayoutService, MasterLayoutService>();
-            services.AddSingleton<IYOThemeService, YOThemeService>();
+            services.AddSingleton<IYOThemeStudioService, YOThemeStudioService>();
+            /* Scheduled theme activation worker (blueprint §86) */
+            services.AddHostedService<YOThemeSchedulerWorker>();
             services.AddScoped<IYangOneConfigurationManager, YOConfigurationManager>();
             services.AddSingleton<IScriptRunner, SQLScriptRunner>();
             services.AddSingleton<IModuleService, ModuleService>();

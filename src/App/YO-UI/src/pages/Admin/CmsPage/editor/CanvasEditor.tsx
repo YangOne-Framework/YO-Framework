@@ -4,17 +4,21 @@ import { componentDefinitions } from '../../../../registry/componentRegistry';
 import { layoutPresets } from '../../../../registry/layoutPresets';
 import { editorStore } from '../../../../store/editorStore';
 import { useEditorStore } from '../../../../store/useEditorStore';
-import { YOThemeProvider, buildTokenCss, parseThemeConfig } from '../../../../context/YOThemeContext';
-import { useGetActiveThemeQuery } from '../../../../redux/theme/themeAPI';
+import { ChevronDown, ChevronUp, Monitor, Smartphone, Tablet, Trash2 } from 'lucide-react';
+import { StudioThemeProvider } from '../../../../context/StudioThemeContext';
+import { useGetActiveStudioThemeQuery } from '../../../../redux/theme/themeStudioAPI';
+import { buildTokenCss, parseThemeConfig } from '../../../../services/runtimeThemeCss';
 import { ComponentRenderer } from '../../../../renderer/ComponentRenderer';
 import { responsiveColumnClasses } from '../../../../utils/style';
 import type { YoColumn, YoSection, DeviceMode } from '../../../../types/yoPageTypes';
 
 const LAYOUT_ZONE_IDS = ['layout-header', 'layout-sidebar', 'layout-footer'] as const;
 
+const cardActionClass = 'inline-flex h-6 w-6 items-center justify-center rounded-md border border-gray-200 bg-white text-gray-500 shadow-theme-xs transition hover:bg-gray-100 hover:text-gray-700 disabled:opacity-30 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200';
+
 export function CanvasEditor() {
   const { page, selectedComponentId, activeDevice, editingLayout } = useEditorStore();
-  const { data: activeTheme } = useGetActiveThemeQuery();
+  const { data: activeTheme } = useGetActiveStudioThemeQuery();
 
   const themeConfig = useMemo(() => {
     if (!activeTheme?.Config) return null;
@@ -41,7 +45,7 @@ export function CanvasEditor() {
   const canvas = (
     <main className="relative h-full overflow-y-auto bg-gray-100 p-6 dark:bg-gray-950">
       <div className="relative mx-auto space-y-5 transition-all duration-300 rounded-2xl shadow-theme-md" style={{ maxWidth: activeDevice === 'mobile' ? '430px' : activeDevice === 'tablet' ? '820px' : '1180px', backgroundColor: page.settings.backgroundColor ?? '#ffffff', minHeight: '90%' }}>
-        <CanvasHeader />
+        <CanvasChrome />
         {page.sections.length === 0 ? <EmptyCanvas /> : null}
         {renderedSections}
         {page.sections.length > 0 && !editingLayout && <BottomAddSection />}
@@ -52,10 +56,10 @@ export function CanvasEditor() {
   if (!themeConfig) return canvas;
 
   return (
-    <YOThemeProvider themeConfig={themeConfig}>
+    <StudioThemeProvider themeConfig={themeConfig}>
       <style>{cssVars}</style>
       {canvas}
-    </YOThemeProvider>
+    </StudioThemeProvider>
   );
 }
 
@@ -90,19 +94,39 @@ function BottomAddSection() {
   );
 }
 
-function CanvasHeader() {
+function CanvasChrome() {
   const { page, activeDevice } = useEditorStore();
+  const devices: { id: DeviceMode; label: string; icon: typeof Monitor }[] = [
+    { id: 'desktop', label: 'Desktop', icon: Monitor },
+    { id: 'tablet', label: 'Tablet', icon: Tablet },
+    { id: 'mobile', label: 'Mobile', icon: Smartphone },
+  ];
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white/90 p-4 shadow-theme-md backdrop-blur dark:border-gray-700 dark:bg-gray-900/90">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">Live composition canvas</p>
-          <h2 className="mt-1 text-lg font-bold tracking-tight text-gray-900 dark:text-white">{page.title}</h2>
+    <div className="flex items-center gap-3 rounded-2xl border border-gray-200 bg-white/90 px-4 py-2.5 shadow-theme-md backdrop-blur dark:border-gray-700 dark:bg-gray-900/90">
+      <div className="flex items-center gap-1.5">
+        <span className="h-2.5 w-2.5 rounded-full bg-error-400" />
+        <span className="h-2.5 w-2.5 rounded-full bg-warning-400" />
+        <span className="h-2.5 w-2.5 rounded-full bg-success-400" />
+      </div>
+      <div className="flex min-w-0 flex-1 justify-center">
+        <div className="inline-flex min-w-0 max-w-full items-center rounded-lg bg-gray-100 px-4 py-1.5 text-xs text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+          <span className="truncate">/{page.slug}</span>
         </div>
-        <div className="flex items-center gap-2 rounded-lg bg-gray-100 p-0.5 text-xs font-medium text-gray-600 dark:bg-gray-800 dark:text-gray-400">
-          <span className="rounded-md bg-white px-3 py-1 shadow-theme-xs dark:bg-gray-900">{activeDevice}</span>
-          <span className="px-2">{page.settings.containerMode}</span>
-        </div>
+      </div>
+      <div className="flex items-center gap-0.5">
+        {devices.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            title={label}
+            onClick={() => editorStore.setDevice(id)}
+            className={`inline-flex h-7 w-7 items-center justify-center rounded-md transition ${
+              activeDevice === id
+                ? 'bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400'
+                : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
+            }`}>
+            <Icon className="h-4 w-4" />
+          </button>
+        ))}
       </div>
     </div>
   );
@@ -133,7 +157,7 @@ function SectionEditor({ section, index, selectedComponentId, activeDevice }: { 
   const collapsed = Boolean(section.collapsed);
   const isLayoutZone = editingLayout && (LAYOUT_ZONE_IDS as readonly string[]).includes(section.id);
   return (
-    <section className={`overflow-hidden rounded-2xl border bg-white/90 shadow-theme-md backdrop-blur transition ${selected ? 'border-brand-500 ring-4 ring-brand-500/10' : 'border-gray-200 dark:border-gray-700'} dark:bg-gray-900/90`}
+    <section className={`overflow-hidden rounded-2xl border bg-white/90 shadow-theme-md backdrop-blur transition ${selected ? 'border-dashed border-brand-500 ring-4 ring-brand-500/10' : 'border-gray-200 dark:border-gray-700'} dark:bg-gray-900/90`}
       onClick={() => editorStore.selectSection(section.id)}>
       <div className="border-b border-gray-100 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -228,7 +252,7 @@ function ColumnDropZone({ section, column, selectedComponentId, activeDevice }: 
           <span className="inline-flex items-center gap-1 rounded-lg bg-white px-2.5 py-0.5 text-xs font-medium text-gray-400 shadow-theme-xs dark:bg-gray-800 dark:text-gray-500">Drop zone</span>
         </div>
         <div className="space-y-3">
-          {column.components.map(componentId => {
+          {column.components.map((componentId, index) => {
             const component = page.components[componentId];
             if (!component) return null;
             const selected = selectedComponentId === component.id;
@@ -236,7 +260,33 @@ function ColumnDropZone({ section, column, selectedComponentId, activeDevice }: 
               <div key={component.id} draggable={!component.locked}
                 onDragStart={event => event.dataTransfer.setData('component/id', component.id)}
                 onClick={event => { event.stopPropagation(); editorStore.selectComponent(component.id); }}
-                className={`group relative rounded-xl border bg-white p-3 shadow-theme-xs transition dark:bg-gray-900 ${selected ? 'border-brand-500 ring-4 ring-brand-500/10' : 'border-gray-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-theme-sm dark:border-gray-700 dark:hover:border-gray-600'}`}>
+                className={`group relative rounded-xl border bg-white p-3 shadow-theme-xs transition dark:bg-gray-900 ${selected ? 'border-dashed border-success-500 ring-4 ring-success-500/10' : 'border-gray-200 hover:-translate-y-0.5 hover:border-gray-300 hover:shadow-theme-sm dark:border-gray-700 dark:hover:border-gray-600'}`}>
+                <div className="absolute right-2 top-2 z-10 flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
+                  {!component.locked && (
+                    <>
+                      <button
+                        title="Move up"
+                        disabled={index === 0}
+                        className={cardActionClass}
+                        onClick={event => { event.stopPropagation(); editorStore.moveComponent(component.id, section.id, column.id, index - 1); }}>
+                        <ChevronUp className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        title="Move down"
+                        disabled={index === column.components.length - 1}
+                        className={cardActionClass}
+                        onClick={event => { event.stopPropagation(); editorStore.moveComponent(component.id, section.id, column.id, index + 1); }}>
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      </button>
+                    </>
+                  )}
+                  <button
+                    title="Delete"
+                    className={`${cardActionClass} text-error-500 hover:bg-error-50 hover:text-error-600 dark:text-error-400 dark:hover:bg-error-500/15 dark:hover:text-error-300`}
+                    onClick={event => { event.stopPropagation(); editorStore.removeComponent(component.id); }}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
                 <div className="mb-3 flex items-center justify-between border-b border-gray-100 pb-2 text-xs text-gray-400 dark:border-gray-700 dark:text-gray-500">
                   <span className="font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">{component.name}</span>
                   <span className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2 py-0.5 text-xs font-medium dark:bg-gray-800 dark:text-gray-400">{component.locked ? 'Locked' : 'Drag'}</span>

@@ -347,8 +347,23 @@ export const componentRegistry: Record<string, YoComponentDefinition> = {
 
 export const componentDefinitions = Object.values(componentRegistry);
 
+type ComponentRegistryListener = () => void;
+const registryListeners = new Set<ComponentRegistryListener>();
+let componentRegistryVersion = 0;
+
+export function subscribeComponentRegistry(listener: ComponentRegistryListener): () => void {
+  registryListeners.add(listener);
+  return () => { registryListeners.delete(listener); };
+}
+
+export function getComponentRegistryVersion(): number {
+  return componentRegistryVersion;
+}
+
 export function registerDynamicDefinition(def: YoComponentDefinition) {
   if (componentRegistry[def.type]) return;
   componentRegistry[def.type] = def;
   componentDefinitions.push(def);
+  componentRegistryVersion++;
+  registryListeners.forEach(listener => listener());
 }

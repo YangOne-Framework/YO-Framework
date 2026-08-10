@@ -47,11 +47,12 @@ public class HtmlComponentAPIController : BaseApiController
     public async Task<ActionResult<ApiResponse<IEnumerable<HtmlComponentDetailDto>>>> GetAllActive(
         [FromQuery] int offset = 1,
         [FromQuery] int limit = 20,
-        [FromQuery] string query = "")
+        [FromQuery] string query = "",
+        [FromQuery] string category = null)
     {
         try
         {
-            var data = await _htmlComponentService.GetActivePagedAsync(offset, limit, query);
+            var data = await _htmlComponentService.GetActivePagedAsync(offset, limit, query, category);
             return SuccessResponse("Success", data);
         }
         catch (Exception e)
@@ -66,11 +67,12 @@ public class HtmlComponentAPIController : BaseApiController
     public async Task<ActionResult<ApiResponse<IEnumerable<HtmlComponentItemDto>>>> GetAll(
         [FromQuery] int offset = 1,
         [FromQuery] int limit = 20,
-        [FromQuery] string query = "")
+        [FromQuery] string query = "",
+        [FromQuery] string category = null)
     {
         try
         {
-            var data = await _htmlComponentService.GetAllPagedAsync(offset, limit, query);
+            var data = await _htmlComponentService.GetAllPagedAsync(offset, limit, query, category);
             return SuccessResponse("Success", data);
         }
         catch (Exception e)

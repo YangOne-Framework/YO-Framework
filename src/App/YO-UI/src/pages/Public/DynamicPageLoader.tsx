@@ -4,7 +4,7 @@ import DynamicPage from "./DynamicPage";
 import NotFound from "../OtherPage/NotFound";
 import { useGetPublicPageBySlugQuery } from "../../redux/publicPage/publicPageAPI";
 import { mapLayoutDtoToDefinition } from "../../services/localStorageDb";
-import { parseThemeConfig } from "../../context/YOThemeContext";
+import { parseThemeConfig } from "../../services/runtimeThemeCss";
 import type { PublicPageResponse } from "../../types/yoPageApiTypes";
 import type { YoPage, YoComponentInstance, MasterLayoutDefinition, SeoSettings } from "../../types/yoPageTypes";
 
@@ -50,7 +50,6 @@ function mapPublicPageToYoPage(dto: PublicPageResponse): YoPage {
     updatedAt: (d.updatedAt ?? d.UpdatedAt ?? new Date().toISOString()) as string,
     publishedAt: (d.publishedAt ?? d.PublishedAt ?? null) as string | null,
     templateType: (d.templateType ?? d.TemplateType ?? "page") as string,
-    yoThemeId: (d.yoThemeId ?? d.YOThemeId ?? null) as number | null,
     themeConfig: parseThemeConfig(d.themeConfig ?? d.ThemeConfig ?? null),
   };
 }

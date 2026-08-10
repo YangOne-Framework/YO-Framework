@@ -2,9 +2,9 @@ import { useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router";
 import DynamicPage from "../../Public/DynamicPage";
 import { useGetYoPageByIdQuery } from "../../../redux/cmspage/cmsPageAPI";
-import { useGetActiveThemeQuery } from "../../../redux/theme/themeAPI";
+import { useGetActiveStudioThemeQuery } from "../../../redux/theme/themeStudioAPI";
 import { useGetMasterLayoutByIdQuery } from "../../../redux/layout/layoutAPI";
-import { parseThemeConfig } from "../../../context/YOThemeContext";
+import { parseThemeConfig } from "../../../services/runtimeThemeCss";
 import { mapPageDtoToYoPage, mapLayoutDtoToDefinition } from "../../../services/localStorageDb";
 
 export default function PreviewPage() {
@@ -13,7 +13,7 @@ export default function PreviewPage() {
   const pageId = searchParams.get("id");
 
   const { data: apiResponse, isLoading } = useGetYoPageByIdQuery(pageId!, { skip: !pageId });
-  const { data: activeTheme } = useGetActiveThemeQuery();
+  const { data: activeTheme } = useGetActiveStudioThemeQuery();
 
   const pageData = apiResponse?.Data as any;
   const masterLayoutId = pageData?.MasterLayoutId ?? pageData?.masterLayoutId ?? null;

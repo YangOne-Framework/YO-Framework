@@ -6,22 +6,21 @@ import type { YoAnimationConfig, YoComponentStyle, DeviceMode } from '../../../.
 import { editorStore } from '../../../../store/editorStore';
 import { useEditorStore } from '../../../../store/useEditorStore';
 import { DynamicFieldRenderer } from './DynamicFieldRenderer';
-import Badge from '../../../../components/ui/badge/Badge';
 import Label from '../../../../components/form/Label';
 import { FileImagePicker } from '../../Layout/editors/FileImagePicker';
 import { MenuBuilderEditor } from '../../Layout/editors/MenuBuilderEditor';
 import { LinkListEditor } from '../../Layout/editors/LinkListEditor';
 import { SocialLinksEditor } from '../../Layout/editors/SocialLinksEditor';
+import { ChevronDown, X } from 'lucide-react';
 
 const selectClass = 'w-full rounded-lg border border-gray-300 bg-transparent px-4 py-2.5 pr-11 text-sm text-gray-800 shadow-theme-xs focus:border-brand-300 focus:ring-3 focus:ring-brand-500/10 focus:outline-hidden dark:border-gray-700 dark:text-white/90 dark:bg-gray-900';
 
 export function PropertiesPanel() {
   const { page, selectedComponentId, selectedSectionId } = useEditorStore();
   const component = selectedComponentId ? page.components[selectedComponentId] : null;
-  const section = selectedSectionId ? page.sections.find(x => x.id === selectedSectionId) : null;
 
   if (!component) {
-    return <PageAndSectionPanel sectionId={section?.id ?? null} />;
+    return <PageAndSectionPanel sectionId={selectedSectionId} />;
   }
 
   const definition = componentRegistry[component.type];
@@ -38,21 +37,22 @@ export function PropertiesPanel() {
   };
 
   return (
-    <aside className="h-full overflow-y-auto border-l border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
-      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-md dark:border-gray-700 dark:bg-gray-900">
-        <div className="mb-5 flex items-start justify-between gap-3">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">Selected block</p>
-            <h2 className="mt-1 text-lg font-bold tracking-tight text-gray-900 dark:text-white">{definition.label}</h2>
-            <p className="mt-1 max-w-64 truncate text-xs text-gray-400 dark:text-gray-500">{component.id}</p>
-          </div>
-          <button onClick={() => editorStore.toggleLocked(component.id)}
+    <aside className="flex h-full flex-col border-l border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+      <PanelHeader
+        title={definition.label}
+        subtitle={component.type}
+        onClose={() => editorStore.selectComponent(null)}
+        actions={
+          <button
+            onClick={() => editorStore.toggleLocked(component.id)}
             className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium ${component.locked ? 'bg-warning-50 text-warning-700 dark:bg-warning-500/15 dark:text-warning-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'}`}>
             {component.locked ? 'Locked' : 'Unlocked'}
           </button>
-        </div>
+        }
+      />
 
-        <Panel title="Content" badge={definition.group === 'Layout' ? 'Layout component' : 'JSON schema driven'}>
+      <div className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
+        <Panel title="Content" badge={definition.group === 'Layout' ? 'Layout component' : 'JSON schema driven'} defaultOpen>
           <LayoutContentFields componentType={component.type} config={component.config} onUpdate={updateConfig} definition={definition} />
         </Panel>
 
@@ -99,7 +99,7 @@ export function PropertiesPanel() {
           <Panel title="Style Slots" badge="Per-part overrides">
             {definition.styleSlots.map(slot => {
               const slotKey = `__styleSlot__${slot.slot}`;
-              const slotStyle = (component.config as any)?.[slotKey] as Record<string, string> | undefined;
+              const slotStyle = component.config[slotKey] as Record<string, string> | undefined;
               return (
                 <details key={slot.slot} className="group rounded-lg border border-gray-200 dark:border-gray-700">
                   <summary className="flex cursor-pointer items-center justify-between px-3 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-800">{slot.label} ({slot.slot})</summary>
@@ -110,7 +110,7 @@ export function PropertiesPanel() {
                         <input className="w-full rounded border border-gray-200 bg-gray-50 px-2 py-1 text-xs dark:border-gray-700 dark:bg-gray-800"
                           value={slotStyle?.[prop] ?? ''}
                           onChange={e => {
-                            const current = { ...((component.config as any)?.[slotKey] as Record<string, string> | undefined) };
+                            const current = { ...(component.config[slotKey] as Record<string, string> | undefined) };
                             if (!e.target.value) delete current[prop];
                             else current[prop] = e.target.value;
                             editorStore.updateComponentConfig(component.id, slotKey, Object.keys(current).length > 0 ? current : undefined);
@@ -150,11 +150,11 @@ export function PropertiesPanel() {
             </label>
           ))}
         </Panel>
+      </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-3">
-          <button className="inline-flex items-center gap-2 rounded-lg bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 px-4 py-3 text-sm font-medium shadow-theme-xs transition justify-center dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300" onClick={() => editorStore.duplicateComponent(component.id)}>Duplicate</button>
-          <button className="inline-flex items-center gap-2 rounded-lg bg-error-50 text-error-600 border border-error-200 hover:bg-error-100 px-4 py-3 text-sm font-medium shadow-theme-xs transition justify-center dark:bg-error-500/15 dark:text-error-400 dark:border-error-500/30 dark:hover:bg-error-500/25" onClick={() => editorStore.removeComponent(component.id)}>Delete</button>
-        </div>
+      <div className="grid grid-cols-2 gap-2 border-t border-gray-100 p-3 dark:border-gray-800">
+        <button className="inline-flex items-center gap-2 rounded-lg bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 px-4 py-2.5 text-sm font-medium shadow-theme-xs transition justify-center dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300" onClick={() => editorStore.duplicateComponent(component.id)}>Duplicate</button>
+        <button className="inline-flex items-center gap-2 rounded-lg bg-error-50 text-error-600 border border-error-200 hover:bg-error-100 px-4 py-2.5 text-sm font-medium shadow-theme-xs transition justify-center dark:bg-error-500/15 dark:text-error-400 dark:border-error-500/30 dark:hover:bg-error-500/25" onClick={() => editorStore.removeComponent(component.id)}>Delete</button>
       </div>
     </aside>
   );
@@ -164,12 +164,16 @@ function PageAndSectionPanel({ sectionId }: { sectionId: string | null }) {
   const { page, editingLayout } = useEditorStore();
   const section = sectionId ? page.sections.find(x => x.id === sectionId) : null;
   return (
-    <aside className="h-full overflow-y-auto border-l border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
-      <div className="space-y-4">
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-md dark:border-gray-700 dark:bg-gray-900">
-          <p className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">Page settings</p>
-          <h2 className="mt-1 text-lg font-bold tracking-tight text-gray-900 dark:text-white">Layout & master</h2>
-          <div className="mt-5 space-y-4">
+    <aside className="flex h-full flex-col border-l border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+      <PanelHeader
+        title={section ? 'Section' : 'Page'}
+        subtitle={section ? section.name : 'body'}
+        onClose={section ? () => editorStore.selectSection(null) : undefined}
+      />
+
+      <div className="min-h-0 flex-1 overflow-y-auto custom-scrollbar">
+        <Panel title="Layout & master" badge="page settings" defaultOpen>
+          <div className="space-y-4">
             {!editingLayout && (
               <>
                 <Label>Master layout</Label>
@@ -184,12 +188,10 @@ function PageAndSectionPanel({ sectionId }: { sectionId: string | null }) {
             <DynamicFieldRenderer field={{ key: 'backgroundColor', label: 'Page background', type: 'color' }}
               value={page.settings.backgroundColor ?? '#f8fafc'} onChange={value => editorStore.setPageSetting('backgroundColor', String(value))} />
           </div>
-        </div>
+        </Panel>
 
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-md dark:border-gray-700 dark:bg-gray-900">
-          <p className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">Master customization</p>
-          <h2 className="mt-1 text-lg font-bold tracking-tight text-gray-900 dark:text-white">Header / Footer</h2>
-          <div className="mt-5 space-y-4">
+        <Panel title="Header / Footer" badge="master customization">
+          <div className="space-y-4">
             <DynamicFieldRenderer field={{ key: 'brandName', label: 'Brand name', type: 'text' }}
               value={page.masterLayoutConfig.brandName} onChange={value => editorStore.setMasterLayoutConfig('brandName', String(value))} />
             <DynamicFieldRenderer field={{ key: 'navItems', label: 'Navigation items', type: 'text', helpText: 'Comma separated: Home, Work, Pricing' }}
@@ -205,7 +207,7 @@ function PageAndSectionPanel({ sectionId }: { sectionId: string | null }) {
             <DynamicFieldRenderer field={{ key: 'footerText', label: 'Footer text', type: 'text' }}
               value={page.masterLayoutConfig.footerText} onChange={value => editorStore.setMasterLayoutConfig('footerText', String(value))} />
           </div>
-        </div>
+        </Panel>
 
         {section ? <SectionSettings sectionId={section.id} /> : null}
       </div>
@@ -218,16 +220,14 @@ function SectionSettings({ sectionId }: { sectionId: string }) {
   const section = page.sections.find(x => x.id === sectionId);
   if (!section) return null;
   return (
-    <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-theme-md dark:border-gray-700 dark:bg-gray-900">
-      <p className="text-xs font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">Selected section</p>
-      <h2 className="mt-1 text-lg font-bold tracking-tight text-gray-900 dark:text-white">{section.name}</h2>
-      <div className="mt-5 space-y-4">
+    <Panel title="Section settings" badge="section" defaultOpen>
+      <div className="space-y-4">
         <DynamicFieldRenderer field={{ key: 'name', label: 'Section name', type: 'text' }}
           value={section.name} onChange={value => editorStore.updateSection(section.id, s => { s.name = String(value); })} />
         <SmallSelect label="Section width" value={section.settings.layoutMode} options={['boxed', 'fluid']}
           onChange={value => editorStore.updateSection(section.id, s => { s.settings.layoutMode = value as 'boxed' | 'fluid'; s.settings.fullWidth = value === 'fluid'; })} />
         <SmallSelect label="Vertical padding" value={section.settings.paddingY} options={['none', 'sm', 'md', 'lg', 'xl']}
-          onChange={value => editorStore.updateSection(section.id, s => { s.settings.paddingY = value as any; })} />
+          onChange={value => editorStore.updateSection(section.id, s => { s.settings.paddingY = value as 'none' | 'sm' | 'md' | 'lg' | 'xl'; })} />
         <DynamicFieldRenderer field={{ key: 'backgroundColor', label: 'Background', type: 'color' }}
           value={section.settings.backgroundColor ?? '#ffffff'} onChange={value => editorStore.updateSection(section.id, s => { s.settings.backgroundColor = String(value); })} />
         <DynamicFieldRenderer field={{ key: 'backgroundImage', label: 'Background image URL', type: 'image' }}
@@ -235,7 +235,7 @@ function SectionSettings({ sectionId }: { sectionId: string }) {
         <DynamicFieldRenderer field={{ key: 'className', label: 'Extra classes', type: 'text' }}
           value={section.settings.className ?? ''} onChange={value => editorStore.updateSection(section.id, s => { s.settings.className = String(value); })} />
       </div>
-    </div>
+    </Panel>
   );
 }
 
@@ -286,13 +286,46 @@ function LayoutContentFields({ componentType, config, onUpdate, definition }: {
   );
 }
 
-function Panel({ title, badge, children }: { title: string; badge?: string; children: React.ReactNode }) {
-  return <section className="mb-6 space-y-3 border-b border-gray-100 pb-5 dark:border-gray-700">
-    <div className="flex items-end justify-between gap-3">
-      <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">{title}</h3>
-      {badge ? <Badge variant="light" size="sm">{badge}</Badge> : null}
-    </div>{children}
-  </section>;
+function PanelHeader({ title, subtitle, onClose, actions }: {
+  title: string;
+  subtitle?: string;
+  onClose?: () => void;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-2 border-b border-gray-100 px-4 py-3 dark:border-gray-800">
+      <div className="min-w-0">
+        <h2 className="truncate text-sm font-bold uppercase tracking-wide text-gray-900 dark:text-white">{title}</h2>
+        {subtitle ? <p className="truncate text-[10px] uppercase tracking-wider text-gray-400 dark:text-gray-500">{subtitle}</p> : null}
+      </div>
+      <div className="flex flex-shrink-0 items-center gap-1">
+        {actions}
+        {onClose ? (
+          <button
+            onClick={onClose}
+            title="Close"
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-white/5 dark:hover:text-gray-300">
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function Panel({ title, badge, defaultOpen = false, children }: { title: string; badge?: string; defaultOpen?: boolean; children: React.ReactNode }) {
+  return (
+    <details open={defaultOpen} className="group border-b border-gray-100 dark:border-gray-800">
+      <summary className="flex cursor-pointer list-none items-center justify-between px-4 py-3 transition hover:bg-gray-50 dark:hover:bg-white/5 [&::-webkit-details-marker]:hidden">
+        <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
+          <ChevronDown className="h-3.5 w-3.5 text-gray-400 transition group-open:rotate-180" />
+          {title}
+        </span>
+        {badge ? <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">{badge}</span> : null}
+      </summary>
+      <div className="space-y-3 px-4 pb-4">{children}</div>
+    </details>
+  );
 }
 
 function SmallSelect({ label, value, options, onChange }: { label: string; value: string; options: string[]; onChange: (value: string) => void }) {

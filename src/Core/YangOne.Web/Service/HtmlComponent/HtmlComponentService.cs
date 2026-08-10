@@ -8,46 +8,70 @@ using YangOne.Web.Model;
 namespace YangOne.Web.Service
 {
     /// <summary>
-    /// Manages HTML components including CRUD operations and uniqueness validation.
+    /// Manages HTML components including CRUD and catalog category filtering.
     /// </summary>
-    public class HtmlComponentService: IHtmlComponentService
+    public class HtmlComponentService : IHtmlComponentService
     {
         public CrudService<HtmlComponent> HtmlComponentCrudService { get; set; } = new();
-        public async Task<IEnumerable<HtmlComponentDetailDto>> GetActivePagedAsync(int offset, int limit, string query)
+
+        public async Task<IEnumerable<HtmlComponentDetailDto>> GetActivePagedAsync(
+            int offset, int limit, string query, string category = null)
         {
             var list = await HtmlComponentCrudService.GetListPagedAsync(
-                offset,
-                limit,
-                limit,
+                offset, limit, limit,
                 "Where IsActive=@IsActive and IsDeleted=@IsDeleted",
                 "Name asc",
                 new { IsActive = true, IsDeleted = false }
             );
 
-            return list.Select(ToDetailDto);
+            var filtered = ApplyFilters(list.AsEnumerable(), query, category);
+            return filtered.Select(ToDetailDto);
         }
 
-        public async Task<IEnumerable<HtmlComponentItemDto>> GetAllPagedAsync(int offset, int limit, string query)
+        public async Task<IEnumerable<HtmlComponentItemDto>> GetAllPagedAsync(
+            int offset, int limit, string query, string category = null)
         {
             var list = await HtmlComponentCrudService.GetListPagedAsync(
-                offset,
-                limit,
-                limit,
+                offset, limit, limit,
                 "Where IsDeleted=@IsDeleted",
                 "Name asc",
                 new { IsDeleted = false }
             );
 
-            return list.Select(ToItemDto);
+            var filtered = ApplyFilters(list.AsEnumerable(), query, category);
+            return filtered.Select(ToItemDto);
+        }
+
+        private static IEnumerable<HtmlComponent> ApplyFilters(
+            IEnumerable<HtmlComponent> source, string query, string category)
+        {
+            var result = source;
+
+            if (!string.IsNullOrWhiteSpace(query))
+            {
+                var q = query.Trim();
+                result = result.Where(x =>
+                    (x.Name?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (x.DisplayName?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (x.ShortDescription?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                    (x.CatalogCategory?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false));
+            }
+
+            if (!string.IsNullOrWhiteSpace(category))
+            {
+                var c = category.Trim();
+                result = result.Where(x =>
+                    string.Equals(x.CatalogCategory, c, StringComparison.OrdinalIgnoreCase));
+            }
+
+            return result;
         }
 
         public async Task<HtmlComponentDetailDto> GetByIdAsync(int id)
         {
             var entity = await HtmlComponentCrudService.GetAsync(id);
-
             if (entity == null || entity.IsDeleted)
                 throw new Exception("HtmlComponent not found");
-
             return ToDetailDto(entity);
         }
 
@@ -60,7 +84,6 @@ namespace YangOne.Web.Service
             if (dto.HtmlComponentId > 0)
             {
                 entity = await HtmlComponentCrudService.GetAsync(dto.HtmlComponentId);
-
                 if (entity == null || entity.IsDeleted)
                     throw new Exception("HtmlComponent not found");
 
@@ -78,6 +101,7 @@ namespace YangOne.Web.Service
                 entity.RuntimeOptions = dto.RuntimeOptions;
                 entity.Version = dto.Version;
                 entity.IsActive = dto.IsActive;
+                entity.CatalogCategory = dto.CatalogCategory ?? entity.CatalogCategory;
 
                 entity.AutoFill();
                 await HtmlComponentCrudService.UpdateAsync(entity);
@@ -100,7 +124,8 @@ namespace YangOne.Web.Service
                     RuntimeOptions = dto.RuntimeOptions,
                     Version = dto.Version,
                     IsActive = dto.IsActive,
-                    IsDeleted = false
+                    IsDeleted = false,
+                    CatalogCategory = dto.CatalogCategory
                 };
 
                 entity.AutoFill();
@@ -111,7 +136,30 @@ namespace YangOne.Web.Service
             return ToDetailDto(entity);
         }
 
-      
+        public async Task<bool> DeleteAsync(int id)
+        {
+            var entity = await HtmlComponentCrudService.GetAsync(id);
+            if (entity == null || entity.IsDeleted) return false;
+            await HtmlComponentCrudService.UpdateAsDeleted(id);
+            return true;
+        }
+
+        public async Task<bool> IsNameUniqueAsync(string name, string oldName, int htmlComponentId = 0)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return false;
+
+            if (htmlComponentId > 0 && !string.IsNullOrEmpty(oldName) &&
+                oldName.Trim().Equals(name.Trim(), StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            var exist = await HtmlComponentCrudService.GetAsync(
+                "Where Name=@Name and IsDeleted=@IsDeleted",
+                new { IsDeleted = false, Name = name.Trim() });
+
+            return exist == null;
+        }
 
         private static HtmlComponentItemDto ToItemDto(HtmlComponent x) => new HtmlComponentItemDto
         {
@@ -121,7 +169,8 @@ namespace YangOne.Web.Service
             ShortDescription = x.ShortDescription,
             Icon = x.Icon,
             PreviewImage = x.PreviewImage,
-            IsActive = x.IsActive
+            IsActive = x.IsActive,
+            CatalogCategory = x.CatalogCategory
         };
 
         private static HtmlComponentDetailDto ToDetailDto(HtmlComponent x) => new HtmlComponentDetailDto
@@ -133,6 +182,7 @@ namespace YangOne.Web.Service
             Icon = x.Icon,
             PreviewImage = x.PreviewImage,
             IsActive = x.IsActive,
+            CatalogCategory = x.CatalogCategory,
             Config = x.Config,
             ContentStructure = x.ContentStructure,
             HtmlTemplate = x.HtmlTemplate,
@@ -142,67 +192,5 @@ namespace YangOne.Web.Service
             RuntimeOptions = x.RuntimeOptions,
             Version = x.Version
         };
-        public async Task<bool> DeleteAsync(int id)
-        {
-            await HtmlComponentCrudService.UpdateAsDeleted(id);
-            return true;
-        }
-        public async Task<bool> IsNameUniqueAsync(string name,string oldName, int htmlComponentId =0)
-        {
-            if (string.IsNullOrWhiteSpace(name))
-                return false;
-
-            var normalized = name.Trim();
-
-            if (htmlComponentId > 0)
-            {
-                if (!string.IsNullOrEmpty(oldName))
-                {
-                    if (oldName.Trim() == name.Trim())
-                    {
-                        return true;
-                    }
-                    else
-                    {
-                        var exist = await HtmlComponentCrudService.GetAsync("Where Name=@Name and IsDeleted=@IsDeleted", new { IsDeleted = false, Name = name });
-                        if (exist == null)
-                        {
-                            return true;
-                        }
-                        else
-                        {
-                            return false;
-                        }
-                    }
-                }
-                else
-                {
-                   var exist=await  HtmlComponentCrudService.GetAsync("Where Name=@Name and IsDeleted=@IsDeleted", new { IsDeleted=false,Name = name });
-                   if (exist == null)
-                   {
-                       return true;
-                   }
-                   else
-                   {
-                       return false;
-                   }
-                }
-            }
-            else
-            {
-                var exist = await HtmlComponentCrudService.GetAsync("Where Name=@Name and IsDeleted=@IsDeleted", new { IsDeleted = false, Name = name });
-                if (exist == null)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            }
-                
-        }
-
     }
 }
-

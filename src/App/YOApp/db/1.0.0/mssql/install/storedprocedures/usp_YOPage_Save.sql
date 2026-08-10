@@ -1,18 +1,18 @@
-
 CREATE OR ALTER PROCEDURE dbo.usp_YOPage_Save
     @PageUniqueId           NVARCHAR(128),
-    @Name               NVARCHAR(256),
-    @Slug               NVARCHAR(512),
-    @Url                NVARCHAR(256),
-    @Status             NVARCHAR(20) = 'draft',
-    @PageType           NVARCHAR(20) = 'cms',
-    @MasterLayoutId     NVARCHAR(128) = NULL,
-    @ContentConfig      NVARCHAR(max) = NULL,
-    @ContentConfigDraft NVARCHAR(max) = NULL,
-    @Version            INT = 1,
-    @PublishedAt        DATETIME = NULL,
-    @Culture            NVARCHAR(10) = 'en-US',
-    @UpdatedBy          BIGINT = 0
+    @Name                   NVARCHAR(256),
+    @Slug                   NVARCHAR(512),
+    @Url                    NVARCHAR(256),
+    @Status                 NVARCHAR(20) = 'draft',
+    @PageType               NVARCHAR(20) = 'cms',
+    @MasterLayoutId         NVARCHAR(128) = NULL,
+    @ContentConfig          NVARCHAR(max) = NULL,
+    @ContentConfigDraft     NVARCHAR(max) = NULL,
+    @Version                INT = 1,
+    @PublishedAt            DATETIME = NULL,
+    @Culture                NVARCHAR(10) = 'en-US',
+    @TemplateType           NVARCHAR(100) = 'page',
+    @UpdatedBy              BIGINT = 0
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -31,6 +31,7 @@ BEGIN
             ContentConfig, ContentConfigDraft,
             [Version], PublishedAt, LastModified,
             UseMasterLayout, IsPublished, Culture,
+            TemplateType,
             IsActive, AddedBy, UpdatedBy
         ) VALUES (
             @PageUniqueId, @Name, @Slug, @Url,
@@ -39,7 +40,9 @@ BEGIN
             @Version, @PublishedAt, GETDATE(),
             CASE WHEN @MasterLayoutId IS NOT NULL AND @MasterLayoutId != 'none' THEN 1 ELSE 0 END,
             CASE WHEN @Status = 'published' THEN 1 ELSE 0 END,
-            @Culture, 1, @UpdatedBy, @UpdatedBy
+            @Culture,
+            @TemplateType,
+            1, @UpdatedBy, @UpdatedBy
         );
 
         SELECT SCOPE_IDENTITY() AS PageId, 'inserted' AS Action;
@@ -60,6 +63,7 @@ BEGIN
             LastModified      = GETDATE(),
             UseMasterLayout   = CASE WHEN @MasterLayoutId IS NOT NULL AND @MasterLayoutId != 'none' THEN 1 ELSE 0 END,
             IsPublished       = CASE WHEN @Status = 'published' THEN 1 ELSE 0 END,
+            TemplateType      = @TemplateType,
             UpdatedOn         = GETDATE(),
             UpdatedBy         = @UpdatedBy
         WHERE PageId = @ExistingId;

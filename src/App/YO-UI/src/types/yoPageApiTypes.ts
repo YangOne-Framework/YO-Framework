@@ -19,7 +19,6 @@ export interface YoPageDto {
   UpdatedOn: string | null;
   UpdatedBy: number;
   RowTotal: number;
-  YOThemeId?: number | null;
   TemplateType?: string;
 }
 
@@ -40,7 +39,6 @@ export interface YoPageSaveRequest {
   Version: number;
   PublishedAt?: string | null;
   Culture?: string;
-  YOThemeId?: number | null;
   TemplateType?: string;
 }
 
@@ -96,6 +94,5 @@ export interface PublicPageResponse {
   PublishedAt: string | null;
   UpdatedAt: string | null;
   TemplateType?: string;
-  YOThemeId?: number | null;
   ThemeConfig?: unknown | null;
 }

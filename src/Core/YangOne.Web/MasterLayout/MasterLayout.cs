@@ -28,8 +28,6 @@ public class MasterLayout
 
     public string LayoutConfig { get; set; }
 
-    public long? YOThemeId { get; set; }
-
     public bool IsActive { get; set; }
 
     public bool IsDeleted { get; set; }

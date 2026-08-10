@@ -28,5 +28,4 @@ public class MasterLayoutSaveRequest
     public string Sidebar { get; set; } = "none";
     public bool IsSystem { get; set; }
     public string LayoutConfig { get; set; }
-    public long? YOThemeId { get; set; }
 }

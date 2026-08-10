@@ -45,8 +45,6 @@ public class Page
     public bool UseMasterLayout { get; set; }
     public bool IsPublished { get; set; }
 
-    public long? YOThemeId { get; set; }
-
     public string TemplateType { get; set; }
 
     [AutoFill(false)]

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <AssemblyName>yo-theme</AssemblyName>
+    <Description>Local YOTheme validation, compilation and package verification CLI.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../Core/YangOne.Web/YangOne.Web.csproj" />
+  </ItemGroup>
+</Project>

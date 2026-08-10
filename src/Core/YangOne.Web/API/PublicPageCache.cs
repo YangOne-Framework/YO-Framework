@@ -62,6 +62,42 @@ public static class PublicPageCache
         }
     }
 
+    /// <summary>
+    /// Resolve the current system active theme fresh for the given route
+    /// (blueprint §10): route assignment -> platform default -> legacy active.
+    /// Never cached — publishing is always reflected on the next request.
+    /// </summary>
+    public static async Task<(long? YOThemeId, object ThemeConfig)> ResolveActiveTheme(string slug)
+    {
+        var dbFactory = DbFactoryProvider.GetFactory();
+        // Resolve via studio assignment pipeline (blueprint §10).
+        using var db = (DbConnection)dbFactory.GetConnection();
+        await db.OpenAsync();
+        YOTheme resolved = null;
+        try
+        {
+            resolved = await db.QueryFirstOrDefaultAsync<YOTheme>(
+                "usp_YOThemeStudio_Resolve",
+                new { TargetType = "route", TargetKey = (string)null, Route = slug },
+                commandType: System.Data.CommandType.StoredProcedure);
+        }
+        catch
+        {
+            // Studio migration not applied yet — fall back to the legacy active theme
+        }
+        if (resolved == null)
+        {
+            resolved = await db.QueryFirstOrDefaultAsync<YOTheme>(
+                "usp_YOTheme_GetActive",
+                commandType: System.Data.CommandType.StoredProcedure);
+        }
+        if (resolved == null)
+            return (null, null);
+
+        // Runtime always prefers the published snapshot (blueprint §8)
+        return (resolved.YOThemeId, TryParseConfig(resolved.PublishedConfig ?? resolved.Config));
+    }
+
     public static async Task<PublicPageResponse> BuildAndCache(IMemoryCache cache, Page entry, IMasterLayoutService layoutService)
     {
         var slug = entry.Slug ?? entry.Url?.TrimStart('/');
@@ -75,40 +111,7 @@ public static class PublicPageCache
                 masterLayout = layoutResult.Data;
         }
 
-        // Load theme config if page has a theme
-        object themeConfig = null;
-        var yoThemeId = entry.YOThemeId;
-        if (yoThemeId == null || yoThemeId <= 0)
-        {
-            // Fall back to active theme
-            var dbFactory = DbFactoryProvider.GetFactory();
-            using (var db = (DbConnection)dbFactory.GetConnection())
-            {
-                await db.OpenAsync();
-                var active = await db.QueryFirstOrDefaultAsync<YOTheme>(
-                    "usp_YOTheme_GetActive",
-                    commandType: System.Data.CommandType.StoredProcedure);
-                if (active != null)
-                {
-                    yoThemeId = active.YOThemeId;
-                    themeConfig = TryParseConfig(active.Config);
-                }
-            }
-        }
-        else
-        {
-            var dbFactory = DbFactoryProvider.GetFactory();
-            using (var db = (DbConnection)dbFactory.GetConnection())
-            {
-                await db.OpenAsync();
-                var theme = await db.QueryFirstOrDefaultAsync<YOTheme>(
-                    "usp_YOTheme_Get",
-                    new { YOThemeUniqueId = (string)null, YOThemeId = yoThemeId },
-                    commandType: System.Data.CommandType.StoredProcedure);
-                if (theme != null)
-                    themeConfig = TryParseConfig(theme.Config);
-            }
-        }
+        var (yoThemeId, themeConfig) = await ResolveActiveTheme(slug);
 
         var response = new PublicPageResponse
         {

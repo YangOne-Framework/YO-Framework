@@ -7,12 +7,12 @@ import { ThemeToggleButton } from "../components/common/ThemeToggleButton";
 import NotificationDropdown from "../components/header/NotificationDropdown";
 import UserDropdown from "../components/header/UserDropdown";
 import LanguageSwitcher from "../components/header/LanguageSwitcher";
-import { useGetActiveThemeQuery } from "../redux/theme/themeAPI";
+import { useGetActiveStudioThemeQuery } from "../redux/theme/themeStudioAPI";
 
 const AppHeader: React.FC = () => {
   const { t } = useTranslation();
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
-  const { data: activeTheme } = useGetActiveThemeQuery();
+  const { data: activeTheme } = useGetActiveStudioThemeQuery();
 
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
 

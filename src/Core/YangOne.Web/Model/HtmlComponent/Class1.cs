@@ -30,6 +30,9 @@ namespace YangOne.Web.Model;
         public string Version { get; set; }
         public bool IsActive { get; set; }
 
+        // ── Component catalog category (1.1.0) ──
+        public string CatalogCategory { get; set; }
+
         [AutoFill(false)]
         public bool IsDeleted { get; set; }
 

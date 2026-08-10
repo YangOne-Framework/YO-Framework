@@ -23,6 +23,8 @@ export interface BackendHtmlComponent {
   DisplayName: string;
   ShortDescription?: string;
   Icon?: string;
+  PreviewImage?: string;
+  CatalogCategory?: string;
   Config?: string;
   ContentStructure?: string;
   HtmlTemplate?: string;
@@ -56,26 +58,26 @@ export function toYoDefinition(item: BackendHtmlComponent): YoComponentDefinitio
       const configObj = JSON.parse(item.Config);
       settings = configObj.settings || [];
     }
-  } catch (e) {}
+  } catch { /* optional payload */ }
 
   let contentStructure: BackendContentField[] = [];
   try {
     if (item.ContentStructure) {
       contentStructure = JSON.parse(item.ContentStructure);
     }
-  } catch (e) {}
+  } catch { /* optional payload */ }
 
   let stateSchema: Record<string, unknown> = {};
-  try { if (item.StateSchema) stateSchema = JSON.parse(item.StateSchema); } catch (e) {}
+  try { if (item.StateSchema) stateSchema = JSON.parse(item.StateSchema); } catch { /* optional payload */ }
 
   let apiBindings: Record<string, unknown> = {};
-  try { if (item.ApiBindings) apiBindings = JSON.parse(item.ApiBindings); } catch (e) {}
+  try { if (item.ApiBindings) apiBindings = JSON.parse(item.ApiBindings); } catch { /* optional payload */ }
 
   let eventBindings: Record<string, unknown> = {};
-  try { if (item.EventBindings) eventBindings = JSON.parse(item.EventBindings); } catch (e) {}
+  try { if (item.EventBindings) eventBindings = JSON.parse(item.EventBindings); } catch { /* optional payload */ }
 
   let runtimeOptions: Record<string, unknown> = {};
-  try { if (item.RuntimeOptions) runtimeOptions = JSON.parse(item.RuntimeOptions); } catch (e) {}
+  try { if (item.RuntimeOptions) runtimeOptions = JSON.parse(item.RuntimeOptions); } catch { /* optional payload */ }
 
   const defaultConfig: Record<string, unknown> = {};
   const configSchema: ConfigField[] = [];
@@ -116,6 +118,7 @@ export function toYoDefinition(item: BackendHtmlComponent): YoComponentDefinitio
     label: item.DisplayName,
     group: 'Data',
     description: item.ShortDescription ?? '',
+    previewImage: item.PreviewImage ?? undefined,
     defaultConfig,
     defaultStyle: {
       padding: 'none',

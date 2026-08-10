@@ -76,9 +76,8 @@ import LayoutBuilder from "../pages/Admin/Layout/LayoutBuilder";
 import ModuleManagement from "../pages/Admin/Module/ModuleManagement";
 import DynamicPageLoader from "../pages/Public/DynamicPageLoader";
 import PreviewPageLoader from "../pages/Public/PreviewPageLoader";
-import ThemeManager from "../pages/Admin/Theme/ThemeManager";
-import ThemeDetail from "../pages/Admin/Theme/ThemeDetail";
-import ThemeEditor from "../pages/Admin/Theme/ThemeEditor";
+import ThemeStudioList from "../pages/Admin/ThemeStudio/ThemeStudioList";
+import ThemeStudioEditor from "../pages/Admin/ThemeStudio/ThemeStudioEditor";
 
 const appRoutes: RouteObject[] = [
   {
@@ -138,9 +137,8 @@ const superUserRoutes: RouteObject = {
     { path: "layout/new", element: <LayoutForm /> },
     { path: "layout/edit", element: <LayoutForm /> },
     { path: "layout/design", element: <LayoutBuilder /> },
-    { path: "theme", element: <ThemeManager /> },
-    { path: "theme/:guid", element: <ThemeDetail /> },
-    { path: "theme/editor/:guid", element: <ThemeEditor /> },
+    { path: "theme-studio", element: <ThemeStudioList /> },
+    { path: "theme-studio/editor/:guid", element: <ThemeStudioEditor /> },
     { path: "media", element: <MediaLibraryPage /> },
     { path: "user", element: <UserManagement /> },
     { path: "user/new", element: <FormUser /> },

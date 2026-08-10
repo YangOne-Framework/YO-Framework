@@ -58,5 +58,4 @@ public class CmsPageSaveRequest
     public DateTime? PublishedAt { get; set; }
     public string Culture { get; set; }
     public string TemplateType { get; set; }
-    public long? YOThemeId { get; set; }
 }

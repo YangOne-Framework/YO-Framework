@@ -58,6 +58,7 @@ export interface YoComponentDefinition {
   label: string;
   group: 'Basic' | 'Marketing' | 'Media' | 'Data' | 'Layout';
   description: string;
+  previewImage?: string;
   defaultConfig: Record<string, unknown>;
   defaultStyle: YoComponentStyle;
   defaultAnimation?: YoAnimationConfig;
@@ -182,7 +183,6 @@ export interface YoPage {
   updatedAt: string;
   publishedAt?: string;
   templateType?: string;
-  yoThemeId?: number | null;
   themeConfig?: unknown | null;
 }
 
