@@ -95,4 +95,8 @@ export interface PublicPageResponse {
   UpdatedAt: string | null;
   TemplateType?: string;
   ThemeConfig?: unknown | null;
+  YOThemeId?: number | null;
+  YOThemeUniqueId?: string | null;
+  /** Server-compiled theme CSS (published snapshot) — applied directly, no client-side recompile. */
+  ThemeCompiledCss?: string | null;
 }

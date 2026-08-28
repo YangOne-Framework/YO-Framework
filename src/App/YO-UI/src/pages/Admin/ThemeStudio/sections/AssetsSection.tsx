@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
+import { Plus, Trash2, UploadCloud } from "lucide-react";
 import { toast } from "react-toastify";
 import {
   useAddThemeAssetMutation,
   useDeleteThemeAssetMutation,
   useGetThemeAssetsQuery,
 } from "../../../../redux/theme/themeStudioAPI";
+import { useUploadFileMutation } from "../../../../redux/setting/medialibraryAPI";
 import { Accordion, LabeledInput, LabeledSelect, SectionShell, type StudioSectionProps } from "../studioShared";
 
 const ASSET_TYPES = ["logo", "logo-dark", "logo-compact", "favicon", "font", "image", "illustration", "video", "file"];
@@ -14,16 +15,49 @@ const ASSET_TYPES = ["logo", "logo-dark", "logo-compact", "favicon", "font", "im
  * Assets section (blueprint §64) — theme-scoped brand assets stored in
  * dbo.YOThemeAsset, referenced by tokens and custom CSS.
  */
-export function AssetsSection({ guid }: StudioSectionProps) {
+export function AssetsSection({ guid, config, update }: StudioSectionProps) {
   const { data: assets = [] } = useGetThemeAssetsQuery(guid);
   const [addAsset, { isLoading }] = useAddThemeAssetMutation();
   const [deleteAsset] = useDeleteThemeAssetMutation();
-  const [draft, setDraft] = useState({ assetType: "logo", assetPath: "", assetName: "", altText: "" });
+  const [uploadFile, { isLoading: isUploading }] = useUploadFileMutation();
+  const [draft, setDraft] = useState({ assetType: "logo", assetPath: "", assetName: "", altText: "", mimeType: "" });
+  const uploadInput = useRef<HTMLInputElement>(null);
+  const activeFavicon = config?.appearance?.faviconUrl;
+
+  /** Direct file/folder upload — lands in /uploads/media/themes/{guid}/ and
+   *  pre-fills the form with the resulting path. */
+  const handleUpload = async (files: FileList | null) => {
+    if (!files?.length) return;
+    const dir = `themes/${guid}`;
+    try {
+      for (const file of Array.from(files)) {
+        await uploadFile({ File: file, Dir: dir }).unwrap();
+        const path = `/uploads/media/${dir}/${file.name}`;
+        setDraft((d) => ({
+          ...d,
+          assetType: d.assetType === "logo" && /font|woff|ttf|otf/i.test(file.type + file.name) ? "font" : d.assetType,
+          assetPath: path,
+          assetName: d.assetName || file.name.replace(/\.[^.]+$/, ""),
+          mimeType: file.type || d.mimeType,
+        }));
+      }
+      toast.success(`${files.length} file(s) uploaded — review and press Add asset`);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Upload failed");
+    }
+  };
+
+  /** Point the theme's runtime favicon at an asset row (applied by DynamicPage). */
+  const setFavicon = (path: string | null) =>
+    update("appearance.faviconUrl", (cfg) => ({
+      ...cfg,
+      appearance: { ...cfg.appearance, faviconUrl: path },
+    }));
 
   return (
     <SectionShell
       title="Assets"
-      description="Logos, favicons, fonts and media that ship with this theme."
+      description="Logos, favicons, fonts and media that ship with this theme. Favicon assets can be applied to every page using this theme."
     >
       <Accordion title="Theme Assets" badge={String(assets.length)}>
         {assets.length === 0 ? (
@@ -46,6 +80,27 @@ export function AssetsSection({ guid }: StudioSectionProps) {
                 <span className="rounded bg-gray-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-gray-500">
                   {asset.AssetType}
                 </span>
+                {asset.AssetType === "favicon" && (
+                  activeFavicon === asset.AssetPath ? (
+                    <button
+                      type="button"
+                      onClick={() => setFavicon(null)}
+                      className="inline-flex items-center rounded-lg border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[11px] font-medium text-emerald-700 transition hover:bg-emerald-100"
+                      title="Stop using this favicon"
+                    >
+                      Active favicon
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setFavicon(asset.AssetPath)}
+                      className="rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1.5 text-[11px] font-medium text-indigo-700 transition hover:bg-indigo-100"
+                      title="Apply as the theme favicon"
+                    >
+                      Set as favicon
+                    </button>
+                  )
+                )}
                 <button
                   type="button"
                   onClick={async () => {
@@ -68,6 +123,22 @@ export function AssetsSection({ guid }: StudioSectionProps) {
       </Accordion>
 
       <Accordion title="Add Asset" defaultOpen={assets.length === 0}>
+        <input
+          ref={uploadInput}
+          type="file"
+          multiple
+          accept=".svg,.png,.jpg,.jpeg,.webp,.gif,.ico,.woff,.woff2,.ttf,.otf,.eot,font/*,image/*"
+          className="hidden"
+          onChange={(e) => { handleUpload(e.target.files); e.target.value = ""; }}
+        />
+        <button
+          type="button"
+          disabled={isUploading}
+          onClick={() => uploadInput.current?.click()}
+          className="mb-3 inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-medium text-indigo-700 transition hover:bg-indigo-100 disabled:opacity-40"
+        >
+          <UploadCloud size={13} /> {isUploading ? "Uploading…" : "Upload file(s) — logos, fonts, images"}
+        </button>
         <div className="grid grid-cols-2 gap-3">
           <LabeledSelect
             label="Type"
@@ -86,7 +157,7 @@ export function AssetsSection({ guid }: StudioSectionProps) {
               label="Asset path / URL"
               value={draft.assetPath}
               onChange={(v) => setDraft({ ...draft, assetPath: v })}
-              placeholder="/Uploads/theme/logo.svg"
+              placeholder="/uploads/media/themes/logo.svg"
               mono
             />
           </div>
@@ -109,10 +180,13 @@ export function AssetsSection({ guid }: StudioSectionProps) {
                 assetType: draft.assetType,
                 assetPath: draft.assetPath,
                 assetName: draft.assetName || draft.assetType,
+                mimeType: draft.mimeType || undefined,
                 altText: draft.altText,
               }).unwrap();
               toast.success("Asset added");
-              setDraft({ assetType: "logo", assetPath: "", assetName: "", altText: "" });
+              /* A newly added favicon becomes the active one immediately. */
+              if (draft.assetType === "favicon" && draft.assetPath) setFavicon(draft.assetPath);
+              setDraft({ assetType: "logo", assetPath: "", assetName: "", altText: "", mimeType: "" });
             } catch (e) {
               toast.error(e instanceof Error ? e.message : "Failed to add asset");
             }

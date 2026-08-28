@@ -160,7 +160,8 @@ export function LabeledSelect({
   );
 }
 
-/** Ref-or-value picker: bind a token to another token reference or a raw value. */
+/** Ref-or-value picker: bind a token to another token reference or a raw value.
+ *  References are stored in the compiler-standard braced form "{token.path}". */
 export function TokenRefInput({
   value,
   refTarget,
@@ -177,14 +178,15 @@ export function TokenRefInput({
   mono?: boolean;
 }) {
   const isRef = !!refTarget;
+  const bareRef = refTarget?.replace(/^\{|\}$/g, "");
   return (
     <div className="flex items-center gap-1.5">
       <select
-        value={isRef ? `ref:${refTarget}` : "raw"}
+        value={isRef ? `ref:${bareRef}` : "raw"}
         onChange={(e) => {
           const v = e.target.value;
           if (v === "raw") onRefChange(undefined);
-          else onRefChange(v.slice(4));
+          else onRefChange(`{${v.slice(4)}}`);
         }}
         className="w-36 shrink-0 rounded-lg border border-gray-200/80 bg-white px-2 py-1.5 text-[10px] text-gray-600 outline-none focus:border-indigo-400/60"
         title="Bind to token or use a raw value"

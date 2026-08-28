@@ -41,7 +41,12 @@ export function StudioThemeProvider({ themeConfig, template, layout, children }:
       if (!themeConfig?.components) return { classes: "" };
       const comp = themeConfig.components[type];
       if (!comp) return { classes: "" };
-      return comp.variants?.[comp.variant] ?? { classes: "" };
+      const entry = comp.variants?.[comp.variant ?? ""];
+      if (entry) return entry;
+      /* Registry/plugin variants without a variants-map entry still resolve to
+         the compiled convention class so the choice reflects at runtime. */
+      if (comp.variant) return { classes: `yo-${type} yo-${type}-${comp.variant}` };
+      return { classes: "" };
     },
     resolveToken: (path: string) => {
       if (!themeConfig?.tokens) return "";

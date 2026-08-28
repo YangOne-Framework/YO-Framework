@@ -39,7 +39,12 @@ export interface ParsedThemeConfig {
   /** Custom CSS injected into the page when this theme is active */
   customCss?: string;
   /** Default appearance — how the page picks light/dark when not previewing */
-  appearance?: { defaultMode?: 'light' | 'dark'; supportedModes?: string[] };
+  appearance?: {
+    defaultMode?: 'light' | 'dark';
+    supportedModes?: string[];
+    /** Theme favicon applied to document.head while this theme is active */
+    faviconUrl?: string | null;
+  };
 }
 
 export interface ThemeTokens {

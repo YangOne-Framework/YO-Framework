@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
@@ -15,7 +16,9 @@ namespace YangOne.Web;
 /// </summary>
 public static class YOThemeCompiler
 {
-    private static readonly Regex RefPattern = new(@"^\{(.+)\}$", RegexOptions.Compiled);
+    /* Tolerant of both "{token.path}" and bare "token.path" reference forms —
+       the client compiler accepts both, so the server must too. */
+    private static readonly Regex RefPattern = new(@"^\{?(.+?)\}?$", RegexOptions.Compiled);
     private static readonly Regex TokenNamePattern = new(@"^[a-z][a-z0-9-]*(\.[a-zA-Z][a-zA-Z0-9-]*)+$", RegexOptions.Compiled);
     public static readonly Regex HexPattern = new(@"^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$", RegexOptions.Compiled);
 
@@ -49,11 +52,11 @@ public static class YOThemeCompiler
         var version = config["version"]?.Value<int?>() ?? 1;
         if (version < 2)
         {
-            validation.Add(Item("schema", "error", "config", "version",
-                "Legacy flat-token configuration must be migrated to the three-level token structure before compiling.",
-                "Open the theme in Theme Studio to run the migration."));
-            result.Message = "Legacy configuration";
-            return result;
+            /* Auto-upgrade legacy flat-token configs (v1) to the three-level
+               structure — mirrors the client-side themeMigration LEGACY_ROLE_MAP.
+               Keeps pre-studio DB rows and the seeded default theme publishable
+               without a manual migration step. */
+            config = UpgradeLegacyConfig(config);
         }
 
         var tokens = config["tokens"] as JObject ?? new JObject();
@@ -182,6 +185,18 @@ public static class YOThemeCompiler
         variablesCss.Append(rootVars);
         variablesCss.AppendLine("}");
 
+        /* Reduced-motion authoring toggle (Motion section) — emitted into the
+           published CSS so the choice survives without client JS. */
+        var motionReduced = config["motion"]?["reduced"]?.Value<bool?>() == true;
+        if (motionReduced)
+        {
+            variablesCss.AppendLine();
+            variablesCss.AppendLine(
+                "@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }");
+            variablesCss.AppendLine(
+                ".yo-reduced-motion *, .yo-reduced-motion *::before, .yo-reduced-motion *::after { transition: none !important; animation: none !important; }");
+        }
+
         if (darkVars.Length > 0)
         {
             variablesCss.AppendLine();
@@ -286,6 +301,121 @@ public static class YOThemeCompiler
     }
 
     /* ── Reference resolution ── */
+
+    /* �"?�"? Legacy v1 → v2 config upgrade (mirrors client themeMigration) �"?�"? */
+
+    /// <summary>Legacy flat color key → semantic token path.</summary>
+    private static readonly Dictionary<string, string> LegacyRoleMap = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["primary"] = "color.action.primary",
+        ["secondary"] = "color.action.secondary",
+        ["accent"] = "color.accent",
+        ["bg"] = "color.background.page",
+        ["card"] = "color.background.surface",
+        ["text"] = "color.text.primary",
+        ["muted"] = "color.text.muted",
+        ["border"] = "color.border.default",
+        ["ring"] = "color.border.focus",
+        ["success"] = "color.status.success",
+        ["warning"] = "color.status.warning",
+        ["danger"] = "color.status.error",
+        ["error"] = "color.status.error",
+        ["info"] = "color.status.info",
+    };
+
+    private static JObject UpgradeLegacyConfig(JObject legacy)
+    {
+        var v2 = new JObject
+        {
+            ["version"] = 2,
+            ["structure"] = legacy["structure"] ?? new JObject { ["layoutType"] = "DefaultShell", ["layoutTypes"] = new JObject() },
+            ["customCss"] = legacy["customCss"] ?? string.Empty
+        };
+        foreach (var section in new[] { "appearance", "customizer", "layouts", "templates", "brand", "scopes", "components" })
+            if (legacy[section] != null) v2[section] = legacy[section];
+
+        var primitive = new JObject();
+        var semantic = new JObject();
+
+        /* Colors: flat tokens.colors{key:{default,dark}} (or root colors{}) →
+           primitives carrying their legacyKey + semantic role refs. */
+        var colors = (legacy["tokens"] as JObject)?["colors"] as JObject ?? legacy["colors"] as JObject;
+        if (colors != null)
+        {
+            foreach (var prop in colors.Properties())
+            {
+                var entry = prop.Value as JObject;
+                var value = entry?["default"]?.ToString() ?? entry?["value"]?.ToString();
+                if (string.IsNullOrEmpty(value)) continue;
+
+                var tokenName = $"{SanitizeTokenSegment(prop.Name)}.base";
+                var token = new JObject { ["type"] = "color", ["value"] = value, ["legacyKey"] = prop.Name.ToLowerInvariant() };
+                var dark = entry?["dark"]?.ToString();
+                if (!string.IsNullOrEmpty(dark)) token["dark"] = dark;
+                primitive[tokenName] = token;
+
+                if (LegacyRoleMap.TryGetValue(prop.Name, out var semanticPath))
+                    semantic[semanticPath] = new JObject { ["ref"] = $"{{{tokenName}}}", ["value"] = value };
+            }
+        }
+
+        /* Guarantee the publish-gate required semantics even for sparse themes. */
+        var semanticDefaults = new Dictionary<string, string>
+        {
+            ["color.background.page"] = "#ffffff",
+            ["color.background.surface"] = "#f8fafc",
+            ["color.text.primary"] = "#1e293b",
+            ["color.text.inverse"] = "#ffffff",
+            ["color.action.primary"] = "#2563eb",
+            ["color.border.default"] = "#e2e8f0"
+        };
+        foreach (var req in RequiredSemanticTokens.Union(new[] { "color.text.inverse" }))
+            if (semantic[req] == null)
+                semantic[req] = new JObject { ["value"] = semanticDefaults[req] };
+
+        var tokens = new JObject
+        {
+            ["primitive"] = primitive,
+            ["semantic"] = semantic,
+            ["component"] = new JObject()
+        };
+        v2["tokens"] = tokens;
+
+        /* Group sections — v1 flat shapes match the v2 group shapes directly. */
+        var typography = new JObject();
+        if ((legacy["tokens"] as JObject)?["fonts"] is JObject fonts || (fonts = legacy["fonts"] as JObject) != null)
+            typography["fonts"] = fonts;
+        if ((legacy["tokens"] as JObject)?["fluid"] is JObject fluid || (fluid = legacy["fluid"] as JObject) != null)
+            typography["fluid"] = fluid;
+        if (typography.Count > 0) v2["typography"] = typography;
+
+        var shape = new JObject();
+        if ((legacy["tokens"] as JObject)?["border-radius"] is JObject radius || (radius = legacy["border-radius"] as JObject) != null)
+            shape["radius"] = radius;
+        if ((legacy["tokens"] as JObject)?["focus"] is JObject focus || (focus = legacy["focus"] as JObject) != null)
+            shape["focus"] = focus;
+        if (shape.Count > 0) v2["shape"] = shape;
+
+        var spacingScale = (legacy["tokens"] as JObject)?["spacing"] as JObject ?? legacy["spacing"] as JObject;
+        /* v1 spacing may be a plain name→value scale; normalize into spacing.scale */
+        if (spacingScale != null && spacingScale["scale"] == null)
+            spacingScale = new JObject { ["scale"] = spacingScale };
+        if (spacingScale != null) v2["spacing"] = spacingScale;
+
+        var shadows = (legacy["tokens"] as JObject)?["shadows"] as JObject ?? legacy["shadows"] as JObject;
+        if (shadows != null) v2["elevation"] = new JObject { ["shadows"] = shadows };
+
+        if (legacy["motion"] != null) v2["motion"] = legacy["motion"];
+        if (legacy["responsive"] != null) v2["responsive"] = legacy["responsive"];
+
+        return v2;
+    }
+
+    private static string SanitizeTokenSegment(string segment)
+    {
+        var cleaned = Regex.Replace(segment.Trim().ToLowerInvariant(), @"[^a-z0-9-]+", "-").Trim('-');
+        return cleaned.Length > 0 ? cleaned : "token";
+    }
 
     private class ResolvedToken
     {

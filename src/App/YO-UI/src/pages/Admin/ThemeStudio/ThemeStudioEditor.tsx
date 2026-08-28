@@ -81,7 +81,10 @@ export default function ThemeStudioEditor() {
   const [setDefault] = useSetDefaultThemeMutation();
   const [duplicateTheme] = useDuplicateThemeMutation();
 
-  /* ── draft state with undo/redo + change tracking (blueprint §18) ── */
+  /* ── draft state with undo/redo + change tracking (blueprint §18) ──
+     All history side effects run OUTSIDE the setState updaters — React
+     StrictMode double-invokes updater functions, which previously pushed
+     duplicate history entries and made Undo require multiple clicks. */
   const emptyCfg = useMemo(() => createEmptyStudioConfig(), []);
   const [draft, setDraft] = useState<StudioThemeConfig>(emptyCfg);
   const [baseline, setBaseline] = useState<StudioThemeConfig>(emptyCfg);
@@ -91,26 +94,25 @@ export default function ThemeStudioEditor() {
   const [migrationSummary, setMigrationSummary] = useState<MigrationSummary | null>(null);
   const [themeStatus, setThemeStatus] = useState<ThemeStatus>("draft");
   const initializedFor = useRef<string | null>(null);
+  const draftRef = useRef<StudioThemeConfig>(emptyCfg);
 
-  const [mode, setMode] = useState<StudioMode>("simple");
-  const [section, setSection] = useState<SectionKey>("colors");
-  const [showPreview, setShowPreview] = useState(true);
-  const [showChanges, setShowChanges] = useState(false);
-  const [publishCompile, setPublishCompile] = useState<StudioCompileOutput | null>(null);
-  const [overflowOpen, setOverflowOpen] = useState(false);
+  const applyDraft = useCallback((next: StudioThemeConfig) => {
+    draftRef.current = next;
+    setDraft(next);
+  }, []);
 
   useEffect(() => {
     if (!data || initializedFor.current === guid) return;
     initializedFor.current = guid;
     const { config, summary } = normalizeToStudioConfig(data.rawConfig);
-    setDraft(config);
+    applyDraft(config);
     setBaseline(config);
     setPast([]);
     setFuture([]);
     setChangedPaths(new Set());
     setThemeStatus(data.row?.Status ?? "draft");
     if (summary) setMigrationSummary(summary);
-  }, [data, guid]);
+  }, [data, guid, applyDraft]);
 
   const dirty = useMemo(
     () => !!draft && !!baseline && JSON.stringify(draft) !== JSON.stringify(baseline),
@@ -118,39 +120,44 @@ export default function ThemeStudioEditor() {
   );
 
   const update = useCallback<StudioSectionProps["update"]>((path, fn) => {
-    setDraft((current) => {
-      if (!current) return current;
-      const next = fn(current);
-      setPast((p) => [...p.slice(-HISTORY_LIMIT + 1), current]);
-      setFuture([]);
-      setChangedPaths((prev) => new Set(prev).add(path));
-      return next;
-    });
+    const current = draftRef.current;
+    if (!current) return;
+    const next = fn(current);
+    if (next === current) return;
+    draftRef.current = next;
+    setPast((p) => [...p.slice(-HISTORY_LIMIT + 1), current]);
+    setFuture([]);
+    setChangedPaths((prev) => new Set(prev).add(path));
+    setDraft(next);
   }, []);
 
   const undo = useCallback(() => {
-    setPast((p) => {
-      if (!p.length) return p;
-      const previous = p[p.length - 1];
-      setDraft((current) => {
-        if (current) setFuture((f) => [current, ...f]);
-        return previous;
-      });
-      return p.slice(0, -1);
-    });
-  }, []);
+    const current = draftRef.current;
+    if (!current || past.length === 0) return;
+    const previous = past[past.length - 1];
+    draftRef.current = previous;
+    setPast(past.slice(0, -1));
+    setFuture([current, ...future]);
+    setDraft(previous);
+  }, [past, future]);
 
   const redo = useCallback(() => {
-    setFuture((f) => {
-      if (!f.length) return f;
-      const [next, ...rest] = f;
-      setDraft((current) => {
-        if (current) setPast((p) => [...p, current]);
-        return next;
-      });
-      return rest;
-    });
-  }, []);
+    const current = draftRef.current;
+    if (!current || future.length === 0) return;
+    const [next, ...rest] = future;
+    draftRef.current = next;
+    setPast([...past, current]);
+    setFuture(rest);
+    setDraft(next);
+  }, [past, future]);
+
+  /* ── editor chrome state ── */
+  const [mode, setMode] = useState<StudioMode>("simple");
+  const [section, setSection] = useState<SectionKey>("colors");
+  const [showPreview, setShowPreview] = useState(true);
+  const [showChanges, setShowChanges] = useState(false);
+  const [publishCompile, setPublishCompile] = useState<StudioCompileOutput | null>(null);
+  const [overflowOpen, setOverflowOpen] = useState(false);
 
   /* ── actions ── */
 
@@ -219,7 +226,7 @@ export default function ThemeStudioEditor() {
       const result = await duplicateTheme({ guid }).unwrap();
       const newGuid = result?.Data?.YOThemeUniqueId;
       toast.success("Duplicated as a new draft");
-      if (newGuid) navigate(`/admin/theme-studio/editor/${newGuid}`);
+      if (newGuid) navigate(`/admin/theme/editor/${newGuid}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Duplicate failed");
     }
@@ -290,7 +297,7 @@ export default function ThemeStudioEditor() {
       <div className="flex items-center gap-3 border-b border-gray-200/70 bg-white px-4 py-2.5">
         <button
           type="button"
-          onClick={() => navigate("/admin/theme-studio")}
+          onClick={() => navigate("/admin/theme")}
           className="rounded-lg p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600"
           title="Back to themes"
         >
@@ -364,7 +371,7 @@ export default function ThemeStudioEditor() {
           <button
             type="button"
             onClick={() => {
-              setDraft(baseline);
+              applyDraft(baseline);
               setPast([]);
               setFuture([]);
               setChangedPaths(new Set());
@@ -466,7 +473,6 @@ export default function ThemeStudioEditor() {
           <aside className="w-full shrink-0 border-l border-gray-200/70 bg-white lg:w-[42%]">
             <StudioPreview
               config={draft!}
-              slug="page-mrelcnfn"
               onModeSelect={(mode) =>
                 update("appearance.defaultMode", (cfg) => ({
                   ...cfg,

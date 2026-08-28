@@ -84,10 +84,21 @@ export function CodeSection({ config, update, guid }: StudioSectionProps) {
         return;
       }
       setJsonError(null);
-      update("code.json", () => parsed as StudioThemeConfig);
     } catch (e) {
       setJsonError(e instanceof Error ? e.message : "Invalid JSON");
     }
+  };
+
+  /* Commit the edited JSON as one history entry (per-keystroke application
+     spammed undo history and made the editor drift from undo/redo state). */
+  const commitJson = () => {
+    if (jsonDraft == null || jsonError) return;
+    try {
+      const parsed = JSON.parse(jsonDraft);
+      if (!isStudioConfig(parsed)) return;
+      update("code.json", () => parsed as StudioThemeConfig);
+      setJsonDraft(null);
+    } catch { /* guarded by jsonError */ }
   };
 
   const copy = async (text: string) => {
@@ -143,6 +154,26 @@ export function CodeSection({ config, update, guid }: StudioSectionProps) {
               {jsonError} — fix the JSON to apply changes.
             </div>
           )}
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={jsonDraft == null || !!jsonError}
+              onClick={commitJson}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:opacity-40"
+            >
+              Apply JSON
+            </button>
+            {jsonDraft != null && (
+              <button
+                type="button"
+                onClick={() => { setJsonDraft(null); setJsonError(null); }}
+                className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
+              >
+                Discard edits
+              </button>
+            )}
+            <span className="text-[10px] text-gray-400">Edits apply when you press Apply — undo/redo stays one step per commit.</span>
+          </div>
           <div className="overflow-hidden rounded-2xl border border-gray-200/80">
             <Editor
               height="480px"

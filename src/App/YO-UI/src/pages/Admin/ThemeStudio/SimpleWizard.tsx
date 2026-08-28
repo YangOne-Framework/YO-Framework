@@ -148,7 +148,7 @@ function applyPresetColors(
         legacyKey: key,
       };
       const semanticPath = LEGACY_ROLE_MAP[key];
-      if (semanticPath) semantic[semanticPath] = { ref: path, type: "color" };
+      if (semanticPath) semantic[semanticPath] = { ref: `{${path}}`, value, type: "color" };
     });
     const withTokens = { ...cfg, tokens: { ...cfg.tokens, primitive, semantic } };
     ensurePublishableTokens(withTokens);
@@ -196,7 +196,7 @@ function ColorsStep({ config, update }: Pick<StudioSectionProps, "config" | "upd
           legacyKey: key,
         };
         const semanticPath = LEGACY_ROLE_MAP[key];
-        if (semanticPath) semantic[semanticPath] = { ref: path, type: "color" };
+        if (semanticPath) semantic[semanticPath] = { ref: `{${path}}`, value, type: "color" };
       });
       const withTokens = { ...cfg, tokens: { ...cfg.tokens, primitive, semantic } };
       ensurePublishableTokens(withTokens);
@@ -372,7 +372,7 @@ function StyleStep({ config, update }: Pick<StudioSectionProps, "config" | "upda
                 : "border-gray-200 bg-white hover:border-gray-300"
             }`}
           >
-            <span className={opt.key === "default" ? "yo-btn-primary" : opt.key === "soft" ? "yo-btn-soft" : "yo-btn-outline"}>
+            <span className={opt.key === "default" ? "yo-btn yo-btn-primary" : opt.key === "soft" ? "yo-btn yo-btn-soft" : "yo-btn yo-btn-outline"}>
               Button
             </span>
             <div className="mt-1.5 text-[10px] font-medium text-gray-600">{opt.label}</div>

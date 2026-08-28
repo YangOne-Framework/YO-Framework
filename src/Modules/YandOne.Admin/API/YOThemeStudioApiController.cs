@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using YangOne.Identity.Extensions;
 using YangOne.Log;
@@ -10,18 +12,24 @@ namespace YandOne.Admin.API;
 /// <summary>
 /// YOTheme Studio API (blueprint §68) — lifecycle, compile, publish,
 /// assignments, runtime resolution and studio satellite resources.
+/// Admin surface requires the platform admin roles; only the anonymous
+/// runtime endpoints (<c>resolve</c>, <c>css</c>) opt back out explicitly.
 /// </summary>
-[AllowAnonymous]
+[Authorize(Roles = "Admin,SuperAdmin")]
 [Route("api/v1/yotheme-studio")]
 public class YOThemeStudioApiController : BaseApiController
 {
     private readonly ILogger _logger;
     private readonly IYOThemeStudioService _studioService;
+    private readonly string _themesRoot;
+    private readonly string? _webRoot;
 
-    public YOThemeStudioApiController(ILogger logger, IYOThemeStudioService studioService)
+    public YOThemeStudioApiController(ILogger logger, IYOThemeStudioService studioService, IWebHostEnvironment env)
     {
         _logger = logger;
         _studioService = studioService;
+        _themesRoot = Path.Combine(env.ContentRootPath, "Themes");
+        _webRoot = env.WebRootPath;
     }
 
     private string ClientIp => HttpContext?.Connection?.RemoteIpAddress?.ToString();
@@ -68,6 +76,24 @@ public class YOThemeStudioApiController : BaseApiController
         }
     }
 
+    [HttpGet("themes/{guid}")]
+    public async Task<ActionResult<ApiResponse<YOTheme>>> GetTheme(string guid)
+    {
+        try
+        {
+            var result = await _studioService.GetConfigAsync(guid);
+            if (!result.Success || result.Data is not YOTheme theme)
+                return ErrorResponse<YOTheme>(404, result.Message);
+
+            return SuccessResponse(result.Message, theme);
+        }
+        catch (Exception e)
+        {
+            _logger.Log(LogType.Error, () => e.Message, e);
+            return ErrorResponse<YOTheme>(501, e.Message);
+        }
+    }
+
     [HttpPost("themes")]
     public async Task<ActionResult<ApiResponse<object>>> CreateTheme([FromBody] YOThemeSaveRequest request)
     {
@@ -81,6 +107,79 @@ public class YOThemeStudioApiController : BaseApiController
                 return ErrorResponse<object>(501, result.Message);
 
             return SuccessResponse(result.Message, result.Data);
+        }
+        catch (Exception e)
+        {
+            _logger.Log(LogType.Error, () => e.Message, e);
+            return ErrorResponse<object>(501, e.Message);
+        }
+    }
+
+    /// <summary>Portable package as a ZIP archive: theme.json + assets/** files.
+    /// Asset URLs inside the config are rewritten to relative "assets/..." keys.</summary>
+    [HttpGet("themes/{guid}/package")]
+    public async Task<IActionResult> ExportThemeZip(string guid)
+    {
+        try
+        {
+            var themeResult = await _studioService.GetConfigAsync(guid);
+            if (!themeResult.Success || themeResult.Data is not YOTheme theme)
+                return NotFound(CreateResponse<object>(404, "Theme not found", null));
+
+            var assetResult = await _studioService.ListAssetsAsync(guid);
+            var export = YOThemePackageZip.Export(
+                theme,
+                assetResult.Data ?? new List<YOThemeAsset>(),
+                _themesRoot,
+                _webRoot);
+
+            Response.Headers["X-Missing-Assets"] = export.MissingFiles.Count.ToString();
+            return File(export.Zip, "application/zip", export.FileName);
+        }
+        catch (Exception e)
+        {
+            _logger.Log(LogType.Error, () => e.Message, e);
+            return StatusCode(501, CreateResponse<object>(501, e.Message, null, new[] { e.Message }));
+        }
+    }
+
+    /// <summary>Import a .yo-theme.zip produced by ExportThemeZip (or hand-packed):
+    /// verifies the SHA-256 signature, installs asset files under Themes/{slug}/
+    /// (served at /themes/{slug}/...), rewrites config references and re-creates
+    /// asset rows.</summary>
+    [HttpPost("themes/import-zip")]
+    [RequestSizeLimit(200 * 1024 * 1024)]
+    public async Task<ActionResult<ApiResponse<object>>> ImportThemeZip(IFormFile file)
+    {
+        try
+        {
+            if (file == null || file.Length == 0)
+                return ErrorResponse<object>(600, "A .zip package file is required");
+
+            using var stream = file.OpenReadStream();
+            var allowUnsigned = Request.Query["allowUnsigned"].ToString() == "true";
+            var result = await YOThemePackageZip.ImportAsync(
+                stream,
+                _themesRoot,
+                async (request) =>
+                {
+                    var created = await _studioService.CreateThemeAsync(request, ClientIp);
+                    var guid = (created.Data as dynamic)?.YOThemeUniqueId?.ToString();
+                    return (created.Success, guid, created.Message);
+                },
+                async (assetRequest) => (await _studioService.SaveAssetAsync(assetRequest)).Success,
+                allowUnsigned);
+
+            if (!result.Success)
+                return ErrorResponse<object>(600, result.Message);
+
+            PublicPageCache.InvalidatePage();
+            return SuccessResponse<object>(result.Message, new
+            {
+                YOThemeUniqueId = result.YOThemeUniqueId,
+                InstalledFiles = result.InstalledFiles,
+                Warnings = result.Warnings
+            });
         }
         catch (Exception e)
         {

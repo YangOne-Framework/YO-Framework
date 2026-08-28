@@ -121,18 +121,19 @@ function ValidationList({ items }: { items: ValidationItem[] }) {
 }
 
 function FocusMotionSummary({ config }: { config: StudioSectionProps["config"] }) {
-  const focus = config.shape.focus;
+  const focus = config.shape?.focus;
   const motion = config.motion;
+  const modes = config.appearance?.supportedModes?.length ? config.appearance.supportedModes : ["light", "dark"];
   return (
     <dl className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs">
       <dt className="text-gray-400">Focus ring</dt>
-      <dd className="font-mono text-gray-600">{focus.width} / {focus.offset}</dd>
+      <dd className="font-mono text-gray-600">{focus?.width ?? "2px"} / {focus?.offset ?? "2px"}</dd>
       <dt className="text-gray-400">Transition</dt>
-      <dd className="font-mono text-gray-600">{motion.duration} {motion.easing}</dd>
+      <dd className="font-mono text-gray-600">{motion?.duration ?? "0.2s"} {motion?.easing ?? "cubic-bezier(0.4, 0, 0.2, 1)"}</dd>
       <dt className="text-gray-400">Reduced motion</dt>
-      <dd className="text-gray-600">{(motion as { reduced?: boolean }).reduced ? "Respected" : "Not configured"}</dd>
+      <dd className="text-gray-600">{(motion as { reduced?: boolean } | undefined)?.reduced ? "Respected" : "Not configured"}</dd>
       <dt className="text-gray-400">Appearance</dt>
-      <dd className="text-gray-600">{config.appearance.supportedModes.join(" + ")}</dd>
+      <dd className="text-gray-600">{modes.join(" + ")}</dd>
     </dl>
   );
 }

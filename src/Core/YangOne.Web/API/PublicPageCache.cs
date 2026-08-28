@@ -16,14 +16,75 @@ public static class PublicPageCache
     private const string THEME_TAG = "tag_public_theme";
     private const int CACHE_HOURS = 4;
 
-    private static string PageKey(string slug) => $"public_page_{slug.ToLowerInvariant()}";
+    /* Cross-node invalidation: mutations bump a version row in dbo.YOConfig and
+       every node keys its page-cache entries on that row (polled with a short
+       TTL). A publish/edit is therefore picked up by all instances within
+       VERSION_TTL seconds instead of living for the full cache duration. */
+    private const string VERSION_CONFIG_KEY = "PublicPageCacheVersion";
+    private const string VERSION_CACHE_KEY = "public_cache_version";
+    private static readonly TimeSpan VERSION_TTL = TimeSpan.FromSeconds(60);
 
-    public static bool TryGet(IMemoryCache cache, string slug, out PublicPageResponse response)
+    private static string PageKey(string slug, string version) =>
+        $"public_page_{slug.ToLowerInvariant()}_{version ?? "v0"}";
+
+    /// <summary>Current global cache version (DB-backed, short-TTL cached per node).
+    /// Falls back to a stable value when the DB or the YOConfig row is unavailable.</summary>
+    public static Task<string?> GetGlobalVersionAsync(IMemoryCache cache)
     {
-        return cache.TryGetValue(PageKey(slug), out response);
+        return cache.GetOrCreateAsync(VERSION_CACHE_KEY, e =>
+        {
+            e.AbsoluteExpirationRelativeToNow = VERSION_TTL;
+            return ReadGlobalVersionAsync();
+        });
     }
 
-    public static void Set(IMemoryCache cache, string slug, PublicPageResponse response)
+    private static async Task<string?> ReadGlobalVersionAsync()
+    {
+        try
+        {
+            var dbFactory = DbFactoryProvider.GetFactory();
+            using var db = (DbConnection)dbFactory.GetConnection();
+            await db.OpenAsync();
+            return await db.ExecuteScalarAsync<string>(
+                "SELECT ConfigValue FROM dbo.YOConfig WHERE ConfigKey = @Key",
+                new { Key = VERSION_CONFIG_KEY });
+        }
+        catch
+        {
+            // YOConfig row/table not present yet — single-node invalidation still works.
+            return null;
+        }
+    }
+
+    /// <summary>Bump the global version so every node drops its page cache (best-effort).</summary>
+    public static void BumpGlobalVersion()
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var dbFactory = DbFactoryProvider.GetFactory();
+                using var db = (DbConnection)dbFactory.GetConnection();
+                await db.OpenAsync();
+                await db.ExecuteAsync(
+                    "IF NOT EXISTS (SELECT 1 FROM dbo.YOConfig WHERE ConfigKey = @Key) " +
+                    "INSERT INTO dbo.YOConfig (ConfigKey, ConfigValue) VALUES (@Key, @Value) " +
+                    "ELSE UPDATE dbo.YOConfig SET ConfigValue = @Value WHERE ConfigKey = @Key;",
+                    new { Key = VERSION_CONFIG_KEY, Value = Guid.NewGuid().ToString("N") });
+            }
+            catch
+            {
+                // Best-effort only — local CTS invalidation already ran.
+            }
+        });
+    }
+
+    public static bool TryGet(IMemoryCache cache, string slug, string version, out PublicPageResponse response)
+    {
+        return cache.TryGetValue(PageKey(slug, version), out response);
+    }
+
+    public static void Set(IMemoryCache cache, string slug, string version, PublicPageResponse response)
     {
         var pageCts = _invalidators.GetOrAdd(PAGE_TAG, _ => new CancellationTokenSource());
         var layoutCts = _invalidators.GetOrAdd(LAYOUT_TAG, _ => new CancellationTokenSource());
@@ -35,7 +96,7 @@ public static class PublicPageCache
             .AddExpirationToken(new CancellationChangeToken(layoutCts.Token))
             .AddExpirationToken(new CancellationChangeToken(themeCts.Token));
 
-        cache.Set(PageKey(slug), response, options);
+        cache.Set(PageKey(slug, version), response, options);
     }
 
     public static void InvalidatePage()
@@ -44,6 +105,7 @@ public static class PublicPageCache
         {
             cts.Cancel();
         }
+        BumpGlobalVersion();
     }
 
     public static void InvalidateLayout()
@@ -52,6 +114,7 @@ public static class PublicPageCache
         {
             cts.Cancel();
         }
+        BumpGlobalVersion();
     }
 
     public static void InvalidateTheme()
@@ -60,14 +123,17 @@ public static class PublicPageCache
         {
             cts.Cancel();
         }
+        BumpGlobalVersion();
     }
 
     /// <summary>
     /// Resolve the current system active theme fresh for the given route
     /// (blueprint §10): route assignment -> platform default -> legacy active.
     /// Never cached — publishing is always reflected on the next request.
+    /// Returns the theme id, its config JSON and the server-compiled CSS
+    /// (Published snapshot preferred) so clients can skip client-side compilation.
     /// </summary>
-    public static async Task<(long? YOThemeId, object ThemeConfig)> ResolveActiveTheme(string slug)
+    public static async Task<(long? YOThemeId, string YOThemeUniqueId, object ThemeConfig, string ThemeCompiledCss)> ResolveActiveTheme(string slug)
     {
         var dbFactory = DbFactoryProvider.GetFactory();
         // Resolve via studio assignment pipeline (blueprint §10).
@@ -92,16 +158,21 @@ public static class PublicPageCache
                 commandType: System.Data.CommandType.StoredProcedure);
         }
         if (resolved == null)
-            return (null, null);
+            return (null, null, null, null);
 
         // Runtime always prefers the published snapshot (blueprint §8)
-        return (resolved.YOThemeId, TryParseConfig(resolved.PublishedConfig ?? resolved.Config));
+        return (
+            resolved.YOThemeId,
+            resolved.YOThemeUniqueId,
+            TryParseConfig(resolved.PublishedConfig ?? resolved.Config),
+            resolved.PublishedCss ?? resolved.CompiledCss);
     }
 
     public static async Task<PublicPageResponse> BuildAndCache(IMemoryCache cache, Page entry, IMasterLayoutService layoutService)
     {
         var slug = entry.Slug ?? entry.Url?.TrimStart('/');
         var contentConfig = DeserializeJson<CmsContentConfig>(entry.ContentConfig);
+        var cacheVersion = await GetGlobalVersionAsync(cache);
 
         MasterLayout masterLayout = null;
         if (!string.IsNullOrEmpty(entry.MasterLayoutId) && entry.MasterLayoutId != "none")
@@ -111,7 +182,7 @@ public static class PublicPageCache
                 masterLayout = layoutResult.Data;
         }
 
-        var (yoThemeId, themeConfig) = await ResolveActiveTheme(slug);
+        var (yoThemeId, yoThemeUniqueId, themeConfig, themeCompiledCss) = await ResolveActiveTheme(slug);
 
         var response = new PublicPageResponse
         {
@@ -139,11 +210,13 @@ public static class PublicPageCache
             UpdatedAt = entry.LastModified,
             TemplateType = entry.TemplateType ?? "page",
             YOThemeId = yoThemeId,
-            ThemeConfig = themeConfig
+            YOThemeUniqueId = yoThemeUniqueId,
+            ThemeConfig = themeConfig,
+            ThemeCompiledCss = themeCompiledCss
         };
 
         if (!string.IsNullOrEmpty(slug))
-            Set(cache, slug, response);
+            Set(cache, slug, cacheVersion, response);
 
         return response;
     }

@@ -301,7 +301,10 @@ public class YOThemeStudioService : IYOThemeStudioService
                 new
                 {
                     request.YOThemeUniqueId,
-                    CompiledCss = request.CompiledCss ?? compile.Css,
+                    /* Always persist the server-compiled CSS (gate output above).
+                       Client-supplied CompiledCss is never trusted: it bypasses
+                       custom-CSS sanitization and can drift from Config. */
+                    CompiledCss = compile.Css,
                     PublishedBy = 0,
                     IPAddress = ipAddress
                 },

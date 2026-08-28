@@ -193,7 +193,7 @@ export const seedDefaultPalette = (config: StudioThemeConfig): { config: StudioT
       legacyKey: key,
     };
     const semanticPath = LEGACY_ROLE_MAP[key];
-    if (semanticPath) semantic[semanticPath] = { ref: path, type: 'color' };
+    if (semanticPath) semantic[semanticPath] = { ref: `{${path}}`, value, type: 'color' };
   });
   const withTokens = { ...config, tokens: { ...config.tokens, primitive, semantic } };
   ensurePublishableTokens(withTokens);
@@ -236,7 +236,7 @@ export const migrateLegacyConfig = (
 
     const semanticPath = LEGACY_ROLE_MAP[key.toLowerCase()];
     if (semanticPath) {
-      config.tokens.semantic[semanticPath] = { ref: path, type: 'color' };
+      config.tokens.semantic[semanticPath] = { ref: `{${path}}`, value: color.default, type: 'color' };
       summary.generatedSemanticMappings.push(`${semanticPath} → ${path}`);
     }
   });

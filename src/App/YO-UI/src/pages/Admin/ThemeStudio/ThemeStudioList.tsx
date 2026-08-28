@@ -1,14 +1,18 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import {
-  Archive, Copy, Download, FilePlus2, Import, Loader2, MoreHorizontal,
+  Archive, Copy, Download, FileDown, FilePlus2, Import, Loader2, MoreHorizontal,
   Palette, Plus, Search, Star, Trash2,
 } from "lucide-react";
 import {
+  useAddThemeAssetMutation,
   useCreateStudioThemeMutation,
   useDeleteStudioThemeMutation,
   useGetStudioThemesQuery,
+  useGetThemeAssetsQuery,
+  useExportThemeZipMutation,
+  useImportThemeZipMutation,
 } from "../../../redux/theme/themeStudioAPI";
 import {
   useDuplicateThemeMutation,
@@ -16,8 +20,14 @@ import {
   useSetDefaultThemeMutation,
   useSetThemeStatusMutation,
 } from "../../../redux/theme/themeStudioAPI";
+import { useUploadFileMutation } from "../../../redux/setting/medialibraryAPI";
 import { createEmptyStudioConfig, normalizeToStudioConfig } from "../../../services/themeMigration";
-import type { YOTheme } from "../../../types/yoThemeTypes";
+import { parseThemeConfig } from "../../../services/runtimeThemeCss";
+import {
+  collectThemeAssets, guessAssetType, uploadPackageAssets,
+} from "../../../services/themePackageAssets";
+import { buildThemePackage, verifyThemePackage } from "../../../types/yoThemeTypes";
+import type { YOTheme, YOThemePackage } from "../../../types/yoThemeTypes";
 import type { ThemeStatus } from "../../../types/yoThemeStudioTypes";
 import { StatusChip } from "./studioShared";
 
@@ -46,11 +56,49 @@ export default function ThemeStudioList() {
   const [duplicateTheme] = useDuplicateThemeMutation();
   const [setDefault] = useSetDefaultThemeMutation();
   const [setStatus] = useSetThemeStatusMutation();
+  const [uploadFile] = useUploadFileMutation();
+  const [addAssetRow] = useAddThemeAssetMutation();
+  const [exportZip, { isLoading: isZipping }] = useExportThemeZipMutation();
+  const [importZip] = useImportThemeZipMutation();
 
   const [menuFor, setMenuFor] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
   const fileInput = useRef<HTMLInputElement>(null);
+  const [exporting, setExporting] = useState<YOTheme | null>(null);
+  /* Assets are fetched only while an export is pending, then packaged. */
+  const { data: exportAssets } = useGetThemeAssetsQuery(exporting?.YOThemeUniqueId ?? "", {
+    skip: !exporting,
+  });
+
+  useEffect(() => {
+    if (!exporting || exportAssets === undefined) return;
+    const theme = exporting;
+    setExporting(null);
+    (async () => {
+      try {
+        const config = parseThemeConfig(theme.Config ?? null);
+        if (!config) throw new Error("Theme has no readable configuration");
+        const { assets, failed } = await collectThemeAssets(exportAssets ?? []);
+        if (failed.length) toast.warning(`${failed.length} asset file(s) could not be fetched and were skipped`);
+        const pkg: YOThemePackage = await buildThemePackage(theme, config, Object.keys(assets).length ? assets : undefined);
+        const blob = new Blob([JSON.stringify(pkg, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${theme.Slug || theme.Name}.yo-theme.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast.success(
+          Object.keys(assets).length
+            ? `Package downloaded with ${Object.keys(assets).length} embedded asset(s)`
+            : "Theme package downloaded",
+        );
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "Export failed");
+      }
+    })();
+  }, [exporting, exportAssets]);
 
   const filtered = useMemo(
     () =>
@@ -78,22 +126,113 @@ export default function ThemeStudioList() {
       const guid = result?.YOThemeUniqueId;
       toast.success("Theme created");
       refetch();
-      if (guid) navigate(`/admin/theme-studio/editor/${guid}`);
+      if (guid) navigate(`/admin/theme/editor/${guid}`);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Could not create theme");
     }
   };
 
+  const doExport = (theme: YOTheme) => setExporting(theme);
+
+  const doExportZip = async (theme: YOTheme) => {
+    try {
+      const blob = await exportZip(theme.YOThemeUniqueId).unwrap();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${theme.Slug || theme.Name}.yo-theme.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("ZIP package downloaded — assets included as real files");
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "ZIP export failed");
+    }
+  };
+
+  const importZipFile = async (file: File) => {
+    try {
+      const result = await importZip(file).unwrap();
+      const guid = (result?.Data as { YOThemeUniqueId?: string } | undefined)?.YOThemeUniqueId;
+      const installed = (result?.Data as { InstalledFiles?: number } | undefined)?.InstalledFiles ?? 0;
+      toast.success(
+        installed > 0
+          ? `Theme package imported with ${installed} asset file(s) under /themes/`
+          : "Theme package imported",
+      );
+      refetch();
+      if (guid) navigate(`/admin/theme/editor/${guid}`);
+    } catch (e: unknown) {
+      const message =
+        (e as { data?: { Message?: string; message?: string } })?.data?.Message ??
+        (e as { data?: { message?: string } })?.data?.message ??
+        "Could not import the ZIP package";
+      toast.error(message);
+    }
+  };
+
   const handleImport = async (file: File) => {
+    if (/\.zip$/i.test(file.name)) {
+      await importZipFile(file);
+      return;
+    }
+    let created: { guid: string; slug: string } | null = null;
     try {
       const text = await file.text();
       const parsed = JSON.parse(text);
+      // Package integrity (blueprint §16): verify the SHA-256 signature when
+      // the package carries one — matches `yo-theme verify` semantics.
+      if (parsed?.signature?.hash) {
+        const valid = await verifyThemePackage(parsed);
+        if (!valid) {
+          toast.error("Package signature mismatch — the file may be corrupted or tampered with");
+          return;
+        }
+      }
       const rawConfig = parsed?.config ?? parsed?.Config ?? parsed;
       const { config } = normalizeToStudioConfig(rawConfig);
       const name = parsed?.meta?.name ?? parsed?.name ?? parsed?.Name ?? file.name.replace(/\.(yotheme\.)?json$/i, "");
-      await createTheme(`${name} (imported)`, config as unknown as Record<string, unknown>);
+      const slug = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "theme"}-${Date.now().toString(36).slice(-4)}`;
+      const result = await createThemeMutation({
+        Name: `${name} (imported)`,
+        Slug: slug,
+        Version: "1.0.0",
+        Config: JSON.stringify(config),
+        SchemaVersion: 2,
+      }).unwrap();
+      const guid = result?.YOThemeUniqueId;
+      if (!guid) throw new Error("Theme could not be created");
+      created = { guid, slug };
+      toast.success("Theme imported");
+
+      /* Embedded binaries (logos, fonts, folders — blueprint §73): upload via
+         the media library under themes/{slug}/ and re-create asset rows. */
+      const assets: YOThemePackage["assets"] = parsed?.assets ?? {};
+      const entries = Object.entries(assets);
+      if (entries.length > 0) {
+        const dir = `themes/${slug}`;
+        const { uploaded, failed } = await uploadPackageAssets(
+          assets as NonNullable<YOThemePackage["assets"]>,
+          dir,
+          async (f, d) => { await uploadFile({ File: f, Dir: d }).unwrap(); },
+        );
+        for (const up of uploaded) {
+          await addAssetRow({
+            guid,
+            assetType: guessAssetType(up.mime, up.oldPath),
+            assetPath: up.newPath,
+            assetName: up.filename,
+            mimeType: up.mime,
+            altText: "",
+          }).unwrap();
+        }
+        if (uploaded.length) toast.success(`${uploaded.length} asset file(s) restored to /uploads/media/${dir}`);
+        if (failed.length) toast.warning(`${failed.length} embedded asset(s) could not be restored`);
+      }
+
+      refetch();
+      navigate(`/admin/theme/editor/${guid}`);
     } catch {
-      toast.error("Could not import — invalid theme package");
+      toast.error(created ? "Import partially failed — check the theme before publishing" : "Could not import — invalid theme package");
     }
   };
 
@@ -153,7 +292,7 @@ export default function ThemeStudioList() {
           <input
             ref={fileInput}
             type="file"
-            accept=".json,application/json"
+            accept=".json,.zip,application/json,application/zip"
             className="hidden"
             onChange={(e) => {
               const file = e.target.files?.[0];
@@ -190,7 +329,7 @@ export default function ThemeStudioList() {
           ) : (
             <div className="mt-3 grid gap-2 md:grid-cols-2 xl:grid-cols-3">
               {reviewQueue.map((item) => (
-                <button key={item.YOThemeUniqueId} type="button" onClick={() => navigate(`/admin/theme-studio/editor/${item.YOThemeUniqueId}`)} className="rounded-xl border border-amber-200 bg-white px-3 py-2 text-left transition hover:border-amber-300 hover:shadow-sm">
+                <button key={item.YOThemeUniqueId} type="button" onClick={() => navigate(`/admin/theme/editor/${item.YOThemeUniqueId}`)} className="rounded-xl border border-amber-200 bg-white px-3 py-2 text-left transition hover:border-amber-300 hover:shadow-sm">
                   <div className="flex items-center gap-2"><span className="truncate text-xs font-semibold text-gray-800">{item.Name}</span><StatusChip status={item.Status} /></div>
                   <p className="mt-1 text-[10px] text-gray-400">{item.Slug} · {item.PendingApprovals} pending approval{item.PendingApprovals === 1 ? "" : "s"} · {item.OpenComments} open comment{item.OpenComments === 1 ? "" : "s"}</p>
                 </button>
@@ -245,8 +384,10 @@ export default function ThemeStudioList() {
               status={statusOf(theme)}
               menuOpen={menuFor === theme.YOThemeUniqueId}
               onToggleMenu={() => setMenuFor(menuFor === theme.YOThemeUniqueId ? null : theme.YOThemeUniqueId)}
-              onOpen={() => navigate(`/admin/theme-studio/editor/${theme.YOThemeUniqueId}`)}
-              onOpenLegacy={() => navigate(`/admin/theme/editor/${theme.YOThemeUniqueId}`)}
+              onOpen={() => navigate(`/admin/theme/editor/${theme.YOThemeUniqueId}`)}
+              onExport={() => doExport(theme)}
+              onExportZip={() => doExportZip(theme)}
+              zipping={isZipping}
               onDuplicate={() => doDuplicate(theme)}
               onSetDefault={() => doSetDefault(theme)}
               onArchive={() => doArchive(theme)}
@@ -302,9 +443,11 @@ function ThemeCard({
   theme,
   status,
   menuOpen,
+  zipping,
   onToggleMenu,
   onOpen,
-  onOpenLegacy,
+  onExport,
+  onExportZip,
   onDuplicate,
   onSetDefault,
   onArchive,
@@ -313,9 +456,11 @@ function ThemeCard({
   theme: YOTheme;
   status: ThemeStatus;
   menuOpen: boolean;
+  zipping?: boolean;
   onToggleMenu: () => void;
   onOpen: () => void;
-  onOpenLegacy: () => void;
+  onExport: () => void;
+  onExportZip: () => void;
   onDuplicate: () => void;
   onSetDefault: () => void;
   onArchive: () => void;
@@ -374,7 +519,8 @@ function ThemeCard({
               {!theme.IsDefault && status === "published" && (
                 <MenuItem icon={<Star size={12} />} label="Set as default" onClick={onSetDefault} />
               )}
-              <MenuItem icon={<Download size={12} />} label="Export (open studio)" onClick={onOpen} />
+              <MenuItem icon={<Download size={12} />} label={zipping ? "Packing ZIP…" : "Download ZIP (with assets)"} onClick={onExportZip} />
+              <MenuItem icon={<FileDown size={12} />} label="Export JSON" onClick={onExport} />
               {status !== "archived" ? (
                 <MenuItem icon={<Archive size={12} />} label="Archive" onClick={onArchive} />
               ) : null}
@@ -395,14 +541,6 @@ function ThemeCard({
           className="flex-1 rounded-xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-indigo-700"
         >
           Open in Studio
-        </button>
-        <button
-          type="button"
-          onClick={onOpenLegacy}
-          className="rounded-xl border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-500 transition hover:bg-gray-50"
-          title="Open in the classic theme editor"
-        >
-          Classic
         </button>
       </div>
     </div>

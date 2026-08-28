@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ExternalLink, Monitor, Moon, RefreshCw, Smartphone, Sun, Tablet } from "lucide-react";
 import type { StudioThemeConfig } from "../../../types/yoThemeStudioTypes";
 import { encodeBase64Url } from "../../../services/previewEncoding";
+import { useGetYoPageListQuery } from "../../../redux/cmspage/cmsPageAPI";
 
 type Device = "mobile" | "tablet" | "desktop";
 
@@ -21,13 +22,22 @@ const DEBOUNCE_MS = 350;
  */
 export function StudioPreview({
   config,
-  slug = "page-mrelcnfn",
+  slug,
   onModeSelect,
 }: {
   config: StudioThemeConfig;
+  /** Fallback when no published pages exist. */
   slug?: string;
   onModeSelect?: (mode: "light" | "dark") => void;
 }) {
+  /* Preview the first real published page — a hardcoded slug breaks on any
+     install where that page doesn't exist. Falls back to home/root. */
+  const { data: pages } = useGetYoPageListQuery({ limit: 20, status: "published" });
+  const previewSlug = useMemo(() => {
+    const list = (pages as unknown as { data?: Array<{ Slug?: string; Status?: string }> } | undefined)?.data ?? [];
+    const firstPublished = list.find((p) => p.Slug && p.Status === "published")?.Slug;
+    return slug ?? firstPublished ?? "home";
+  }, [pages, slug]);
   const [device, setDevice] = useState<Device>("desktop");
   const [forcedDark, setForcedDark] = useState<boolean | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
@@ -50,7 +60,7 @@ export function StudioPreview({
       setSrc("");
       return;
     }
-    const next = `/preview/${slug}?themeConfig=${encodeBase64Url(JSON.stringify(config))}&mode=${dark ? "dark" : "light"}&v=${reloadKey}`;
+    const next = `/preview/${previewSlug}?themeConfig=${encodeBase64Url(JSON.stringify(config))}&mode=${dark ? "dark" : "light"}&v=${reloadKey}`;
     if (next === lastSrc.current) return;
     lastSrc.current = next;
     if (timer.current) window.clearTimeout(timer.current);
@@ -58,7 +68,7 @@ export function StudioPreview({
     return () => {
       if (timer.current) window.clearTimeout(timer.current);
     };
-  }, [config, dark, slug, reloadKey]);
+  }, [config, dark, previewSlug, reloadKey]);
 
   return (
     <div className="flex h-full flex-col">
@@ -107,14 +117,14 @@ export function StudioPreview({
           <ExternalLink size={13} />
         </a>
         <span className="ml-auto truncate pr-1 text-[10px] font-medium uppercase tracking-wider text-gray-400">
-          Live preview · /{slug}
+          Live preview · /{previewSlug}
         </span>
       </div>
       <div className="flex-1 overflow-auto bg-gray-100/70 p-3">
         {src ? (
           <iframe
             key={src}
-            title={`Live preview of /${slug}`}
+            title={`Live preview of /${previewSlug}`}
             src={src}
             className="mx-auto block h-full min-h-[480px] rounded-xl border border-gray-200 bg-white shadow-sm transition-all"
             style={{ width: DEVICE_WIDTHS[device] }}

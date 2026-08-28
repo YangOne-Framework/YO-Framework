@@ -187,11 +187,11 @@ export function ComponentsSection({ config, update }: StudioSectionProps) {
 /** Lightweight live preview using the compiled .yo-* classes. */
 function ComponentPreview({ componentKey, variant }: { componentKey: string; variant: string }) {
   if (componentKey === "button") {
-    const cls = variant === "primary" || variant === "default" ? "yo-btn-primary" : `yo-btn-${variant}`;
+    const cls = `yo-btn ${variant === "primary" || variant === "default" ? "yo-btn-primary" : `yo-btn-${variant}`}`;
     return (
       <div className="flex flex-wrap items-center gap-2 rounded-xl bg-gray-50/70 p-4">
         <button type="button" className={cls}>Continue</button>
-        <button type="button" className="yo-btn-outline">Cancel</button>
+        <button type="button" className="yo-btn yo-btn-outline">Cancel</button>
       </div>
     );
   }
@@ -202,7 +202,7 @@ function ComponentPreview({ componentKey, variant }: { componentKey: string; var
         <p className="mt-1 text-xs" style={{ color: "rgb(var(--c-muted))" }}>
           Cards use the surface, border, radius and shadow tokens from this theme.
         </p>
-        <button type="button" className="yo-btn-primary mt-3">Action</button>
+        <button type="button" className="yo-btn yo-btn-primary mt-3">Action</button>
       </div>
     );
   }

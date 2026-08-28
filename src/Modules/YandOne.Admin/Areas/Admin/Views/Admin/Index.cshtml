@@ -2,8 +2,15 @@
 @{
    
     var buildNo = Configuration["BuildNo"] ?? DateTime.UtcNow.Ticks.ToString();
+    Layout = "_Layout";
+
 }
-<main  id="root">
+@section Stylesheet
+{
+    
+    <link href="~/admin-dist/app.css" rel="stylesheet" />
+}
+<main  id="root" admin="yes">
   
 </main>
 @section Scripts

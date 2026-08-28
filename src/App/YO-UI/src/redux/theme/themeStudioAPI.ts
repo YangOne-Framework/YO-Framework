@@ -79,6 +79,24 @@ export const themeStudioAPI = createApi({
       transformResponse: (response: ApiResponse<YOTheme>) => unwrap(response) ?? null,
       providesTags: ["StudioTheme"],
     }),
+    /* Portable ZIP package (theme.json + assets/**) — binary download. */
+    exportThemeZip: build.mutation<Blob, string>({
+      query: (guid) => ({
+        url: API.YOTHEME_STUDIO.THEME_PACKAGE(guid),
+        responseHandler: (response: any) => response.blob(),
+      }),
+    }),
+    importThemeZip: build.mutation<
+      ApiResponse<{ YOThemeUniqueId?: string; InstalledFiles?: number; Warnings?: string[] }>,
+      File
+    >({
+      query: (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        return { url: API.YOTHEME_STUDIO.IMPORT_ZIP, method: "POST", body: formData };
+      },
+      invalidatesTags: ["StudioTheme"],
+    }),
     createStudioTheme: build.mutation<{ YOThemeUniqueId: string }, YOThemeSaveRequest>({
       query: (body) => ({
         ...{ url: API.YOTHEME_STUDIO.THEMES },
@@ -453,6 +471,8 @@ export const {
   useGetStudioThemesQuery,
   useGetStudioThemeQuery,
   useGetActiveStudioThemeQuery,
+  useExportThemeZipMutation,
+  useImportThemeZipMutation,
   useCreateStudioThemeMutation,
   useDeleteStudioThemeMutation,
   useGetStudioConfigQuery,

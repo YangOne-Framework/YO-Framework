@@ -278,6 +278,9 @@ namespace YangOne.Web
 
             app.UseMiddleware<ModuleGateMiddleware>();
             app.UseMiddleware<ModuleResourceMiddleware>();
+            // Serves theme assets embedded in module assemblies under /themes/{module}/...
+            // Falls through to the physical Themes static server for everything else.
+            app.UseMiddleware<ThemeResourceMiddleware>();
             var provider = new FileExtensionContentTypeProvider();
             // Add new mappings
             provider.Mappings[".log"] = "text/plain";

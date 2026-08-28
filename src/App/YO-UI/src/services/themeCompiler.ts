@@ -350,7 +350,9 @@ export const compileTheme = (config: StudioThemeConfig): StudioCompileOutput => 
   const criticalCss = buildCriticalCss(resolved);
   const sizeBytes = new Blob([css]).size;
 
-  if (sizeBytes > 60 * 1024) {
+  // Budget mirrors YOThemeCompiler.cs (30 KB raw) so studio preview and the
+  // publish gate warn identically.
+  if (sizeBytes > 30 * 1024) {
     validation.push(
       item('performance', 'warning', 'css', null,
         `Compiled token CSS is ${Math.round(sizeBytes / 1024)} KB raw (gzip budget target: under 15 KB).`,

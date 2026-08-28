@@ -4,6 +4,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
+import AdminThemeBridge from "./AdminThemeBridge";
 import AuthHelper from "../utils/AuthHelper";
 import { useEffect } from "react";
 import { adminnavItems, sunavItems } from "../const/navigation";
@@ -107,6 +108,7 @@ const LayoutContent: React.FC = () => {
 const AdminLayout: React.FC = () => {
   return (
     <SidebarProvider>
+      <AdminThemeBridge />
       <LayoutContent />
     </SidebarProvider>
   );

@@ -52,22 +52,24 @@ public class ThemeResourceMiddleware
             string[] pathparts = path.Split('/');
             //remove empty array
             pathparts = pathparts.Where(x => !string.IsNullOrEmpty(x)).ToArray();
-            string moduleName = pathparts[1];//0=module/1=modulename
+            string moduleName = pathparts[1];//0=themes/1=modulename
             var moduleAssembly = moduleContainer.Modules.SingleOrDefault(e => e.Name.ToLower() == moduleName.ToLower());
-            // var moduleAssembly = moduleContainer.Modules.First();
+
+            // Not a module theme route — fall through so the physical
+            // Themes static file server can handle the request.
             if (moduleAssembly == null)
             {
-                context.Response.StatusCode = 404;
+                await next.Invoke(context);
                 return;
             }
 
             var provider = new EmbeddedFileProvider(moduleAssembly.Assembly);
-            var resourceFilepath = path.Replace("/module/", "");
-            //since embedded resource is case sensitive and we need to resources folders file in lowercase
-            resourceFilepath = resourceFilepath.Replace(moduleName + "/", "").ToLower();
-
-            // var resources = moduleAssembly.Assembly.GetManifestResourceNames();
-            // string resourceOrgFilepath = resources.SingleOrDefault(x => x.Contains(resourceFilepath.Replace('/','.')));
+            // /themes/{module}/css/theme.css → /css/theme.css
+            var resourceFilepath = path.Substring(($"/themes/{moduleName}").Length);
+            if (string.IsNullOrEmpty(resourceFilepath) || !resourceFilepath.StartsWith("/"))
+                resourceFilepath = "/" + (resourceFilepath ?? "");
+            //embedded resources are case sensitive; theme assets are stored lowercase
+            resourceFilepath = resourceFilepath.ToLower();
 
             var fileInfo = provider.GetFileInfo(resourceFilepath);
 
@@ -95,7 +97,9 @@ public class ThemeResourceMiddleware
             }
             else
             {
-                context.Response.StatusCode = 404;
+                // Asset not embedded in the module — let the pipeline try the
+                // physical Themes folder before giving up.
+                await next.Invoke(context);
             }
         }
         else

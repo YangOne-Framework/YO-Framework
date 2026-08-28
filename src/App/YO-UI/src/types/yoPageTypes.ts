@@ -184,6 +184,8 @@ export interface YoPage {
   publishedAt?: string;
   templateType?: string;
   themeConfig?: unknown | null;
+  /** Server-compiled theme CSS delivered by the public page API (published snapshot). */
+  themeCompiledCss?: string | null;
 }
 
 export interface YoPageVersion {

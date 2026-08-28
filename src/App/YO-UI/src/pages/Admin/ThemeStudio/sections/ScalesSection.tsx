@@ -125,19 +125,19 @@ function ShapeSection({ config, update }: StudioSectionProps) {
         <div className="grid grid-cols-3 gap-3">
           <LabeledInput
             label="Width"
-            value={focus.width}
+            value={focus?.width ?? "2px"}
             onChange={(v) => update("shape.focus.width", (cfg) => ({ ...cfg, shape: { ...cfg.shape, focus: { ...cfg.shape.focus, width: v } } }))}
             mono
           />
           <LabeledInput
             label="Color"
-            value={focus.color}
+            value={focus?.color ?? "rgb(var(--c-ring))"}
             onChange={(v) => update("shape.focus.color", (cfg) => ({ ...cfg, shape: { ...cfg.shape, focus: { ...cfg.shape.focus, color: v } } }))}
             mono
           />
           <LabeledInput
             label="Offset"
-            value={focus.offset}
+            value={focus?.offset ?? "2px"}
             onChange={(v) => update("shape.focus.offset", (cfg) => ({ ...cfg, shape: { ...cfg.shape, focus: { ...cfg.shape.focus, offset: v } } }))}
             mono
           />

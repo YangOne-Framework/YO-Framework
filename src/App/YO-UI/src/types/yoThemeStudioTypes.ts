@@ -42,6 +42,8 @@ export interface StudioAppearance {
   defaultMode: 'light' | 'dark';
   supportedModes: Array<'light' | 'dark'>;
   highContrast?: boolean;
+  /** Theme favicon applied to document.head when the theme renders a page. */
+  faviconUrl?: string | null;
 }
 
 export interface StudioScope {

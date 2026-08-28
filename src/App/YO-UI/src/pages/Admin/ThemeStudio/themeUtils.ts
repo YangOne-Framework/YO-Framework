@@ -359,10 +359,15 @@ export const STANDARD_COMPONENTS: Record<string, ComponentVariantConfig> = {
   button: {
     variant: "primary",
     variants: {
+      /* "default"/"soft"/"ghost" are selectable in Simple mode + the component
+         registry — they must resolve here or the choice never reaches pages. */
+      default: { classes: "yo-btn yo-btn-primary" },
       primary: { classes: "yo-btn yo-btn-primary" },
       secondary: { classes: "yo-btn yo-btn-secondary" },
+      soft: { classes: "yo-btn yo-btn-soft" },
       outline: { classes: "yo-btn yo-btn-outline" },
       text: { classes: "yo-btn yo-btn-text" },
+      ghost: { classes: "yo-btn yo-btn-text" },
     },
     paddingX: "1.25rem",
     paddingY: "0.625rem",

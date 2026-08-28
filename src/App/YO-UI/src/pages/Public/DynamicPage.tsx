@@ -1,10 +1,11 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { PageRenderer } from "../../renderer/PageRenderer";
 import { StudioThemeProvider } from "../../context/StudioThemeContext";
 import { buildTokenCss, parseThemeConfig } from "../../services/runtimeThemeCss";
 import { sanitizeCustomCss } from "../../services/themeCompiler";
 import { decodeBase64Url } from "../../services/previewEncoding";
+import { getValidToken } from "../../services/tokenManager";
 import { GoogleFontLoader } from "../../components/GoogleFontLoader";
 import { useGetStudioConfigQuery, useGetStudioThemesQuery } from "../../redux/theme/themeStudioAPI";
 import { useResolvePublicThemeQuery } from "../../redux/publicPage/publicPageAPI";
@@ -48,17 +49,96 @@ function SidebarRightShell({ children }: ShellProps) {
         fontFamily: "var(--font-body, system-ui, sans-serif)",
       }}
     >
-      <main className="flex-1">{children}</main>
+      <main className="min-w-0 flex-1">{children}</main>
+      <aside
+        className="hidden w-64 shrink-0 border-l lg:block"
+        style={{ borderColor: "rgb(var(--c-border, 226 232 240))", backgroundColor: "var(--yo-card, #ffffff)" }}
+      >
+        <div className="space-y-3 p-5">
+          <div className="h-2.5 w-24 rounded-full" style={{ backgroundColor: "rgb(var(--c-primary))", opacity: 0.85 }} />
+          {[80, 65, 72].map((w) => (
+            <div key={w} className="h-2 rounded-full" style={{ width: `${w}%`, backgroundColor: "rgb(var(--c-border, 226 232 240))" }} />
+          ))}
+        </div>
+      </aside>
+    </div>
+  );
+}
+
+function SidebarLeftShell({ children }: ShellProps) {
+  return (
+    <div
+      className="flex min-h-screen"
+      style={{
+        backgroundColor: "var(--yo-bg, #ffffff)",
+        color: "var(--yo-text, #1e293b)",
+        fontFamily: "var(--font-body, system-ui, sans-serif)",
+      }}
+    >
+      <aside
+        className="hidden w-64 shrink-0 border-r md:block"
+        style={{ borderColor: "rgb(var(--c-border, 226 232 240))", backgroundColor: "var(--yo-card, #ffffff)" }}
+      >
+        <div className="space-y-3 p-5">
+          <div className="h-2.5 w-24 rounded-full" style={{ backgroundColor: "rgb(var(--c-primary))", opacity: 0.85 }} />
+          {[70, 88, 60, 76].map((w) => (
+            <div key={w} className="h-2 rounded-full" style={{ width: `${w}%`, backgroundColor: "rgb(var(--c-border, 226 232 240))" }} />
+          ))}
+        </div>
+      </aside>
+      <main className="min-w-0 flex-1">{children}</main>
+    </div>
+  );
+}
+
+function TopNavShell({ children }: ShellProps) {
+  return (
+    <div
+      className="min-h-screen"
+      style={{
+        backgroundColor: "var(--yo-bg, #ffffff)",
+        color: "var(--yo-text, #1e293b)",
+        fontFamily: "var(--font-body, system-ui, sans-serif)",
+      }}
+    >
+      <header
+        className="sticky top-0 z-40 flex items-center gap-6 border-b px-6 py-3"
+        style={{ borderColor: "rgb(var(--c-border, 226 232 240))", backgroundColor: "var(--yo-card, #ffffff)" }}
+      >
+        <span className="h-7 w-7 rounded-lg" style={{ backgroundColor: "rgb(var(--c-primary))" }} />
+        <nav className="flex items-center gap-4 text-sm">
+          {["Home", "Features", "About"].map((label) => (
+            <span key={label} style={{ color: "rgb(var(--c-muted, 100 116 139))" }}>{label}</span>
+          ))}
+        </nav>
+        <button type="button" className="yo-btn yo-btn-primary ml-auto !py-2 !text-xs">Sign up</button>
+      </header>
+      <main>{children}</main>
+    </div>
+  );
+}
+
+function MinimalShell({ children }: ShellProps) {
+  return (
+    <div
+      className="min-h-screen px-4 py-16"
+      style={{
+        backgroundColor: "var(--yo-bg, #ffffff)",
+        color: "var(--yo-text, #1e293b)",
+        fontFamily: "var(--font-body, system-ui, sans-serif)",
+      }}
+    >
+      <div className="mx-auto max-w-3xl">{children}</div>
     </div>
   );
 }
 
 const ShellRegistry: Record<string, React.ComponentType<ShellProps>> = {
   DefaultShell,
+  SidebarLeftShell,
   SidebarRightShell,
-  SidebarLeftShell: DefaultShell,
-  TopNavShell: DefaultShell,
-  MinimalShell: DefaultShell,
+  TopNavShell,
+  MinimalShell,
 };
 
 // ── Template Resolver ───────────────────────────────────
@@ -157,12 +237,20 @@ export default function DynamicPage({ page, preview = false }: DynamicPageProps)
 
   // The published page API (api/public/pages/{slug}) already resolves and returns
   // the theme + layout server-side (active theme, or the page's linked theme) as
-  // `ThemeConfig` / `MasterLayout`. So the real page consumes the theme straight
-  // from the page payload — no separate auth-gated /yotheme/active call, which
-  // meant an extra round-trip and broke anonymous/public rendering.
-  // The ?theme= override reads the selected theme's draft via config/{guid} —
-  // note: GET /yotheme-studio/themes/{guid} is not implemented on the backend (405).
-  const { data: overrideCfg } = useGetStudioConfigQuery(themeParam ?? "", { skip: !themeParam });
+  // `ThemeConfig` / `MasterLayout`, along with `ThemeCompiledCss` — the sanitized,
+  // server-compiled CSS snapshot. The ?theme= override reads the selected theme's
+  // draft via config/{guid} — an authenticated admin endpoint, so anonymous
+  // visitors skip it and fall through to the published resolution chain.
+  const [hasSession, setHasSession] = useState(false);
+  useEffect(() => {
+    let mounted = true;
+    if (!themeParam) return;
+    getValidToken()
+      .then((token) => { if (mounted) setHasSession(!!token); })
+      .catch(() => { if (mounted) setHasSession(false); });
+    return () => { mounted = false; };
+  }, [themeParam]);
+  const { data: overrideCfg } = useGetStudioConfigQuery(themeParam ?? "", { skip: !themeParam || !hasSession });
 
   // Studio assignment pipeline fallback (blueprint §10/§21): when the page API
   // did not deliver a theme (no linked theme and the server cache predates an
@@ -203,6 +291,14 @@ export default function DynamicPage({ page, preview = false }: DynamicPageProps)
   }, [themeConfig, page.templateType, page.slug]);
 
   const cssVars = useMemo(() => {
+    // Production path: the published page payload ships the server-compiled CSS
+    // (sanitized + gate-validated at publish time). Applying it directly avoids
+    // recompiling in the browser and can never drift from what was published.
+    // Studio preview (?theme=, ?themeConfig=) always compiles locally — drafts
+    // have no server snapshot yet.
+    if (!preview && !themeParam && !previewConfigParam && page.themeCompiledCss) {
+      return page.themeCompiledCss;
+    }
     if (!themeConfig?.tokens) return "";
     // Preview forces light/dark explicitly; the real published page honors the
     // theme's defaultMode (light/dark) and falls back to the OS preference.
@@ -217,7 +313,7 @@ export default function DynamicPage({ page, preview = false }: DynamicPageProps)
     const customCss = sanitizeCustomCss(themeConfig.customCss ?? "").css;
     const base = buildTokenCss(themeConfig.tokens, themeConfig.components, mode);
     return customCss ? `${base}\n${customCss}` : base;
-  }, [themeConfig, preview, darkMode]);
+  }, [themeConfig, preview, darkMode, themeParam, previewConfigParam, page.themeCompiledCss]);
 
   // Forced dark/light for the studio live preview and for themes with an
   // explicit defaultMode — never touches the site when the theme is "auto".
@@ -238,6 +334,31 @@ export default function DynamicPage({ page, preview = false }: DynamicPageProps)
       document.documentElement.style.colorScheme = "";
     };
   }, [preview, darkMode, themeConfig]);
+
+  // Theme favicon (appearance.faviconUrl) — applied while the theme is active,
+  // restored to whatever the app shipped when the theme goes away.
+  useEffect(() => {
+    const faviconUrl = themeConfig?.appearance?.faviconUrl;
+    if (!faviconUrl) return;
+    const original = document.querySelector<HTMLLinkElement>("link[rel~='icon']");
+    const created = document.createElement("link");
+    created.rel = "icon";
+    created.href = faviconUrl;
+    document.head.appendChild(created);
+    return () => {
+      created.remove();
+      if (original) document.head.appendChild(original);
+    };
+  }, [themeConfig]);
+
+  // Reduced-motion authoring toggle — applies the kill-switch class while this
+  // theme renders, restores the previous state when the theme goes away.
+  useEffect(() => {
+    const reduced = !!(themeConfig as { motion?: { reduced?: boolean } } | null)?.motion?.reduced;
+    if (!reduced) return;
+    document.documentElement.classList.add("yo-reduced-motion");
+    return () => document.documentElement.classList.remove("yo-reduced-motion");
+  }, [themeConfig]);
 
   if (!themeConfig) {
     // No theme — render page directly

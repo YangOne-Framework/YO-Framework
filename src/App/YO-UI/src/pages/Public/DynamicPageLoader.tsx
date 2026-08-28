@@ -51,6 +51,7 @@ function mapPublicPageToYoPage(dto: PublicPageResponse): YoPage {
     publishedAt: (d.publishedAt ?? d.PublishedAt ?? null) as string | null,
     templateType: (d.templateType ?? d.TemplateType ?? "page") as string,
     themeConfig: parseThemeConfig(d.themeConfig ?? d.ThemeConfig ?? null),
+    themeCompiledCss: (d.themeCompiledCss ?? d.ThemeCompiledCss ?? null) as string | null,
   };
 }
 

@@ -7,7 +7,13 @@ import { Accordion, LabeledInput, LabeledSelect, SectionShell, type StudioSectio
  */
 export function BrandSection({ config, update }: StudioSectionProps) {
   const { data: brandKits = [] } = useGetBrandKitsQuery();
-  const appearance = config.appearance;
+  /* Legacy/migrated themes may lack the appearance block entirely. */
+  const appearance = {
+    defaultMode: "light" as "light" | "dark",
+    supportedModes: ["light", "dark"] as Array<"light" | "dark">,
+    ...(config.appearance ?? {}),
+  };
+  if (!appearance.supportedModes?.length) appearance.supportedModes = ["light", "dark"];
 
   return (
     <SectionShell
@@ -41,9 +47,12 @@ export function BrandSection({ config, update }: StudioSectionProps) {
                     type="button"
                     onClick={() =>
                       update("appearance.supportedModes", (cfg) => {
+                        const current: Array<"light" | "dark"> = cfg.appearance?.supportedModes?.length
+                          ? cfg.appearance.supportedModes
+                          : ["light", "dark"];
                         const modes = active
-                          ? cfg.appearance.supportedModes.filter((m) => m !== mode)
-                          : [...cfg.appearance.supportedModes, mode];
+                          ? current.filter((m) => m !== mode)
+                          : [...current, mode];
                         return {
                           ...cfg,
                           appearance: {

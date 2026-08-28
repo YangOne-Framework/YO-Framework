@@ -7,6 +7,8 @@ export const API = {
     THEMES: "/api/v1/yotheme-studio/themes",
     THEMES_ACTIVE: "/api/v1/yotheme-studio/themes/active",
     THEME: (guid: string) => `/api/v1/yotheme-studio/themes/${guid}`,
+    THEME_PACKAGE: (guid: string) => `/api/v1/yotheme-studio/themes/${guid}/package`,
+    IMPORT_ZIP: "/api/v1/yotheme-studio/themes/import-zip",
     THEME_DELETE: (guid: string) => `/api/v1/yotheme-studio/themes/${guid}`,
     CONFIG: (guid: string) => `/api/v1/yotheme-studio/config/${guid}`,
     COMPILE: "/api/v1/yotheme-studio/compile",
@@ -329,12 +331,6 @@ export const API = {
     ALL: "/api/v1/systemprompt/all",
     SAVE: "/api/v1/systemprompt/save",
     DELETE: (id: number | string) => `/api/v1/systemprompt/${id}`,
-  },
-
-  THEME: {
-    ALL: "/api/v1/theme/all",
-    SAVE: "/api/v1/theme/save",
-    DELETE: (id: number | string) => `/api/v1/theme/${id}`,
   },
 
   SUPPORT: {

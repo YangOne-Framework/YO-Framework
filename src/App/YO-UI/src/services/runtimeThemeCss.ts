@@ -221,6 +221,15 @@ export function buildTokenCss(
   filter: brightness(1.1);
   transform: translateY(-1px);
 }
+.yo-btn-soft {
+  background-color: color-mix(in srgb, rgb(var(--c-primary)) 12%, transparent);
+  color: rgb(var(--c-primary));
+  box-shadow: none;
+}
+.yo-btn-soft:hover {
+  background-color: color-mix(in srgb, rgb(var(--c-primary)) 20%, transparent);
+  transform: translateY(-1px);
+}
 .yo-btn-outline {
   background-color: transparent;
   border-color: rgb(var(--c-border));
@@ -607,9 +616,16 @@ export function buildTokenCss(
 }
 `;
 
-  /* Reduced motion toggle (from the Motion control) */
+  /* Reduced motion toggle (from the Motion control) — emitted both as a
+     root-level kill-switch (applies immediately) and as an opt-in class. */
   if (tokens.motion?.reduced) {
     cssOutput += `
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
 .yo-reduced-motion *, .yo-reduced-motion *::before, .yo-reduced-motion *::after {
   transition: none !important;
   animation: none !important;

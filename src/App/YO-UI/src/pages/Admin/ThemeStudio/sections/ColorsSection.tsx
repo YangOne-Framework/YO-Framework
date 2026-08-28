@@ -88,7 +88,7 @@ export function ColorsSection({ config, update }: StudioSectionProps) {
           legacyKey: key,
         };
         const semanticPath = LEGACY_ROLE_MAP[key];
-        if (semanticPath) semantic[semanticPath] = { ref: path, type: "color" };
+        if (semanticPath) semantic[semanticPath] = { ref: `{${path}}`, value, type: "color" };
       });
       const withTokens = { ...cfg, tokens: { ...cfg.tokens, primitive, semantic } };
       ensurePublishableTokens(withTokens);
@@ -255,7 +255,7 @@ export function ColorsSection({ config, update }: StudioSectionProps) {
               </button>
             </div>
           ))}
-          <SemanticAdder existing={Object.keys(config.tokens.semantic)} onAdd={(path) => setToken("semantic", path, { ref: primitivePaths[0], type: "color" })} />
+          <SemanticAdder existing={Object.keys(config.tokens.semantic)} onAdd={(path) => setToken("semantic", path, { ref: `{${primitivePaths[0] ?? "color.brand.primary"}}`, value: config.tokens.primitive[primitivePaths[0]]?.value, type: "color" })} />
         </div>
       </Accordion>
 
@@ -287,7 +287,7 @@ export function ColorsSection({ config, update }: StudioSectionProps) {
           <SemanticAdder
             existing={Object.keys(config.tokens.component)}
             placeholder="button.primary.hoverBackground"
-            onAdd={(path) => setToken("component", path, { ref: primitivePaths[0], type: "color" })}
+            onAdd={(path) => setToken("component", path, { ref: `{${primitivePaths[0] ?? "color.brand.primary"}}`, value: config.tokens.primitive[primitivePaths[0]]?.value, type: "color" })}
           />
         </div>
       </Accordion>

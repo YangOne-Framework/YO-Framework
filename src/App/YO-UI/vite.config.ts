@@ -69,6 +69,35 @@ export default defineConfig({
     // Polyfill Node.js globals for browser
     global: "globalThis",
   },
+  build: {
+    chunkSizeWarningLimit: 900,
+    rollupOptions: {
+      output: {
+        // Split heavy vendors out of the entry chunk so the admin shell
+        // paints without waiting for editors/charts/calendars to parse.
+        manualChunks: {
+          react: ["react", "react-dom", "react-router-dom"],
+          redux: ["@reduxjs/toolkit", "react-redux", "axios"],
+          editor: ["@monaco-editor/react", "@tinymce/tinymce-react"],
+          charts: ["apexcharts", "react-apexcharts"],
+          calendar: [
+            "@fullcalendar/core",
+            "@fullcalendar/react",
+            "@fullcalendar/daygrid",
+            "@fullcalendar/timegrid",
+            "@fullcalendar/list",
+            "@fullcalendar/interaction",
+          ],
+          dnd: ["react-dnd", "react-dnd-html5-backend", "@dnd-kit/core", "@dnd-kit/sortable", "@dnd-kit/utilities"],
+          forms: ["react-hook-form", "@hookform/resolvers", "@hookform/error-message", "react-select"],
+          maps: ["@react-jvectormap/core", "@react-jvectormap/world"],
+          motion: ["framer-motion", "swiper"],
+          i18n: ["i18next", "react-i18next", "i18next-http-backend", "i18next-browser-languagedetector"],
+          realtime: ["@microsoft/signalr", "@microsoft/signalr-protocol-msgpack"],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       "/api/v1": {
@@ -87,6 +116,11 @@ export default defineConfig({
         secure: false,
       },
       "/uploads": {
+        target: "https://localhost:7259",
+        changeOrigin: true,
+        secure: false,
+      },
+      "/themes": {
         target: "https://localhost:7259",
         changeOrigin: true,
         secure: false,

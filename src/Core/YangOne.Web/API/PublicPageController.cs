@@ -32,13 +32,16 @@ public class PublicPageController : BaseApiController
             if (string.IsNullOrEmpty(slug))
                 slug = "home";
 
-            if (PublicPageCache.TryGet(_cache, slug, out var cached))
+            var cacheVersion = await PublicPageCache.GetGlobalVersionAsync(_cache);
+            if (PublicPageCache.TryGet(_cache, slug, cacheVersion, out var cached))
             {
-                // Theme config is always resolved fresh per request so a publish
-                // is reflected immediately, independent of the page cache.
-                var (themeId, themeConfig) = await PublicPageCache.ResolveActiveTheme(slug);
+                // Theme config + compiled CSS are always resolved fresh per request
+                // so a publish is reflected immediately, independent of the page cache.
+                var (themeId, themeUniqueId, themeConfig, themeCompiledCss) = await PublicPageCache.ResolveActiveTheme(slug);
                 cached.YOThemeId = themeId;
+                cached.YOThemeUniqueId = themeUniqueId;
                 cached.ThemeConfig = themeConfig;
+                cached.ThemeCompiledCss = themeCompiledCss;
                 return SuccessResponse("Success (cached)", cached);
             }
 
@@ -93,7 +96,12 @@ public class PublicPageResponse
     public DateTime? UpdatedAt { get; set; }
     public string TemplateType { get; set; }
     public long? YOThemeId { get; set; }
+    public string YOThemeUniqueId { get; set; }
     public object ThemeConfig { get; set; }
+
+    /// <summary>Server-compiled theme CSS (Published snapshot) — clients apply it
+    /// directly instead of recompiling ThemeConfig in the browser.</summary>
+    public string ThemeCompiledCss { get; set; }
 }
 
 public class SeoDto
