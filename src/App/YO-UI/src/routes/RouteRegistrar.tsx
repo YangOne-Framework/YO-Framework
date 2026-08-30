@@ -78,6 +78,8 @@ import DynamicPageLoader from "../pages/Public/DynamicPageLoader";
 import PreviewPageLoader from "../pages/Public/PreviewPageLoader";
 import ThemeStudioList from "../pages/Admin/ThemeStudio/ThemeStudioList";
 import ThemeStudioEditor from "../pages/Admin/ThemeStudio/ThemeStudioEditor";
+import ThemeManagement from "../pages/Admin/ThemeStudio/ThemeManagement";
+import FormTheme from "../pages/Admin/ThemeStudio/FormTheme";
 
 const appRoutes: RouteObject[] = [
   {
@@ -137,7 +139,9 @@ const superUserRoutes: RouteObject = {
     { path: "layout/new", element: <LayoutForm /> },
     { path: "layout/edit", element: <LayoutForm /> },
     { path: "layout/design", element: <LayoutBuilder /> },
-    { path: "theme", element: <ThemeStudioList /> },
+    { path: "theme", element: <ThemeManagement /> },
+    { path: "theme/new", element: <FormTheme /> },
+    { path: "theme/edit/:id", element: <FormTheme /> },
     { path: "theme/editor/:guid", element: <ThemeStudioEditor /> },
     { path: "media", element: <MediaLibraryPage /> },
     { path: "user", element: <UserManagement /> },
