@@ -1030,6 +1030,7 @@ CREATE TABLE dbo.HtmlComponent
 (
 	HtmlComponentId								        	int primary key identity(1,1) not null,
 	Name									            	nvarchar(256) not null,
+	CatalogCategory 										nvarchar(256),
   	DisplayName                             				nvarchar(256) not null,
   	ShortDescription                        				nvarchar(500),
   	Icon                                    				nvarchar(50),
